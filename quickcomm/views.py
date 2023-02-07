@@ -13,3 +13,39 @@ def index(request):
     }
     return render(request, 'quickcomm/index.html', context)
 
+@login_required
+def create_post(request):
+    if request.method == 'POST':
+        form = CreatePlainTextForm(request.POST)
+        if form.is_valid():
+            author = Author.objects.get(user=request.user)
+            form.save(author)
+            return HttpResponseRedirect('/')
+        else:
+            form = CreatePlainTextForm()
+    else:
+        form = CreatePlainTextForm()
+    return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'plain text'})
+
+@login_required
+def create_markdown(request):
+    if request.method == 'POST':
+        form = CreateMarkdownForm(request.POST)
+        if form.is_valid():
+            author = Author.objects.get(user=request.user)
+            form.save(author)
+            return HttpResponseRedirect('/')
+        else:
+            form = CreateMarkdownForm()
+    else:
+        form = CreateMarkdownForm()
+    return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'CommonMark Markdown'})
+
+
+def login(request):
+    # TODO implement login
+    return HttpResponse('Login Page')
+
+def register(request):
+    # TODO implement register
+    return HttpResponse('Register Page')
