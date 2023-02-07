@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -9,6 +10,8 @@ from django.contrib.auth.models import User
 # fields are kept as the if these classes are used to represent remote authors,
 # the host field is necessary. ID is also left out.
 
+# We used UUIDs for pkeys to be more secure.
+
 class Author(models.Model):
     """An author is a person associated with a user account via a one-to-one
     relationship."""
@@ -19,6 +22,7 @@ class Author(models.Model):
     # Site: Simple is Better Than Complex
     # Taken on: Feb 6, 2023
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     host = models.URLField()
     display_name = models.CharField(max_length=100)
@@ -68,17 +72,18 @@ class Post(models.Model):
         PUBLIC = 'public'
         FRIENDS = 'friends'
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
     source = models.URLField(blank=True, null=True)
     origin = models.URLField(blank=True, null=True)
     description = models.CharField(max_length=1000)
-    content_type = models.CharField(max_length=10, choices=PostType.choices)
+    content_type = models.CharField(max_length=50, choices=PostType.choices)
     content = models.CharField(max_length=10000)
     # FIXME categories has to be a list of strings of some sort
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
     published = models.DateTimeField()
-    visibility = models.CharField(max_length=10, choices=PostVisibility.choices)
+    visibility = models.CharField(max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
 
 class Comment(models.Model):
@@ -88,10 +93,11 @@ class Comment(models.Model):
         TEXT = 'text/plain'
         MD = 'text/markdown'
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     comment = models.CharField(max_length=1000)
-    content_type = models.CharField(max_length=10, choices=CommentType.choices)
+    content_type = models.CharField(max_length=50, choices=CommentType.choices)
     published = models.DateTimeField()
 
 class Inbox(models.Model):
