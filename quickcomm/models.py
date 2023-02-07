@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import URLValidator
 
 # NOTE: The models in this file do not take into account how the site will
 # interact with other APIs. Ideally, we should be able to reuse the model
@@ -11,6 +12,7 @@ from django.contrib.auth.models import User
 # the host field is necessary. ID is also left out.
 
 # We used UUIDs for pkeys to be more secure.
+# TODO what are the constraints on fields being null?
 
 class Author(models.Model):
     """An author is a person associated with a user account via a one-to-one
@@ -24,10 +26,10 @@ class Author(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    host = models.URLField()
+    host = models.URLField(validators=[URLValidator])
     display_name = models.CharField(max_length=100)
-    github = models.URLField(blank=True, null=True)
-    profile_image = models.URLField(blank=True, null=True)
+    github = models.URLField(blank=True, null=True, validators=[URLValidator])
+    profile_image = models.URLField(blank=True, null=True, validators=[URLValidator])
 
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
@@ -69,22 +71,25 @@ class Post(models.Model):
         APP = 'application/base64'
 
     class PostVisibility(models.TextChoices):
-        PUBLIC = 'public'
-        FRIENDS = 'friends'
+        PUBLIC = 'PUBLIC'
+        FRIENDS = 'FRIENDS'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=100)
-    source = models.URLField(blank=True, null=True)
-    origin = models.URLField(blank=True, null=True)
+    source = models.URLField(blank=True, null=True, validators=[URLValidator])
+    origin = models.URLField(blank=True, null=True, validators=[URLValidator])
     description = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=PostType.choices)
     content = models.CharField(max_length=10000)
     # FIXME categories has to be a list of strings of some sort
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
-    published = models.DateTimeField()
+    published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"{self.title} by {self.author.__str__()}"
 
 class Comment(models.Model):
     """A comment is a comment made by an author on a post."""
@@ -98,7 +103,7 @@ class Comment(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     comment = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=CommentType.choices)
-    published = models.DateTimeField()
+    published = models.DateTimeField(auto_now_add=True)
 
 class Inbox(models.Model):
     """The inbox is a relationship between an author and a post."""
