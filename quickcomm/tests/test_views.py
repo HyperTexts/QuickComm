@@ -30,7 +30,7 @@ class RegisterViewTest(TestCase):
 
     def test_register(self):
         response = self.client.post('/register/', {
-            'display_name': 'user1',
+            'username': 'user1',
             'password': 'pass1',
         })
 
