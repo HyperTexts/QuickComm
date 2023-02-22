@@ -10,7 +10,7 @@
                 <h2 class="align-middle">{{ author.display_name }}</h2>
             </div>
             <div class="col-md-2 align-self-center">
-                <a href = "{% url 'view_followers' author.id %}">{{ author.follower_count }}</a>
+                Followers: <a href = "{% url 'view_followers' author.id %}">{{ author.follower_count }}</a>
             </div>
         </div>
     </div>
