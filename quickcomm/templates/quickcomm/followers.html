@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Your followers</h1>
+<p>Here are your followers</p>
+
+<h1>All Followers</h1>
+<ul>
+    {% for follower in followers %}
+        {% if not follower.author__profile_image %}
+            <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
+        {% else %}
+            <img src={{ follower.author__profile_image }} width="32" height="32" class="rounded-circle">
+        {% endif %}
+        <li><a href = "{% url 'view_profile' follower.author__id %}">{{ follower.author__display_name }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

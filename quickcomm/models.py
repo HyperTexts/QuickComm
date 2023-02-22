@@ -8,7 +8,7 @@ from django.core.validators import URLValidator
 # classes, but this logic is to be implemented later.
 
 # Type fields are left out as they can be added later and are redundant. Host
-# fields are kept as if these classes are used to represent remote authors,
+# fields are kept as the if these classes are used to represent remote authors,
 # the host field is necessary. ID is also left out.
 
 # We used UUIDs for pkeys to be more secure.
@@ -41,11 +41,6 @@ class Author(models.Model):
     def following(self, author):
         """Returns true if this author (self) is followed by the given author."""
         return Follow.objects.filter(follower=author, following=self).exists()
-
-    def is_bidirectional(self, author):
-        """Returns true if this author (self) follows and is followed by the
-        given author. In other words, a true friend."""
-        return self.follows(author) and self.following(author)
 
 
     def __str__(self):

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Home</h1>
+    <p>Welcome to QuickComm!</p>
+
+    <h1>All Posts</h1>
+    <ul>
+        {% for post in posts %}
+            <li>{{ post.title }} by {{ post.author }} <i>[{{ post.id }}]</i></li>
+        {% endfor %}
+    </ul>
+{% endblock %}
