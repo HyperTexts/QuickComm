@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.models import User
 from .models import Post
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
@@ -71,14 +72,7 @@ class CreateLoginForm(forms.Form):
         return post
 
 
-class CreateLogoutForm(forms.Form):
-    display_name = forms.CharField(max_length=100)
-    password = forms.CharField(widget=forms.PasswordInput())
-
-    def save(self):
-        post = Post(
-            display_name=self.cleaned_data['display_name'],
-            password=self.cleaned_data['password']
-        )
-        post.save()
-        return post
+class CreateRegisterForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ['username', 'password']

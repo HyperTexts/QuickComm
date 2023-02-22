@@ -3,7 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
-from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateLogoutForm
+from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateRegisterForm
 from quickcomm.models import Author, Post
 
 # Create your views here.
@@ -71,9 +71,9 @@ def logout(request):
 
 def register(request):
     if request.method == 'POST':
-        form = CreateLogoutForm(request.POST)
+        form = CreateRegisterForm(request.POST)
         if form.is_valid():
-            username = request.POST['display_name']
+            username = request.POST['username']
             password = request.POST['password']
             if username and password:
                 user = User.objects.create_user(
@@ -81,7 +81,7 @@ def register(request):
                 auth_login(request, user)
                 return redirect('/')
             else:
-                form = CreateLogoutForm()
+                form = CreateRegisterForm()
     else:
-        form = CreateLogoutForm()
+        form = CreateRegisterForm()
     return render(request, 'quickcomm/login.html', {'form': form})
