@@ -77,3 +77,10 @@ def view_profile(request, author_id):
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
                     })
+    
+def view_followers(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    
+    return render(request, 'quickcomm/followers.html', {
+                    'author': author,
+                    })

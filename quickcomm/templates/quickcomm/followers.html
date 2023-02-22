@@ -1,20 +1,20 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>All Authors</h1>
-        {% for author in authors %}
+    <h1>{{ author.display_name }}'s Followers</h1>
+        {% for follower in author.get_followers %}
             <div class ="row">
-                {% if not author.profile_image %}
+                {% if not follower.follower.profile_image %}
                     <div class="col">
                         <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
                     </div>
                 {% else %}
                     <div class="col-1">
-                        <img src={{ author.profile_image }} width="32" height="32" class="rounded-circle">
+                        <img src={{ follower.follower.profile_image }} width="32" height="32" class="rounded-circle">
                     </div>
                 {% endif %}
                 <div class="col">
-                    <a href = "{% url 'view_profile' author.id %}">{{ author.display_name }}</a>
+                    <h3 class=""> {{ follower.follower.display_name }} </h3>
                 </div>
             </div>
         {% endfor %}

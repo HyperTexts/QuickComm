@@ -43,12 +43,11 @@ class Author(models.Model):
         return Follow.objects.filter(follower=author, following=self).exists()
     
     def follower_count(self):
-        """return number of profiles followed by author (self)"""
+        """return number of profiles following author (self)"""
         return Follow.objects.filter(following=self).count()
     
     def get_followers(self):
-        return self.following.all()
-
+        return Follow.objects.filter(following=self)
 
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"

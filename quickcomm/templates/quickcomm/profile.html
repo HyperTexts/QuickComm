@@ -2,12 +2,15 @@
 {% block content %}
     <div class="container">
         <div class="row">
-            <div class="col-4"></div>
+            <div class="col-2"></div>
             <div class="col-md-2">
                 <img class="" src={{ author.profile_image }} width="128px" class="rounded-circle">
             </div>
             <div class="col-md-2 align-self-center">
-                <h3 class="align-middle">{{ author.display_name}}</h3>
+                <h2 class="align-middle">{{ author.display_name }}</h2>
+            </div>
+            <div class="col-md-2 align-self-center">
+                <a href = "{% url 'view_followers' author.id %}">{{ author.follower_count }}</a>
             </div>
         </div>
     </div>
