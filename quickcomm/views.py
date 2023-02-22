@@ -1,7 +1,7 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login as auth_login
+from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm
 from quickcomm.models import Author, Post
 
@@ -59,6 +59,13 @@ def login(request):
     else:
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
+
+
+@login_required
+def logout(request):
+    print('test')
+    auth_logout(request)
+    return redirect('/')
 
 
 def register(request):
