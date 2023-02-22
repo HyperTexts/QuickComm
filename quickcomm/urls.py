@@ -9,4 +9,5 @@ urlpatterns = [
     path('create/markdown', views.create_markdown, name='create_markdown'),
     path('authors/', views.view_authors, name='view_authors'),
     path('authors/<str:author_id>/', views.view_profile, name='view_profile'),
+    path('followers/', views.view_follower,name='view_followers'),
 ]
