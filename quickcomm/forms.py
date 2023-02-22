@@ -69,3 +69,16 @@ class CreateLoginForm(forms.Form):
         )
         post.save()
         return post
+
+
+class CreateLogoutForm(forms.Form):
+    display_name = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput())
+
+    def save(self):
+        post = Post(
+            display_name=self.cleaned_data['display_name'],
+            password=self.cleaned_data['password']
+        )
+        post.save()
+        return post
