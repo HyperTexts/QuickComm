@@ -1,10 +1,12 @@
 {% load django_bootstrap5 %}
 {% bootstrap_css %}
 {% block content %}
-    <h2>Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Log In</button>
-      </form>
+    <div class="Container">
+        <h1>Login</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% bootstrap_form form %}
+            {% bootstrap_button button_type="submit" content="Create" %}
+        </form>
+    </div>
 {% endblock %}
