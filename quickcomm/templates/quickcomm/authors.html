@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Home</h1>
+    <p>Welcome to QuickComm!</p>
+
+    <h1>All Authors</h1>
+    <ul>
+        {% for author in authors %}
+            {% if not author.profile_image %}
+                <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
+            {% else %}
+                <img src={{ author.profile_image }} width="32" height="32" class="rounded-circle">
+            {% endif %}
+            <li><a href = "{% url 'view_profile' author.id %}">{{ author.display_name }}</a></li>
+        {% endfor %}
+    </ul>
+{% endblock %}

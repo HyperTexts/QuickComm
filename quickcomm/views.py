@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login
@@ -64,3 +64,16 @@ def login(request):
 def register(request):
     # TODO implement register
     return HttpResponse('Register Page')
+
+def view_authors(request):
+    context = {
+        'authors': Author.objects.all()
+    }
+    return render(request, 'quickcomm/authors.html', context)
+
+def view_profile(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    
+    return render(request, 'quickcomm/profile.html', {
+                    'author': author,
+                    })
