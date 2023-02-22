@@ -61,7 +61,7 @@ class Follow(models.Model):
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
-        return self.following.follows(self.follower)
+        return self.following.is_following(self.follower)
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
