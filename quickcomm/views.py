@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth import authenticate, login
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm
 from quickcomm.models import Author, Post
 
@@ -48,7 +48,13 @@ def create_markdown(request):
 def login(request):
     if request.method == 'POST':
         form = CreateLoginForm(request.POST)
-        return HttpResponse('Login Page')
+        if form.is_valid():
+            user = authenticate(
+                username=request.POST['display_name'], password=request.POST['password'])
+            if user is not None:
+                return HttpResponse('Login Page')
+            else:
+                form = CreateLoginForm()
     else:
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
