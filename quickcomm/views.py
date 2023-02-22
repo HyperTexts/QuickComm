@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login as auth_login
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm
 from quickcomm.models import Author, Post
 
@@ -52,6 +52,7 @@ def login(request):
             user = authenticate(
                 username=request.POST['display_name'], password=request.POST['password'])
             if user is not None:
+                auth_login(request, user)
                 return HttpResponse('Login Page')
             else:
                 form = CreateLoginForm()
