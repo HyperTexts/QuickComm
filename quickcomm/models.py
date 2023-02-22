@@ -34,13 +34,20 @@ class Author(models.Model):
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
 
-    def follows(self, author):
+    def is_following(self, author):
         """Returns true if this author (self) follows the given author."""
         return Follow.objects.filter(follower=self, following=author).exists()
 
-    def following(self, author):
+    def is_followed_by(self, author):
         """Returns true if this author (self) is followed by the given author."""
         return Follow.objects.filter(follower=author, following=self).exists()
+    
+    def follower_count(self):
+        """return number of profiles followed by author (self)"""
+        return Follow.objects.filter(following=self).count()
+    
+    def get_followers(self):
+        return self.following.all()
 
 
     def __str__(self):
