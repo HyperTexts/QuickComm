@@ -78,6 +78,8 @@ def register(request):
             if username and password:
                 user = User.objects.create_user(
                     username=username, password=password)
+                author = Author(user=user)
+                author.save()
                 auth_login(request, user)
                 return redirect('/')
             else:
