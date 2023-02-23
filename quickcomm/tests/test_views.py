@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
+from ..models import RegistrationSettings
 
 
 class LoginViewTest(TestCase):
@@ -28,6 +29,10 @@ class RegisterViewTest(TestCase):
             password='pass'
         )
 
+        self.registration_settings = RegistrationSettings(
+            are_new_users_active=True)
+        self.registration_settings.save()
+
     def test_register(self):
         response = self.client.post('/register/', {
             'username': 'user1',
@@ -44,6 +49,18 @@ class RegisterViewTest(TestCase):
             'password': 'pass',
         })
         self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            response.wsgi_request.user.is_authenticated, response.content)
+
+    def test_admin_denied_registration(self):
+        self.registration_settings.are_new_users_active = False
+        self.registration_settings.save()
+
+        response = self.client.post('/register/', {
+            'username': 'user2',
+            'password': 'pass2',
+        })
+        self.assertEqual(response.status_code, 302)
         self.assertFalse(
             response.wsgi_request.user.is_authenticated, response.content)
 
