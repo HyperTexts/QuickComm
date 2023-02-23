@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateRegisterForm
-from quickcomm.models import Author, Post
+from quickcomm.models import Author, Post, RegistrationSettings
 
 # Create your views here.
 
@@ -80,7 +80,13 @@ def register(request):
                     username=username, password=password)
                 author = Author(user=user)
                 author.save()
-                auth_login(request, user)
+                # either log the user in or set their account to inactve
+                admin_approved = RegistrationSettings.objects.first().are_new_users_active
+                if admin_approved:
+                    auth_login(request, user)
+                else:
+                    user.is_active = False
+                    user.save()
                 return redirect('/')
             else:
                 form = CreateRegisterForm()

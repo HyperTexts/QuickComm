@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Post
+from .models import Post, RegistrationSettings
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
 
@@ -68,3 +68,9 @@ class CreateRegisterForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'password']
+
+
+class RegistrationSettingsForm(forms.ModelForm):
+    class Meta:
+        model = RegistrationSettings
+        fields = ['are_new_users_active']
