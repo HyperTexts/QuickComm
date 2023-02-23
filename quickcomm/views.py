@@ -67,7 +67,7 @@ def register(request):
 
 def view_authors(request):
     context = {
-        'authors': Author.objects.all()
+        'authors': Author.objects.all().order_by('display_name')
     }
     return render(request, 'quickcomm/authors.html', context)
 
