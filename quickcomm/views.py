@@ -66,9 +66,14 @@ def register(request):
     return HttpResponse('Register Page')
 
 def view_authors(request):
+    page = request.GET.get('page', '1')
+    size = request.GET.get('size', '10')
     context = {
-        'authors': Author.objects.all().order_by('display_name')
+        'authors': Author.objects.all().order_by('display_name'),
+        'page': page,
+        'size': size
     }
+    
     return render(request, 'quickcomm/authors.html', context)
 
 def view_profile(request, author_id):
