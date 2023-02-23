@@ -31,14 +31,14 @@
             {% if user.is_authenticated %}
         <div class="dropdown text-end">
           <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src="https://avatars.githubusercontent.com/u/57137?v=4" alt="hindle" width="32" height="32" class="rounded-circle">
+            <img src={{current_author.profile_image}} alt="hindle" width="32" height="32" class="rounded-circle">
           </a>
           <ul class="dropdown-menu text-small" style="">
             <li><a class="dropdown-item" href="{% url 'create_plain' %}">New plain text post</a></li>
             <li><a class="dropdown-item" href="{% url 'create_markdown' %}">New markdown post</a></li>
             <li><a class="dropdown-item" href="#">New image post</a></li>
             <li><a class="dropdown-item" href="#">New file post</a></li>
-            <li><a class="dropdown-item" href="#">Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'view_profile' current_author.id %}">Profile</a></li>
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
           </ul>
