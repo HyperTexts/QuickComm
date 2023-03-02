@@ -3,6 +3,7 @@ from .models import Post
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
 
+
 class CreatePlainTextForm(forms.Form):
     title = forms.CharField(max_length=100)
     source = forms.URLField(validators=[URLValidator])
@@ -29,6 +30,7 @@ class CreatePlainTextForm(forms.Form):
         post.save()
         return post
 
+
 class CreateMarkdownForm(forms.Form):
     title = forms.CharField(max_length=100)
     source = forms.URLField(validators=[URLValidator])
@@ -54,3 +56,8 @@ class CreateMarkdownForm(forms.Form):
         )
         post.save()
         return post
+
+
+class CreateLoginForm(forms.Form):
+    display_name = forms.CharField(max_length=100)
+    password = forms.CharField(widget=forms.PasswordInput())
