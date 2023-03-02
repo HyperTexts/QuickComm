@@ -1,7 +1,9 @@
+import base64
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import URLValidator
+from django.urls import reverse
 
 # NOTE: The models in this file do not take into account how the site will
 # interact with other APIs. Ideally, we should be able to reuse the model
@@ -93,6 +95,27 @@ class Post(models.Model):
     visibility = models.CharField(max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
 
+    @property
+    def content_formatted(self):
+        """Returns the content of the post as either base64 or plain text."""
+        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
+            file = ImageFile.objects.get(post=self).image.read()
+            return base64.b64encode(file).decode('utf-8')
+        return self.content
+
+    @content_formatted.setter
+    def content_formatted(self, value):
+        """Sets the content of the post from either base64 or plain text."""
+        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
+            ImageFile.objects.get(post=self).delete()
+            ImageFile.objects.create(post=self, image=base64.b64decode(value)).save()
+        else:
+            self.content = value
+
+    def get_image_url(self, request):
+        """Returns the absolute URL of the image associated with the post."""
+        return request.build_absolute_uri(reverse('post-image', kwargs={'pk': self.id.__str__(), 'authors_pk': self.author_id.__str__()}))
+
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
 
@@ -110,6 +133,11 @@ class Comment(models.Model):
     content_type = models.CharField(max_length=50, choices=CommentType.choices)
     published = models.DateTimeField(auto_now_add=True)
 
+class ImageFile(models.Model):
+    """An image file is a file that is an image. This is used so our internal
+    representation is a file and not a base64 string."""
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, primary_key=True)
+    image = models.ImageField(upload_to='images/')
 class Inbox(models.Model):
     """The inbox is a relationship between an author and a post."""
 
@@ -127,4 +155,3 @@ class Like(models.Model):
 
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"
-
