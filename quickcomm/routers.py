@@ -3,6 +3,13 @@ from rest_framework import routers
 from rest_framework.routers import Route
 from rest_framework_nested import routers as nested_routers
 
+# This file contains the routers for the API. Routers are used to map HTTP methods
+# to viewsets. They are similar to urls.py, but they are more flexible and allow
+# for more complex mappings.
+
+# The base code from this is taken from the rest_framework code, namely the
+# SimpleRouter class. We override the routes to change the mappings.
+
 class AuthorRouter(routers.SimpleRouter):
     routes = [
         # List route.
