@@ -1,10 +1,13 @@
 
 # This file houses the API views.
 
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.decorators import action
 
-from .models import Author, Post, Comment, Follow, Like
+from .models import Author, Post, Comment, Follow, Like, ImageFile
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer
 
 # This file contains the viewsets for the API. Viewsets are almost like collections
@@ -83,6 +86,13 @@ class PostViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
         return Response(status=200)
+
+    def image(self, request, authors_pk=None, pk=None):
+        post = get_object_or_404(Post, pk=pk)
+        if post.content_type != Post.PostType.PNG and post.content_type != Post.PostType.JPG:
+            return Response(status=404)
+        image = get_object_or_404(ImageFile, post=post)
+        return FileResponse(image.image)
 
 
 
