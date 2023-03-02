@@ -17,7 +17,7 @@ class LoginViewTest(TestCase):
             'password': 'pass',
         })
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(
             response.wsgi_request.user.is_authenticated, response.content)
 
@@ -36,7 +36,8 @@ class RegisterViewTest(TestCase):
     def test_register(self):
         response = self.client.post('/register/', {
             'username': 'user1',
-            'password': 'pass1',
+            'password1': 'pass1',
+            'password2': 'pass1',
         })
 
         self.assertEqual(response.status_code, 302)
@@ -46,7 +47,8 @@ class RegisterViewTest(TestCase):
     def test_duplicate_register(self):
         response = self.client.post('/register/', {
             'username': 'user',
-            'password': 'pass',
+            'password1': 'pass',
+            'password2': 'pass',
         })
         self.assertEqual(response.status_code, 200)
         self.assertFalse(
@@ -58,7 +60,8 @@ class RegisterViewTest(TestCase):
 
         response = self.client.post('/register/', {
             'username': 'user2',
-            'password': 'pass2',
+            'password1': 'pass2',
+            'password2': 'pass2',
         })
         self.assertEqual(response.status_code, 302)
         self.assertFalse(
@@ -78,7 +81,7 @@ class LogoutViewTest(TestCase):
             'password': 'pass',
         })
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(
             response.wsgi_request.user.is_authenticated)
 

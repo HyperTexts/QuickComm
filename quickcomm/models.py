@@ -44,6 +44,11 @@ class Author(models.Model):
         """Returns true if this author (self) is followed by the given author."""
         return Follow.objects.filter(follower=author, following=self).exists()
 
+    def is_bidirectional(self, author):
+        """Returns true if this author (self) follows and is followed by the
+        given author. In other words, a true friend."""
+        return self.follows(author) and self.following(author)
+
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"
 

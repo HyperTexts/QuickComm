@@ -3,6 +3,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.contrib.auth.models import User
+from django.contrib.auth.forms import UserCreationForm
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateRegisterForm
 from quickcomm.models import Author, Post, RegistrationSettings
 
@@ -54,7 +55,7 @@ def login(request):
                 username=request.POST['display_name'], password=request.POST['password'])
             if user is not None:
                 auth_login(request, user)
-                return HttpResponse('Login Page')
+                return redirect('/')
             else:
                 form = CreateLoginForm()
     else:
@@ -71,25 +72,24 @@ def logout(request):
 
 def register(request):
     if request.method == 'POST':
-        form = CreateRegisterForm(request.POST)
+        form = UserCreationForm(request.POST)
         if form.is_valid():
-            username = request.POST['username']
-            password = request.POST['password']
-            if username and password:
-                user = User.objects.create_user(
-                    username=username, password=password)
-                author = Author(user=user)
-                author.save()
-                # either log the user in or set their account to inactve
-                admin_approved = RegistrationSettings.objects.first().are_new_users_active
-                if admin_approved:
-                    auth_login(request, user)
-                else:
-                    user.is_active = False
-                    user.save()
-                return redirect('/')
+            user = form.save()
+            author = Author(user=user)
+            author.save()
+            # either log the user in or set their account to inactve
+            admin_approved = RegistrationSettings.objects.first().are_new_users_active
+            if admin_approved:
+                auth_login(request, user)
             else:
-                form = CreateRegisterForm()
+                user.is_active = False
+                user.save()
+            return redirect('/')
+        else:
+            form = UserCreationForm()
     else:
-        form = CreateRegisterForm()
-    return render(request, 'quickcomm/login.html', {'form': form})
+        form = UserCreationForm()
+    context = {
+        'form': UserCreationForm()
+    }
+    return render(request, 'quickcomm/register.html', context)
