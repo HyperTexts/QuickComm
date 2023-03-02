@@ -21,6 +21,33 @@ class LoginViewTest(TestCase):
             response.wsgi_request.user.is_authenticated, response.content)
 
 
+class RegisterViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user',
+            password='pass'
+        )
+
+    def test_register(self):
+        response = self.client.post('/register/', {
+            'username': 'user1',
+            'password': 'pass1',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response.wsgi_request.user.is_authenticated, response.content)
+
+    def test_duplicate_register(self):
+        response = self.client.post('/register/', {
+            'username': 'user',
+            'password': 'pass',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            response.wsgi_request.user.is_authenticated, response.content)
+
+
 class LogoutViewTest(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(

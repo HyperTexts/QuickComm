@@ -2,7 +2,8 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm
+from django.contrib.auth.models import User
+from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateRegisterForm
 from quickcomm.models import Author, Post
 
 # Create your views here.
@@ -63,11 +64,25 @@ def login(request):
 
 @login_required
 def logout(request):
-    print('test')
     auth_logout(request)
     return redirect('/')
 
 
 def register(request):
-    # TODO implement register
-    return HttpResponse('Register Page')
+    if request.method == 'POST':
+        form = CreateRegisterForm(request.POST)
+        if form.is_valid():
+            username = request.POST['username']
+            password = request.POST['password']
+            if username and password:
+                user = User.objects.create_user(
+                    username=username, password=password)
+                author = Author(user=user)
+                author.save()
+                auth_login(request, user)
+                return redirect('/')
+            else:
+                form = CreateRegisterForm()
+    else:
+        form = CreateRegisterForm()
+    return render(request, 'quickcomm/login.html', {'form': form})
