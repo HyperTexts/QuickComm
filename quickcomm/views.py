@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.core.paginator import Paginator
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, EditProfileForm
 from quickcomm.models import Author, Post
 
@@ -85,11 +86,17 @@ def register(request):
 
 def view_authors(request):
     current_author = get_current_author(request)
-    page = request.GET.get('page', '1')
+
+    authors = Author.objects.all().order_by('display_name')
+
     size = request.GET.get('size', '10')
+    paginator = Paginator(authors, size)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
     context = {
-        'authors': Author.objects.all().order_by('display_name'),
-        'page': page,
+        'page_obj': page_obj,
         'size': size,
         'current_author': current_author,
     }
