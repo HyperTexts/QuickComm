@@ -3,14 +3,16 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm
-from quickcomm.models import Author, Post
+from quickcomm.models import Author, Inbox
 
 # Create your views here.
 
-
+@login_required
 def index(request):
+    author = Author.objects.get(user=request.user)
+    inbox = Inbox.objects.filter(author=author).order_by('-added')
     context = {
-        'posts': Post.objects.all()
+        'inbox': inbox
     }
     return render(request, 'quickcomm/index.html', context)
 
