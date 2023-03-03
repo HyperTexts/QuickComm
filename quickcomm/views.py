@@ -113,12 +113,12 @@ def register(request):
                     user.is_active = False
                     user.save()
                 return redirect('/')
-        else:
-            form = UserCreationForm()
-        context = {
-            'form': UserCreationForm()
-        }
-        return render(request, 'quickcomm/register.html', context)
+    else:
+        form = UserCreationForm()
+    context = {
+        'form': UserCreationForm()
+    }
+    return render(request, 'quickcomm/register.html', context)
 
 def view_authors(request):
     current_author = get_current_author(request)
