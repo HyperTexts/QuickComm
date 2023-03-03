@@ -38,18 +38,25 @@ class Author(models.Model):
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
 
-    def follows(self, author):
+    def is_following(self, author):
         """Returns true if this author (self) follows the given author."""
         return Follow.objects.filter(follower=self, following=author).exists()
 
-    def following(self, author):
+    def is_followed_by(self, author):
         """Returns true if this author (self) is followed by the given author."""
         return Follow.objects.filter(follower=author, following=self).exists()
+    
+    def follower_count(self):
+        """return number of profiles following author (self)"""
+        return Follow.objects.filter(following=self).count()
+    
+    def get_followers(self):
+        return Follow.objects.filter(following=self)
 
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
         given author. In other words, a true friend."""
-        return self.follows(author) and self.following(author)
+        return self.is_following(author) and self.is_followed_by(author)
 
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"
@@ -66,7 +73,7 @@ class Follow(models.Model):
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
-        return self.following.follows(self.follower)
+        return self.following.is_following(self.follower)
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"

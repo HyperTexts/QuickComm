@@ -1,8 +1,7 @@
 import base64
 from django import forms
-
 from quickcomm.validators import validate_image_upload_format
-from .models import ImageFile, Post
+from .models import ImageFile, Post, Author
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
 
@@ -107,8 +106,24 @@ class CreateImageForm(forms.Form):
         image.save()
 
         return post
+        
 class CreateLoginForm(forms.Form):
     """A form for logging in."""
 
     display_name = forms.CharField(max_length=100)
     password = forms.CharField(widget=forms.PasswordInput())
+        
+class EditProfileForm(forms.Form):
+    display_name = forms.CharField(max_length=100, required=False)
+    github = forms.URLField(validators=[URLValidator], required=False)
+    profile_image = forms.URLField(validators=[URLValidator], required=False)
+        
+    def save(self, author):
+        author.display_name = self.cleaned_data['display_name']
+        author.github = self.cleaned_data['github']
+        author.profile_image = self.cleaned_data['profile_image']
+        author.save()
+        return author
+    
+    
+
