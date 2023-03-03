@@ -114,10 +114,6 @@ class Post(models.Model):
         saved = super(Post, self).save(*args, **kwargs)
         # When we save a post, we also need to create an inbox post for each
         # follower of the author.
-        print("SAVING POST")
-        print(self.author.__str__())
-
-        print(Follow.objects.all())
 
         followers = Follow.objects.filter(following=self.author)
 
