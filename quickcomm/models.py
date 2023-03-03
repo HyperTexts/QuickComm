@@ -111,19 +111,71 @@ class Comment(models.Model):
     published = models.DateTimeField(auto_now_add=True)
 
 class Inbox(models.Model):
-    """The inbox is a relationship between an author and a post."""
+    """The inbox is a relationship between an author and either a like, comment,
+    post, or friend request.
 
+    This is the way our inbox works: every time an item is added to the inbox,
+    it must be associated with an object of the appropriate type. If that item
+    does not exist (like in the case of a foreign author), we create it and
+    and associate it wth the inbox post, so we can have an internal representation
+    of the item. If the item does exist, we just associate it with the inbox
+    post.
+    """
+
+    # TODO the exact behaviour of this is pending on an eClass form post. For
+    # now, we will assume that the inbox only works internally and creates a
+    # copy every time.
+
+    # To add an item to the inbox, we do the following:
+    #
+    # Inbox.objects.create(
+    #     inbox_type=InboxType.POST,
+    #     author=some_author,
+    #     content_object=some_post,
+    # )
+
+    class InboxType(models.TextChoices):
+        POST = 'post'
+        COMMENT = 'comment'
+        FOLLOW = 'follow'
+        LIKE = 'like'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    # The author is the author who owns the inbox.
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+
+    # The inbox type is the type of item in the inbox.
+    inbox_type = models.CharField(max_length=50, choices=InboxType.choices)
+
+    # The date the item was added to the inbox.
+    added = models.DateTimeField(auto_now_add=True)
+
+    # We use a generic foreign key to associate the inbox with the appropriate
+    # object. This is a bit of a hack, but it works.
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.UUIDField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
 
     def __str__(self):
-        return f"{self.author.__str__()}'s inbox contains {self.post.__str__()}"
+        return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"
 
 class Like(models.Model):
     """A like is a relationship between an author and a post."""
 
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        saved = super(Like, self).save(*args, **kwargs)
+        # When we save a like, we also need to create an inbox post for the
+        # author of the post.
+
+        Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
+
+        return saved
 
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"
