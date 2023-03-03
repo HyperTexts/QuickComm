@@ -160,8 +160,6 @@ class CreateImageForm(forms.Form):
 class CreateLoginForm(forms.Form):
     """A form for logging in."""
 
-    """A form for logging in."""
-
     display_name = forms.CharField(max_length=100)
     password = forms.CharField(widget=forms.PasswordInput())
         
