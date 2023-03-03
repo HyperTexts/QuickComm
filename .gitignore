@@ -127,5 +127,11 @@ GitHub.sublime-settings
 !.vscode/extensions.json 
 .history
 
+# Python Environments #
+.env
+.venv
+env/
+venv/
+
 # macOS #
 .DS_Store
