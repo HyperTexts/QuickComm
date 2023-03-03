@@ -41,6 +41,8 @@ INSTALLED_APPS = [
     'quickcomm',
     'django_bootstrap5',
     'martor',
+    'rest_framework',
+
 
 ]
 
