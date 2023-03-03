@@ -15,7 +15,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     profileImage = serializers.URLField(source='profile_image', required=False)
     host = serializers.URLField(required=False)
     displayName = serializers.CharField(source='display_name', required=False)
-    github = serializers.URLField(required=False)
+    github = serializers.CharField(required=False)
 
     class Meta:
         model = Author
