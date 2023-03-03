@@ -62,9 +62,3 @@ class CreateMarkdownForm(forms.Form):
 class CreateLoginForm(forms.Form):
     display_name = forms.CharField(max_length=100)
     password = forms.CharField(widget=forms.PasswordInput())
-
-
-class CreateRegisterForm(forms.ModelForm):
-    class Meta:
-        model = User
-        fields = ['username', 'password']
