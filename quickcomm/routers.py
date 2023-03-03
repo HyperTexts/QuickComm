@@ -55,10 +55,21 @@ class PostRouter(nested_routers.NestedSimpleRouter):
                 'get': 'retrieve',
                 'post': 'partial_update',
                 'delete': 'destroy',
-                'put': 'update'
+                'put': 'update',
             },
             name='{basename}-detail',
             detail=True,
             initkwargs={'suffix': 'Instance'}
+        ),
+
+        # Image route.
+        Route(
+            url=r'^{prefix}/{lookup}/image{trailing_slash}$',
+            mapping={
+                'get': 'image',
+            },
+            name='{basename}-image',
+            detail=True,
+            initkwargs={'suffix': 'Image'}
         ),
     ]

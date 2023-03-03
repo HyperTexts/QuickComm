@@ -2,11 +2,11 @@
 {% bootstrap_css %}
 {% block content %}
     <div class="Container">
-        <h1>Login</h1>
+        <h1>Register</h1>
         <form method="post">
             {% csrf_token %}
             {% bootstrap_form form %}
-            {% bootstrap_button button_type="submit" content="Login" %}
+            {% bootstrap_button button_type="submit" content="Sign Up" %}
         </form>
     </div>
 {% endblock %}
