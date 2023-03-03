@@ -23,7 +23,6 @@ def index(request):
     context = {
         'posts': Post.objects.all(),
         'current_author': current_author
-        'request': request
     }
     return render(request, 'quickcomm/index.html', context)
 
