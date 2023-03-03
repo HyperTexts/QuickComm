@@ -164,6 +164,10 @@ def send_follow_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     request,create=follow_request.objects.get_or_create(from_user=from_user, to_user=to_user)
     if create:
+        return render(request,'quickcomm/requests.html',{
+            'current_user':from_user,
+            'to_user':to_user,
+        })
         return HttpResponse('Friend request sent')
     else:
         return HttpResponse('Friend request was created already')
