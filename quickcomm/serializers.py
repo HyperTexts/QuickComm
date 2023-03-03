@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework.reverse import reverse
 
 from .models import Author, Post, Comment, Follow, Like
@@ -74,7 +73,7 @@ class PostSerializer(serializers.ModelSerializer):
     origin = serializers.URLField(required=False)
     description = serializers.CharField(required=False)
     contentType = serializers.CharField(required=False, source='content_type')
-    content = serializers.CharField(required=False)
+    content = serializers.CharField(required=False, source='content_formatted')
     author = AuthorSerializer(read_only=True)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     published = serializers.DateTimeField(required=False)

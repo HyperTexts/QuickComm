@@ -1,9 +1,13 @@
 
 # This file houses the API views.
 
+from django.http import FileResponse
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 
+from .models import Author, Post, Comment, Follow, Like, ImageFile
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer
 from .models import Author, Post, Comment, Follow, Like
 from .serializers import AuthorSerializer, AuthorsSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer, PostsSerializer
 
@@ -128,6 +132,19 @@ class PostViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         super().destroy(request, *args, **kwargs)
         return Response(status=200)
+
+    @swagger_auto_schema(
+            operation_summary="Return the contents of a post as an image.",
+            operation_description="This endpoint allows to return the contents of a post as an image. If the post is an image, it will be returned as an image request to be used anywhere. Otherwise, it will not be found, even if the post exists.",
+            responses={200: "Success", 404: "Post not found"},
+            security=[],
+    )
+    def image(self, request, authors_pk=None, pk=None):
+        post = get_object_or_404(Post, pk=pk)
+        if post.content_type != Post.PostType.PNG and post.content_type != Post.PostType.JPG:
+            return Response(status=404)
+        image = get_object_or_404(ImageFile, post=post)
+        return FileResponse(image.image)
 
     @swagger_auto_schema(
             operation_summary="Replace the contents of a post.",

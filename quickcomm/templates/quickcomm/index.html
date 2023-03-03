@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load image_extras %}
 
 {% block content %}
     <h1>Home</h1>
@@ -8,6 +9,7 @@
     <ul>
         {% for post in posts %}
             <li>{{ post.title }} by {{ post.author }} <i>[{{ post.id }}]</i></li>
+            <li>{% image post %}</li>
         {% endfor %}
     </ul>
 {% endblock %}

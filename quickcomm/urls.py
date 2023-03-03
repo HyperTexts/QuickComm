@@ -51,6 +51,7 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('create/plain', views.create_post, name='create_plain'),
     path('create/markdown', views.create_markdown, name='create_markdown'),
+    path('create/image', views.create_image, name='create_image'),
     re_path(r'^openapi(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     re_path(r'^openapi/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
 

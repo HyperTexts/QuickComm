@@ -1,6 +1,6 @@
 
 from django.test import TestCase
-from rest_framework.test import APIRequestFactory, force_authenticate, APIClient
+from rest_framework.test import APIRequestFactory, APIClient
 from django.contrib.auth.models import User
 from quickcomm.models import Author
 
@@ -54,6 +54,7 @@ class PublicAuthorsTests(TestCase):
         self.assertNotEquals(req.data['type'], 'authors')
 
         self.assertEqual(req.data['id'], f"http://testserver/api/authors/{str(self.author.id)}/")
+        self.assertEqual(req.data['url'], f"http://testserver/api/authors/{str(self.author.id)}/")
         self.assertEqual(req.data['host'], self.author.host)
         self.assertEqual(req.data['displayName'], self.author.display_name)
         self.assertEqual(req.data['github'], self.author.github)
