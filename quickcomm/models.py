@@ -48,7 +48,10 @@ class Author(models.Model):
     
     def get_followers(self):
         return Follow.objects.filter(following=self)
-
+    
+    def get_requests(self):
+        return follow_request.objects.filter(to_user=self)
+    
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"
 
@@ -66,8 +69,9 @@ class Follow(models.Model):
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
 class follow_request(models.Model):
-    from_user=models.ForeignKey(User,related_name='from_user', on_delete=models.CASCADE)
-    to_user=models.ForeignKey(User,related_name='to_user',on_delete=models.CASCADE)
+    """A request is a prompt for a user to accept a follower"""
+    from_user=models.ForeignKey(Author, on_delete=models.CASCADE,related_name='from_user')
+    to_user=models.ForeignKey(Author,on_delete=models.CASCADE,related_name='to_user')
 
 class Post(models.Model):
     """A post is a post made by an author."""
