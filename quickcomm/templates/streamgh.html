@@ -1,0 +1,21 @@
+{% load humanize %}
+
+<div class="card border-primary mb-2">
+    <div class="card-header">
+      <strong>{{ time|naturaltime }}</strong> <a href="#">@{{ stream.localAuthor.user.username }}</a> GitHub Event
+    </div>
+    <div class="card-body">
+        <div class="container">
+            <div class="row">
+                <div class="col-auto">
+                    <img src="{{ stream.actor.avatar_url }}" class="rounded-circle float-left mr-2" width="50" height="50">
+                </div>
+                <div class="col">
+      <p class="inline-block"><a href="https://github.com/{{ stream.actor.login }}">@{{ stream.actor.login }}</a> {{message}}<br>
+        <a href={{ url }} class="h6">View on GitHub</a>
+      </p>
+                </div>
+            </div>
+        </div>
+    </div>
+  </div>
