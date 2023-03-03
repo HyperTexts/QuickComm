@@ -106,24 +106,25 @@ def view_authors(request):
 def view_profile(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
-    
+    form = EditProfileForm()
+
     if not current_author:
         return render(request, 'quickcomm/profile.html', {
                     'author': author,
-                    'form': EditProfileForm()
+                    'form': form
                     })
         
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
-    if request.method == 'POST':
-        form = EditProfileForm(request.POST, initial=current_attributes)
-        if form.is_valid():
-            form.save(current_author)
+    if current_author.user == author.user:
+        if request.method == 'POST':
+            form = EditProfileForm(request.POST, initial=current_attributes)
+            if form.is_valid():
+                form.save(current_author)
+            else:
+                print(form.errors)
+                form = EditProfileForm(initial=current_attributes)
         else:
-            print(form.errors)
             form = EditProfileForm(initial=current_attributes)
-    else:
-        form = EditProfileForm(initial=current_attributes)
-        
     current_author = get_current_author(request)
     author = get_object_or_404(Author, pk=author_id)
     return render(request, 'quickcomm/profile.html', {
