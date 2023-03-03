@@ -7,11 +7,9 @@ from django.core.validators import URLValidator
 from martor.fields import MartorFormField
 
 # This file contains all the form resposes that the API wil uses.
-# This file contains all the form resposes that the API wil uses.
+
 
 class CreatePlainTextForm(forms.Form):
-    """A form for creating a plain text post."""
-
     """A form for creating a plain text post."""
 
     title = forms.CharField(max_length=100)
@@ -40,8 +38,6 @@ class CreatePlainTextForm(forms.Form):
         return post
 
 class CreateMarkdownForm(forms.Form):
-    """A form for creating a markdown post."""
-
     """A form for creating a markdown post."""
 
     title = forms.CharField(max_length=100)

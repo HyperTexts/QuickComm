@@ -61,6 +61,7 @@ class PostRouter(nested_routers.NestedSimpleRouter):
             detail=True,
             initkwargs={'suffix': 'Instance'}
         ),
+
         # Image route.
         Route(
             url=r'^{prefix}/{lookup}/image{trailing_slash}$',

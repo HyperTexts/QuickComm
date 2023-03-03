@@ -1,0 +1,15 @@
+{% load humanize %}
+
+<div class="card mb-3">
+    <div class="card-header">
+    <p class="card-text">
+      <strong>{{ time|naturaltime }}</strong>
+      <a href="#">@{{ follow.follower.user.username }}</a> is now following you.
+    </p>
+    </div>
+    <div class="card-body">
+        <h5 class="card-title">{{ follow.follower.display_name }} </h5>
+        {% comment %} <a href="#" class="btn btn-primary">Approve</a>
+        <a href="#" class="btn btn-danger">Deny</a> {% endcomment %}
+    </div>
+</div>

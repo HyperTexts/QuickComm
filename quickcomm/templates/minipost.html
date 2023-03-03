@@ -1,0 +1,20 @@
+<div class="card text-white bg-secondary mb-2">
+    <div class="card-body">
+      <p class="card-title h4">
+        {{ post.title }}
+        {% if post.content_type == post.PostType.TEXT %}
+            <span class="lead">{{ post.content|truncatechars:9 }}</span>
+        {% elif post.content_type == post.PostType.MD %}
+            <span class="lead">{{ post.content|truncatechars:9 }}</span>
+        {% elif post.content_type == post.PostType.PNG %}
+            <span class="lead">Image post.</span>
+        {% elif post.content_type == post.PostType.JPG %}
+            <span class="lead">Image post.</span>
+        {% elif post.content_type == post.PostType.APP %}
+            <span class="lead">File post.</span>
+        {% endif %}
+
+        <a href="#" class="text-white h6">View Post</a>
+      </p>
+    </div>
+  </div>

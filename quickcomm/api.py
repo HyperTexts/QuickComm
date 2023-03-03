@@ -1,6 +1,7 @@
 
 # This file houses the API views.
 
+
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
@@ -23,10 +24,13 @@ from drf_yasg.utils import swagger_auto_schema
 # TODO turn these into mixins
 
 class AuthorViewSet(viewsets.ModelViewSet):
+    """This is a viewset that allows us to interact with the Author model."""
+
 
     queryset = Author.objects.all()
     serializer_class = AuthorSerializer
     http_method_names = ['get', 'patch', 'post']
+
 
     @swagger_auto_schema(
         operation_summary="Get a list of all authors.",
@@ -57,6 +61,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
         return super(AuthorViewSet, self).retrieve(*args, **kwargs)
 
 class PostViewSet(viewsets.ModelViewSet):
+    """This is a viewset that allows us to interact with the Post model."""
 
     serializer_class = PostSerializer
     queryset = Post.objects.all()
@@ -85,6 +90,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         """Returns posts for this specific author."""
+
         #check if authors_pk exists in kwargs
         if 'authors_pk' not in self.kwargs:
             return Post.objects.none()
@@ -95,6 +101,7 @@ class PostViewSet(viewsets.ModelViewSet):
             operation_description="This endpoint returns a list of all posts for a specific author.",
             responses={200: PostsSerializer, 404: "Author not found"},
     )
+
     def list(self, request, authors_pk=None):
         queryset = self.get_queryset()
         serializer = PostSerializer(queryset, many=True, context={'request': request})
@@ -163,7 +170,6 @@ class PostViewSet(viewsets.ModelViewSet):
     )
     def retrieve(*args, **kwargs):
         return super().retrieve(*args, **kwargs)
-
 
 
 class CommentViewSet(viewsets.ModelViewSet):

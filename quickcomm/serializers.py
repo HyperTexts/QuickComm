@@ -1,6 +1,6 @@
 from rest_framework import serializers
+from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework.reverse import reverse
-
 from .models import Author, Post, Comment, Follow, Like
 
 # This file contains the serializers for the API. Serializers are used to convert
@@ -49,6 +49,7 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
+
 class AuthorsSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='authors', read_only=True)
     data = AuthorSerializer(many=True, read_only=True)
@@ -56,7 +57,6 @@ class AuthorsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Author
         fields = ['type', 'data']
-
 
 class PostSerializer(serializers.ModelSerializer):
     """This is a serializer for the Post model."""
@@ -73,12 +73,13 @@ class PostSerializer(serializers.ModelSerializer):
     origin = serializers.URLField(required=False)
     description = serializers.CharField(required=False)
     contentType = serializers.CharField(required=False, source='content_type')
-    content = serializers.CharField(required=False, source='content_formatted')
+    content = serializers.CharField(required=False)
     author = AuthorSerializer(read_only=True)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     published = serializers.DateTimeField(required=False)
     visibility = serializers.CharField(required=False)
     unlisted = serializers.BooleanField(required=False)
+
 
     @staticmethod
     def get_examples():

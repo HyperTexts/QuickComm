@@ -4,9 +4,10 @@ from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
+from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings
+from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -18,20 +19,13 @@ def get_current_author(request):
     else:
         author = None
     return author
-def get_current_author(request):
-    if request.user.is_authenticated:
-        author = Author.objects.get(user_id = request.user.id)
-    else:
-        author = None
-    return author
 
 def index(request):
     current_author = get_current_author(request)
-    current_author = get_current_author(request)
+    inbox = Inbox.objects.filter(author=current_author).order_by('-added')
     context = {
-        'posts': Post.objects.all(),
+        'inbox': inbox,
         'current_author': current_author,
-        'request': request
     }
     return render(request, 'quickcomm/index.html', context)
 
