@@ -14,6 +14,7 @@ from django.core.validators import URLValidator
 # We used UUIDs for pkeys to be more secure.
 # TODO what are the constraints on fields being null?
 
+
 class Author(models.Model):
     """An author is a person associated with a user account via a one-to-one
     relationship."""
@@ -29,7 +30,8 @@ class Author(models.Model):
     host = models.URLField(validators=[URLValidator])
     display_name = models.CharField(max_length=100)
     github = models.URLField(blank=True, null=True, validators=[URLValidator])
-    profile_image = models.URLField(blank=True, null=True, validators=[URLValidator])
+    profile_image = models.URLField(
+        blank=True, null=True, validators=[URLValidator])
 
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
@@ -47,16 +49,18 @@ class Author(models.Model):
         given author. In other words, a true friend."""
         return self.follows(author) and self.following(author)
 
-
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"
+
 
 class Follow(models.Model):
     """A follow is is a many-to-many relationship between authors representing a
     follow."""
 
-    follower = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='follower')
-    following = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='following')
+    follower = models.ForeignKey(
+        Author, on_delete=models.CASCADE, related_name='follower')
+    following = models.ForeignKey(
+        Author, on_delete=models.CASCADE, related_name='following')
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
@@ -64,6 +68,7 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
+
 
 class Post(models.Model):
     """A post is a post made by an author."""
@@ -90,11 +95,13 @@ class Post(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
     published = models.DateTimeField(auto_now_add=True)
-    visibility = models.CharField(max_length=50, choices=PostVisibility.choices)
+    visibility = models.CharField(
+        max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
+
 
 class Comment(models.Model):
     """A comment is a comment made by an author on a post."""
@@ -110,6 +117,7 @@ class Comment(models.Model):
     content_type = models.CharField(max_length=50, choices=CommentType.choices)
     published = models.DateTimeField(auto_now_add=True)
 
+
 class Inbox(models.Model):
     """The inbox is a relationship between an author and a post."""
 
@@ -118,6 +126,7 @@ class Inbox(models.Model):
 
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.post.__str__()}"
+
 
 class Like(models.Model):
     """A like is a relationship between an author and a post."""
@@ -128,3 +137,11 @@ class Like(models.Model):
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"
 
+
+class RegistrationSettings(models.Model):
+    """A flag for admin users to determine if new users are active or not by default.
+    Should only have 1 value in database"""
+    are_new_users_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.are_new_users_active.__str__()}"
