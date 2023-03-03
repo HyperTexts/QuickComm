@@ -115,15 +115,15 @@ class LikePostTestCase(TestCase):
         self.post.save()
 
     def test_viewing_post(self):
-        author1 = Author.objects.all()[0]
         c = Client()
-        # response = c.post('/'+str(author1.id)+'/posts/'+str(self.post.id)+"/",)
-        response = c.get('/'+str(author1.id)+'/posts/'+str(self.post.id)+"/",)
-        self.assertEqual(response.status_code, 302)
+        c.login(username='user1', password='pass1')
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/")
+        self.assertEqual(response.status_code, 200)
 
     def test_like(self):
         c = Client()
-        response = c.get('/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/"+"post_liked",)
+        c.login(username='user2', password='pass2')
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/"+"post_liked")
         self.assertEqual(response.status_code, 302)
 
 class EditProfileViewTest(TestCase):
