@@ -1,6 +1,4 @@
-#!/bin/sh
-'''exec' "/Users/jordanvandenbruel/Desktop/CMPUT 404/project/QuickComm/venv/bin/python3" "$0" "$@"
-' '''
+#!/home/nanaya/QuickComm-ivan-view-follower/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

@@ -1,6 +1,9 @@
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "quickcomm.settings")
+
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from quickcomm.models import Author,Follow
+from quickcomm.models import Author,Follow, follow_request
 from django.urls import reverse
 
 
@@ -136,6 +139,35 @@ class ViewFollowersTest(TestCase):
         
         miss_user_1 = str(response.content).find('<h3 class=""> user1 </h3>')
         self.assertTrue(miss_user_1 == -1)
+class ViewRequestsTest(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(
+            username='user1',
+            password='pass1'
+        )
 
+        self.user2 = User.objects.create_user(
+            username='user2',
+            password='pass2'
+        )
 
+        
+        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='user1', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author1.save()
+
+        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='user2', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author2.save()
+
+        self.request=follow_request.objects.create(from_user=self.author1, to_user=self.author2)
+    
+    def testViewRequest(self):
+        c=Client()
+
+        response=self.client.get('/authors/'+str(self.author1.id)+'/requests/')
+        self.assertEqual(response.status_code,200)
+
+        find_user_1=str(response.content).find('<h3 class=""> user1 </h3>')
+        self.assertTrue(find_user_1>-1)
+
+        
     

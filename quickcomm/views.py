@@ -17,6 +17,7 @@ def get_current_author(request):
 
 def index(request):
     current_author = get_current_author(request)
+    followers=current_author.get_followers()
     context = {
         'posts': Post.objects.all(),
         'current_author': current_author
@@ -153,11 +154,20 @@ def follow_author(request,author_id):
 def view_followers(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
-    
+    followers=current_author.get_followers()
     return render(request, 'quickcomm/followers.html', {
-                    'author': author,
                     'current_author': current_author,
+                    'author':author
+
                     })
+def view_requests(request,author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = get_current_author(request)
+    return render(request,'quickcomm/requests.html',{
+        'current_author': current_author,
+        'author':author
+    })
+
 @login_required
 def send_follow_request(request,author_id):
     from_user=get_current_author(request)
@@ -189,4 +199,6 @@ def accept_request(request,author_id):
         })
 @login_required
 def decline_request(request,author_id):
+    from_user=get_current_author(request)
+    to_user=get_object_or_404(Author,pk=author_id)
     pass

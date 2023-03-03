@@ -11,4 +11,5 @@ urlpatterns = [
     path('authors/', views.view_authors, name='view_authors'),
     path('authors/<uuid:author_id>/', views.view_profile, name='view_profile'),
     path('authors/<uuid:author_id>/followers/', views.view_followers, name='view_followers'),
+    path('authors/<uuid:author_id>/requests/', views.view_requests, name='view_requests')
 ]

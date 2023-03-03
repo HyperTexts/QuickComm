@@ -51,6 +51,8 @@ class Author(models.Model):
     
     def get_requests(self):
         return follow_request.objects.filter(to_user=self)
+    def requests_count(self):
+        return follow_request.objects.filter(to_user=self).count()
     
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"

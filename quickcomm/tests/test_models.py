@@ -3,6 +3,11 @@ from django.test import TestCase
 from django.contrib.auth.models import User
 from quickcomm.models import Author, Post
 from django.core.exceptions import ValidationError
+import os
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "quickcommproj.settings")
+
+import django
+django.setup()
 
 # Create your tests here.
 
@@ -179,6 +184,8 @@ class PostModelTest(TestCase):
         post.source = 'http://realurl.com'
 
         post.full_clean()
+
+
 
 
 

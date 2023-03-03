@@ -22,6 +22,7 @@
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
               <li><a href="#" class="nav-link px-2 link-secondary">Overview</a></li>
               <li><a href="{% url 'view_authors' %}" class="nav-link px-2 link-dark">Profiles</a></li>
+              
               <li><a href="#" class="nav-link px-2 link-dark">Search</a></li>
             </ul>
 
@@ -39,7 +40,6 @@
             <li><a class="dropdown-item" href="#">New image post</a></li>
             <li><a class="dropdown-item" href="#">New file post</a></li>
             <li><a class="dropdown-item" href="{% url 'view_profile' current_author.id %}">Profile</a></li>
-            <!-- <li><a class="dropdown-item" href="{% url 'follow_author' current_author.id%}">Follows</a></li> -->
             <li><hr class="dropdown-divider"></li>
             <li><a class="dropdown-item" href="{% url 'logout' %}">Sign out</a></li>
           </ul>
