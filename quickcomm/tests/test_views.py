@@ -91,7 +91,6 @@ class LikePostTestCase(TestCase):
 
     def test_viewing_post(self):
         author1 = Author.objects.all()[0]
-        author2 = Author.objects.all()[1]
         c = Client()
         response = c.post('/post/'+str(author1.id)+"/",)
         c.get('/post/'+str(author1.id)+"/",)
@@ -102,7 +101,5 @@ class LikePostTestCase(TestCase):
         author2 = Author.objects.all()[1]
         post = Post.objects.create(author=author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
         post.full_clean()
-
-        like = Like.objects.create(author=author2, post=post)
         response = c.get('/post/'+str(author2.id)+"/"+'post_liked')
         self.assertEqual(response.status_code, 302)

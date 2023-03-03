@@ -82,7 +82,6 @@ def post_like(request, post_id):
     post = objects.get(pk=post_id)
 
     if request.user.is_authenticated:
-        print("comes in here?")
         author = Author.objects.all().get(user=request.user)
         like_obj, created_obj = Like.objects.get_or_create(post=post, author=author)
         if not created_obj:
@@ -106,9 +105,6 @@ def post_comment(request, post_id):
             comment.comment = form.cleaned_data['comment']
             comment.save()
             return HttpResponseRedirect(reverse('post_comment', args=[post.pk]))
-        
-    else:
-        form = CreateCommentForm()
     return redirect("post_view", post_id=post_id)
    
 
