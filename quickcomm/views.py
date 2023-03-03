@@ -103,7 +103,8 @@ def login(request):
     return render(request, 'quickcomm/login.html', {'form': form})
 
 @login_required
-def post_view(request, post_id):
+def post_view(request, post_id, author_id):
+    current_author = get_current_author(request)
     objects = Post.objects.all()
     post = objects.get(pk=post_id)
     post_comments = Comment.objects.filter(post=post).order_by("-published")
@@ -112,7 +113,7 @@ def post_view(request, post_id):
         like_key = "post_like_{post_id}"
         is_liked = request.session.get(like_key, False)
 
-    context = {"id": post.id, "title": post.title, "author": post.author, "description": post.description, "content": post.content, "is_post_liked": is_liked,"post_comments":post_comments}
+    context = {"id": post.id, "title": post.title, "author": post.author, "description": post.description, "content": post.content, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author}
 
     return render(request, "quickcomm/post.html", context)
 
@@ -245,3 +246,24 @@ def view_followers(request, author_id):
                     'current_author': current_author,
                     })
                     
+def view_author_posts(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = get_current_author(request)
+
+    posts = Post.objects.filter(author=author)
+
+    size = request.GET.get('size', '10')
+    paginator = Paginator(posts, size)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'author': author,
+        'page_obj': page_obj,
+        'size': size,
+        'current_author': current_author,
+    }
+    
+    return render(request, 'quickcomm/posts.html', context)
+
