@@ -111,7 +111,6 @@ class PostSerializer(serializers.ModelSerializer):
             "description": "A brief description of the post.",
             "contentType": "The content type of the post. Must be one of 'text/markdown', 'text/plain', 'image/png;base64', 'image/jpeg;base64', or 'application/base64'.",
             "content": "The content of the post.",
-            # "author": "The author of the post.",
             "categories": "A list of categories that the post belongs to.",
             "published": "The date and time that the post was published.",
             "visibility": "The visibility of the post. Must be 'PUBLIC', or 'PRIVATE'.",

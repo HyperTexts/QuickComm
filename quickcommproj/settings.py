@@ -155,7 +155,7 @@ MARTOR_TOOLBAR_BUTTONS = [
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'BasicAuth': {
-            'type': 'http',
+            'type': 'basic',
             'scheme': 'basic',
         },
     },
