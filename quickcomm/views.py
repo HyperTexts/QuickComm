@@ -105,22 +105,23 @@ def login(request):
 @login_required
 def post_view(request, post_id, author_id):
     current_author = get_current_author(request)
-    objects = Post.objects.all()
-    post = objects.get(pk=post_id)
+    post = get_object_or_404(Post, pk=post_id)
     post_comments = Comment.objects.filter(post=post).order_by("-published")
     is_liked = False
     if request.user.is_authenticated:
         like_key = "post_like_{post_id}"
         is_liked = request.session.get(like_key, False)
 
-    context = {"id": post.id, "title": post.title, "author": post.author, "description": post.description, "content": post.content, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author}
+    context = {"post": post, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author}
 
     return render(request, "quickcomm/post.html", context)
 
 @login_required
 def post_like(request, post_id):
-    objects = Post.objects.all()
-    post = objects.get(pk=post_id)
+    # objects = Post.objects.all()
+    # post = objects.get(pk=post_id)
+
+    post = get_object_or_404(Post, pk=post_id)
 
     if request.user.is_authenticated:
         author = Author.objects.all().get(user=request.user)
@@ -134,8 +135,7 @@ def post_like(request, post_id):
 
 @login_required
 def post_comment(request, post_id):
-    objects = Post.objects.all()
-    post = objects.get(pk=post_id)
+    post = Post.objects.filter(pk=post_id)
     if request.method == 'POST':
         form = CreateCommentForm(request.POST)
         if form.is_valid():
