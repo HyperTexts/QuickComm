@@ -7,14 +7,18 @@
     <h1>My Stream</h1>
 
     {% for item in inbox %}
-        {% if item.inbox_type == item.InboxType.LIKE %}
-            {% streamlike item %}
-        {% elif item.inbox_type == item.InboxType.COMMENT %}
-            {% streamcomment item %}
-        {% elif item.inbox_type == item.InboxType.POST %}
-            {% streampost item %}
-        {% elif item.inbox_type == item.InboxType.FOLLOW %}
-            {% streamfollow item %}
+        {% if item.format == 'inbox' %}
+            {% if item.inbox_type == item.InboxType.LIKE %}
+                {% streamlike item %}
+            {% elif item.inbox_type == item.InboxType.COMMENT %}
+                {% streamcomment item %}
+            {% elif item.inbox_type == item.InboxType.POST %}
+                {% streampost item %}
+            {% elif item.inbox_type == item.InboxType.FOLLOW %}
+                {% streamfollow item %}
+            {% endif %}
+        {% elif item.format == 'github' %}
+            {% streamgh item %}
         {% endif %}
     {% endfor %}
 
