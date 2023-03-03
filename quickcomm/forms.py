@@ -65,6 +65,8 @@ class CreateMarkdownForm(forms.Form):
         return post
 
 class CreateImageForm(forms.Form):
+    """A form for creating an image post."""
+
     title = forms.CharField(max_length=100)
     source = forms.URLField(validators=[URLValidator])
     origin = forms.URLField(validators=[URLValidator])

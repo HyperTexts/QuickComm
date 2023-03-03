@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework.reverse import reverse
 
 from .models import Author, Post, Comment, Follow, Like

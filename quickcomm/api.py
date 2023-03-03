@@ -5,7 +5,6 @@ from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
-from rest_framework.decorators import action
 
 from .models import Author, Post, Comment, Follow, Like, ImageFile
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer
