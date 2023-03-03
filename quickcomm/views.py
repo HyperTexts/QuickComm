@@ -7,7 +7,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings
+from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -22,7 +22,7 @@ def get_current_author(request):
 
 def index(request):
     current_author = get_current_author(request)
-    inbox = Inbox.objects.filter(author=author).order_by('-added')
+    inbox = Inbox.objects.filter(author=current_author).order_by('-added')
     context = {
         'inbox': inbox,
         'current_author': current_author,
