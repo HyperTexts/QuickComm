@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.urls import reverse
+from ..models import RegistrationSettings
 
 
 class LoginViewTest(TestCase):
@@ -16,8 +17,54 @@ class LoginViewTest(TestCase):
             'password': 'pass',
         })
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(
+            response.wsgi_request.user.is_authenticated, response.content)
+
+
+class RegisterViewTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='user',
+            password='pass'
+        )
+
+        self.registration_settings = RegistrationSettings(
+            are_new_users_active=True)
+        self.registration_settings.save()
+
+    def test_register(self):
+        response = self.client.post('/register/', {
+            'username': 'user1',
+            'password1': 'pass1',
+            'password2': 'pass1',
+        })
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(
+            response.wsgi_request.user.is_authenticated, response.content)
+
+    def test_duplicate_register(self):
+        response = self.client.post('/register/', {
+            'username': 'user',
+            'password1': 'pass',
+            'password2': 'pass',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(
+            response.wsgi_request.user.is_authenticated, response.content)
+
+    def test_admin_denied_registration(self):
+        self.registration_settings.are_new_users_active = False
+        self.registration_settings.save()
+
+        response = self.client.post('/register/', {
+            'username': 'user2',
+            'password1': 'pass2',
+            'password2': 'pass2',
+        })
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(
             response.wsgi_request.user.is_authenticated, response.content)
 
 
@@ -34,7 +81,7 @@ class LogoutViewTest(TestCase):
             'password': 'pass',
         })
 
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 302)
         self.assertTrue(
             response.wsgi_request.user.is_authenticated)
 
