@@ -66,6 +66,7 @@ def create_markdown(request):
 
 @login_required
 def create_image(request):
+    current_author = get_current_author(request)
     if request.method == 'POST':
         form = CreateImageForm(request.POST, request.FILES)
         if form.is_valid():
@@ -74,7 +75,7 @@ def create_image(request):
             return HttpResponseRedirect('/')
     else:
         form = CreateImageForm()
-    return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'image'})
+    return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'image', 'current_author': current_author,})
 
 def login(request):
     if request.method == 'POST':
