@@ -158,7 +158,7 @@ class Inbox(models.Model):
     """The inbox is a relationship between an author and a post."""
 
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-    post = models.ForeignKey(Post, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.post.__str__()}"
