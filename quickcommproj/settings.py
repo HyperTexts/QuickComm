@@ -41,6 +41,10 @@ INSTALLED_APPS = [
     'quickcomm',
     'django_bootstrap5',
     'martor',
+    'rest_framework',
+    'drf_yasg',
+
+
 
 ]
 
@@ -75,6 +79,9 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'quickcommproj.wsgi.application'
 
+LOGIN_URL = '/login'
+
+LOGIN_REDIRECT_URL = '/'
 
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
@@ -147,3 +154,17 @@ MARTOR_TOOLBAR_BUTTONS = [
     'link', 'image-link'
 ]
 
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'BasicAuth': {
+            'type': 'basic',
+            'scheme': 'basic',
+        },
+    },
+    'SECURITY_REQUIREMENTS': [],
+
+
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'quickcomm.swagger.CompoundTagsSchema',
+
+ }

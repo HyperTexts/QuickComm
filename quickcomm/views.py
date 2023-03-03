@@ -1,10 +1,12 @@
+from django import template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
-from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, EditProfileForm
-from quickcomm.models import Author, Post
+from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, EditProfileForm
+from quickcomm.models import Author, Post, RegistrationSettings
+from django.contrib.auth.forms import UserCreationForm
 
 
 # Create your views here.
@@ -21,6 +23,7 @@ def index(request):
     context = {
         'posts': Post.objects.all(),
         'current_author': current_author
+        'request': request
     }
     return render(request, 'quickcomm/index.html', context)
 
@@ -40,6 +43,12 @@ def create_post(request):
         form = CreatePlainTextForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'plain text', 'current_author': current_author,})
 
+r = template.Library()
+@r.filter(name='get_image')
+def get_image(post, request):
+    return Post.get_image_url(post, request)
+
+
 
 @login_required
 def create_markdown(request):
@@ -56,6 +65,17 @@ def create_markdown(request):
         form = CreateMarkdownForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'CommonMark Markdown', 'current_author': current_author,})
 
+@login_required
+def create_image(request):
+    if request.method == 'POST':
+        form = CreateImageForm(request.POST, request.FILES)
+        if form.is_valid():
+            author = Author.objects.get(user=request.user)
+            form.save(author)
+            return HttpResponseRedirect('/')
+    else:
+        form = CreateImageForm()
+    return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'image'})
 
 def login(request):
     if request.method == 'POST':
@@ -75,14 +95,31 @@ def login(request):
 
 @login_required
 def logout(request):
-    print('test')
     auth_logout(request)
     return redirect('/')
 
 
 def register(request):
-    # TODO implement register
-    return HttpResponse('Register Page')
+    if request.method == 'POST':
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save()
+                author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
+                author.save()
+                # either log the user in or set their account to inactve
+                admin_approved = RegistrationSettings.objects.first().are_new_users_active
+                if admin_approved:
+                    auth_login(request, user)
+                else:
+                    user.is_active = False
+                    user.save()
+                return redirect('/')
+        else:
+            form = UserCreationForm()
+        context = {
+            'form': UserCreationForm()
+        }
+        return render(request, 'quickcomm/register.html', context)
 
 def view_authors(request):
     current_author = get_current_author(request)
@@ -141,3 +178,4 @@ def view_followers(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
+                    
