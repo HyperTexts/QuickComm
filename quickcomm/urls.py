@@ -1,7 +1,5 @@
 from django.urls import path, re_path
 from rest_framework.schemas import get_schema_view
-from django.urls import path, re_path
-from rest_framework.schemas import get_schema_view
 from . import views
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
@@ -95,11 +93,12 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('create/plain', views.create_post, name='create_plain'),
     path('create/markdown', views.create_markdown, name='create_markdown'),
-    path('post/<uuid:post_id>/', views.post_view, name='post_view'),
-    path('post/<uuid:post_id>/post_liked', views.post_like, name='post_like'),
-    path('post/<uuid:post_id>/post_comment', views.post_comment, name='post_comment')
     path('authors/', views.view_authors, name='view_authors'),
     path('authors/<uuid:author_id>/', views.view_profile, name='view_profile'),
+    path('authors/<uuid:author_id>/posts', views.view_author_posts, name='view_author_posts'),
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/', views.post_view, name='post_view'),
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_liked', views.post_like, name='post_like'),
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_comment', views.post_comment, name='post_comment'),
     path('authors/<uuid:author_id>/followers/', views.view_followers, name='view_followers'),
     path('create/image', views.create_image, name='create_image'),
     re_path(r'^openapi(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),

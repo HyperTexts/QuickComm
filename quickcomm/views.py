@@ -103,23 +103,29 @@ def login(request):
     return render(request, 'quickcomm/login.html', {'form': form})
 
 @login_required
-def post_view(request, post_id):
-    objects = Post.objects.all()
-    post = objects.get(pk=post_id)
+def post_view(request, post_id, author_id):
+    current_author = get_current_author(request)
+    post = get_object_or_404(Post, pk=post_id)
     post_comments = Comment.objects.filter(post=post).order_by("-published")
     is_liked = False
     if request.user.is_authenticated:
-        like_key = "post_like_{post_id}"
-        is_liked = request.session.get(like_key, False)
+        # like_key = "post_like_{post_id}"
+        # is_liked = request.session.get(like_key, False)
+        like = Like.objects.filter(post=post, author=current_author)
+        print(like)
+        if like:
+            is_liked = True
 
-    context = {"id": post.id, "title": post.title, "author": post.author, "description": post.description, "content": post.content, "is_post_liked": is_liked,"post_comments":post_comments}
+    context = {"post": post, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author}
 
     return render(request, "quickcomm/post.html", context)
 
 @login_required
-def post_like(request, post_id):
+def post_like(request, post_id, author_id):
     objects = Post.objects.all()
     post = objects.get(pk=post_id)
+
+    # post = get_object_or_404(Post, pk=post_id)
 
     if request.user.is_authenticated:
         author = Author.objects.all().get(user=request.user)
@@ -129,12 +135,12 @@ def post_like(request, post_id):
         like_key = f"post_like_{post_id}"
         request.session[like_key] = not created_obj
 
-    return redirect("post_view", post_id=post_id)
+    return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @login_required
-def post_comment(request, post_id):
-    objects = Post.objects.all()
-    post = objects.get(pk=post_id)
+def post_comment(request, post_id, author_id):
+    post = Post.objects.get(pk=post_id)
+
     if request.method == 'POST':
         form = CreateCommentForm(request.POST)
         if form.is_valid():
@@ -144,8 +150,8 @@ def post_comment(request, post_id):
             comment.author = author
             comment.comment = form.cleaned_data['comment']
             comment.save()
-            return HttpResponseRedirect(reverse('post_comment', args=[post.pk]))
-    return redirect("post_view", post_id=post_id)
+            return redirect('post_comment', post_id=post_id, author_id=author_id)
+    return redirect("post_view", post_id=post_id, author_id=author_id)
    
 
 @login_required
@@ -156,10 +162,6 @@ def logout(request):
 
 def register(request):
     if request.method == 'POST':
-            form = UserCreationForm(request.POST)
-            if form.is_valid():
-                user = form.save()
-                author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
             form = UserCreationForm(request.POST)
             if form.is_valid():
                 user = form.save()
@@ -245,3 +247,24 @@ def view_followers(request, author_id):
                     'current_author': current_author,
                     })
                     
+def view_author_posts(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = get_current_author(request)
+
+    posts = Post.objects.filter(author=author)
+
+    size = request.GET.get('size', '10')
+    paginator = Paginator(posts, size)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'author': author,
+        'page_obj': page_obj,
+        'size': size,
+        'current_author': current_author,
+    }
+    
+    return render(request, 'quickcomm/posts.html', context)
+

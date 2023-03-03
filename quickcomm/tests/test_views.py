@@ -110,20 +110,22 @@ class LikePostTestCase(TestCase):
         self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='user2', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
         self.author2.save()
 
+        self.post = Post.objects.create(author=self.author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
+        self.post.full_clean()
+        self.post.save()
+
     def test_viewing_post(self):
-        author1 = Author.objects.all()[0]
         c = Client()
-        response = c.post('/post/'+str(author1.id)+"/",)
-        c.get('/post/'+str(author1.id)+"/",)
-        self.assertEqual(response.status_code, 302)
+        c.login(username='user1', password='pass1')
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/")
+        self.assertEqual(response.status_code, 200)
+
     def test_like(self):
         c = Client()
-        author1 = Author.objects.all()[0]
-        author2 = Author.objects.all()[1]
-        post = Post.objects.create(author=author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
-        post.full_clean()
-        response = c.get('/post/'+str(author2.id)+"/"+'post_liked')
+        c.login(username='user2', password='pass2')
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/"+"post_liked")
         self.assertEqual(response.status_code, 302)
+
 class EditProfileViewTest(TestCase):
     def setUp(self):
         
