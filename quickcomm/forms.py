@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Post
+from .models import Post, Comment
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
 
@@ -63,6 +63,11 @@ class CreateLoginForm(forms.Form):
     display_name = forms.CharField(max_length=100)
     password = forms.CharField(widget=forms.PasswordInput())
 
+
+class CreateCommentForm(forms.ModelForm):
+    class Meta:
+        model = Comment
+        fields = ['comment']
 
 class CreateRegisterForm(forms.ModelForm):
     class Meta:
