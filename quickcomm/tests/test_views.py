@@ -1,5 +1,6 @@
-from django.test import TestCase
+from django.test import TestCase, Client
 from django.contrib.auth.models import User
+from quickcomm.models import Author, Post, Like
 from django.urls import reverse
 
 
@@ -68,3 +69,40 @@ class LogoutViewTest(TestCase):
         response = self.client.post('/logout/', {})
         self.assertEqual(response.status_code, 302)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
+
+class LikePostTestCase(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(
+            username='user1',
+            password='pass1'
+        )
+
+        self.user2 = User.objects.create_user(
+            username='user2',
+            password='pass2'
+        )
+
+        
+        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='user1', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author1.save()
+
+        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='user2', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author2.save()
+
+    def test_viewing_post(self):
+        author1 = Author.objects.all()[0]
+        author2 = Author.objects.all()[1]
+        c = Client()
+        response = c.post('/post/'+str(author1.id)+"/",)
+        c.get('/post/'+str(author1.id)+"/",)
+        self.assertEqual(response.status_code, 302)
+    def test_like(self):
+        c = Client()
+        author1 = Author.objects.all()[0]
+        author2 = Author.objects.all()[1]
+        post = Post.objects.create(author=author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
+        post.full_clean()
+
+        like = Like.objects.create(author=author2, post=post)
+        response = c.get('/post/'+str(author2.id)+"/"+'post_liked')
+        self.assertEqual(response.status_code, 302)
