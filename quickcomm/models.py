@@ -139,6 +139,8 @@ class Like(models.Model):
 
 
 class RegistrationSettings(models.Model):
+    """A flag for admin users to determine if new users are active or not by default.
+    Should only have 1 value in database"""
     are_new_users_active = models.BooleanField(default=True)
 
     def __str__(self):
