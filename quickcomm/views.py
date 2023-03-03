@@ -1,11 +1,12 @@
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
+from django.urls import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
-from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, EditProfileForm
-from quickcomm.models import Author, Post, RegistrationSettings
+from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
+from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings
 from django.contrib.auth.forms import UserCreationForm
 
 
@@ -17,18 +18,27 @@ def get_current_author(request):
     else:
         author = None
     return author
+def get_current_author(request):
+    if request.user.is_authenticated:
+        author = Author.objects.get(user_id = request.user.id)
+    else:
+        author = None
+    return author
 
 def index(request):
     current_author = get_current_author(request)
+    current_author = get_current_author(request)
     context = {
         'posts': Post.objects.all(),
-        'current_author': current_author
+        'current_author': current_author,
+        'request': request
     }
     return render(request, 'quickcomm/index.html', context)
 
 
 @login_required
 def create_post(request):
+    current_author = get_current_author(request)
     current_author = get_current_author(request)
     if request.method == 'POST':
         form = CreatePlainTextForm(request.POST)
@@ -92,6 +102,51 @@ def login(request):
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
 
+@login_required
+def post_view(request, post_id):
+    objects = Post.objects.all()
+    post = objects.get(pk=post_id)
+    post_comments = Comment.objects.filter(post=post).order_by("-published")
+    is_liked = False
+    if request.user.is_authenticated:
+        like_key = "post_like_{post_id}"
+        is_liked = request.session.get(like_key, False)
+
+    context = {"id": post.id, "title": post.title, "author": post.author, "description": post.description, "content": post.content, "is_post_liked": is_liked,"post_comments":post_comments}
+
+    return render(request, "quickcomm/post.html", context)
+
+@login_required
+def post_like(request, post_id):
+    objects = Post.objects.all()
+    post = objects.get(pk=post_id)
+
+    if request.user.is_authenticated:
+        author = Author.objects.all().get(user=request.user)
+        like_obj, created_obj = Like.objects.get_or_create(post=post, author=author)
+        if not created_obj:
+            like_obj.delete()
+        like_key = f"post_like_{post_id}"
+        request.session[like_key] = not created_obj
+
+    return redirect("post_view", post_id=post_id)
+
+@login_required
+def post_comment(request, post_id):
+    objects = Post.objects.all()
+    post = objects.get(pk=post_id)
+    if request.method == 'POST':
+        form = CreateCommentForm(request.POST)
+        if form.is_valid():
+            author = Author.objects.all().get(user=request.user)
+            comment = Comment()
+            comment.post = post
+            comment.author = author
+            comment.comment = form.cleaned_data['comment']
+            comment.save()
+            return HttpResponseRedirect(reverse('post_comment', args=[post.pk]))
+    return redirect("post_view", post_id=post_id)
+   
 
 @login_required
 def logout(request):
@@ -105,7 +160,18 @@ def register(request):
             if form.is_valid():
                 user = form.save()
                 author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save()
+                author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
                 author.save()
+                # either log the user in or set their account to inactve
+                admin_approved = RegistrationSettings.objects.first().are_new_users_active
+                if admin_approved:
+                    auth_login(request, user)
+                else:
+                    user.is_active = False
+                    user.save()
                 # either log the user in or set their account to inactve
                 admin_approved = RegistrationSettings.objects.first().are_new_users_active
                 if admin_approved:
@@ -115,10 +181,10 @@ def register(request):
                     user.save()
                 return redirect('/')
     else:
-        form = UserCreationForm()
+            form = UserCreationForm()
     context = {
-        'form': UserCreationForm()
-    }
+            'form': UserCreationForm()
+        }
     return render(request, 'quickcomm/register.html', context)
 
 def view_authors(request):
