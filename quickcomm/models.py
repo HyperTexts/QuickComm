@@ -8,7 +8,7 @@ from django.core.validators import URLValidator
 # classes, but this logic is to be implemented later.
 
 # Type fields are left out as they can be added later and are redundant. Host
-# fields are kept as the if these classes are used to represent remote authors,
+# fields are kept as if these classes are used to represent remote authors,
 # the host field is necessary. ID is also left out.
 
 # We used UUIDs for pkeys to be more secure.
