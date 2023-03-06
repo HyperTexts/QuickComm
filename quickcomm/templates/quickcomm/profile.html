@@ -4,7 +4,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-2">
-                <img class="" src={{ author.profile_image }} width="128px" class="rounded-circle">
+                <img class="" src="{{ author.profile_image }}" width="128px" class="rounded-circle">
             </div>
             <div class="col-md-2 align-self-center">
                 <h2 class="align-middle">{{ author.display_name }}</h2>
@@ -32,6 +32,9 @@
                     </button>
                 </div>
             {% endif %}
+            <div class="col-md-2 align-self-center">
+                <a href = "{% url 'view_author_posts' author.id %}">Posts</a>
+            </div>
         </div>
     </div>
 
@@ -46,13 +49,14 @@
                 <form method="post">
                     {% csrf_token %}
                     {% bootstrap_form form %}
-                    {% bootstrap_button button_type="submit" content="Create" %}
+                    {% bootstrap_button button_type="submit" content="Save" %}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
                 </form>
             </div>
-            <div class="modal-footer">
+            <!-- <div class="modal-footer">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
               <button type="button" class="btn btn-primary">Save changes</button>
-            </div>
+            </div> -->
           </div>
         </div>
       </div>

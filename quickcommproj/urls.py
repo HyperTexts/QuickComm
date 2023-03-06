@@ -20,5 +20,6 @@ from django.urls.conf import include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('martor/', include('martor.urls')),
-    path('', include('quickcomm.urls'))
+    path('', include('quickcomm.urls')),
+    path('api/', include('quickcomm.apiurls')),
 ]

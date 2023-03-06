@@ -1,4 +1,4 @@
-#!/home/nanaya/QuickComm-ivan-view-follower/venv/bin/python
+#!/home/nanaya/quickcomm/QuickComm/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

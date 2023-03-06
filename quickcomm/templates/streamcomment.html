@@ -1,0 +1,17 @@
+{% load stream_extras %}
+{% load humanize %}
+
+<div class="card mb-3">
+  <div class="card-header">
+    <p class="card-text">
+      <strong>{{ time|naturaltime }}</strong>
+      <a href="#">@{{ comment.author.user.username }}</a> commented on your
+      post.
+    </p>
+  </div>
+  <div class="card-body">
+
+    <p>@{{ comment.author.user.username }}: {{ comment.comment }}</p>
+    {% minipost comment.post %}
+  </div>
+</div>

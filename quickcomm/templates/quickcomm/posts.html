@@ -1,27 +1,16 @@
 {% extends 'base.html' %}
+{% load image_extras %}
 
 {% block content %}
-    <h1>All Authors</h1>
-    
-        {% for author in page_obj %}
-            <div class ="row">
-                {% if not author.profile_image %}
-                    <div class="col-1">
-
-                        <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% else %}
-                    <div class="col-1">
-
-                        <img src="{{ author.profile_image }}" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% endif %}
-                <div class="col">
-                    <a href="{% url 'view_profile' author.id %}">{{ author.display_name }}</a>
-                </div>
-            </div>
+    <h1>{{author.display_name}}'s Posts</h1>
+        {% for post in page_obj %}
+            <ul>
+                <a href="{% url 'post_view' author.id post.id %}"><li>{{ post.title }} by {{ post.author }} <i>[{{ post.id }}]</i></li></a>
+                <li>{% image post %}</li>
+            </ul>
         {% endfor %}
-    <nav aria-label="author list pages">
+
+    <nav aria-label="post list pages">
         <ul class="pagination">
             {% if page_obj.has_previous %}
                 <li class="page-item">

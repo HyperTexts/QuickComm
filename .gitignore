@@ -96,15 +96,6 @@ celerybeat-schedule.*
 # SageMath parsed files 
 *.sage.py 
 
-# Environments 
-.env 
-.venv 
-env/ 
-venv/ 
-ENV/ 
-env.bak/ 
-venv.bak/ 
-
 # mkdocs documentation 
 /site 
 
@@ -135,6 +126,12 @@ GitHub.sublime-settings
 !.vscode/launch.json 
 !.vscode/extensions.json 
 .history
+
+# Python Environments #
+.env
+.venv
+env/
+venv/
 
 # macOS #
 .DS_Store

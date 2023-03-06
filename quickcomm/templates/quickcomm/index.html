@@ -1,13 +1,21 @@
 {% extends 'base.html' %}
+{% load humanize %}
+{% load stream_extras %}
+
 
 {% block content %}
-    <h1>Home</h1>
-    <p>Welcome to QuickComm!</p>
+    <h1>My Stream</h1>
 
-    <h1>All Posts</h1>
-    <ul>
-        {% for post in posts %}
-            <li>{{ post.title }} by {{ post.author }} <i>[{{ post.id }}]</i></li>
-        {% endfor %}
-    </ul>
+    {% for item in inbox %}
+        {% if item.inbox_type == item.InboxType.LIKE %}
+            {% streamlike item %}
+        {% elif item.inbox_type == item.InboxType.COMMENT %}
+            {% streamcomment item %}
+        {% elif item.inbox_type == item.InboxType.POST %}
+            {% streampost item %}
+        {% elif item.inbox_type == item.InboxType.FOLLOW %}
+            {% streamfollow item %}
+        {% endif %}
+    {% endfor %}
+
 {% endblock %}
