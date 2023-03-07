@@ -231,41 +231,16 @@ def view_profile(request, author_id):
                     'current_author': current_author,
                     'form': form,
                     })
-
-@login_required
-def follow_author(request,author_id):
-    current_user=get_current_author(request)
-    if request.method=='POST':
-        # value=request.POST['value']
-        # user=request.POST['user']
-        # follower=request.POST['follower']
-        # new_follower=Follow.objects.create(follower=follower,following=user)
-        # new_follower.save()
-        # pass
-        target=get_object_or_404(Author, pk=author_id)
-        new_follower=Follow.objects.create(follower=current_user,following=target)
-        if new_follower.is_bidirectional():
-            
-            pass
-        new_follower.save()
-        return render(request, 'quickcomm/followers.html',{
-            'author':target,
-            'current_author':current_user,
-        })
-
-# def real_friend(request,author_id):
     
-#     pass
-
 def view_followers(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
-    followers=current_author.get_followers()
+    
     return render(request, 'quickcomm/followers.html', {
+                    'author': author,
                     'current_author': current_author,
-                    'author':author
-
                     })
+
 def view_requests(request,author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
@@ -311,8 +286,7 @@ def decline_request(request,author_id):
     from_user=get_current_author(request)
     to_user=get_object_or_404(Author,pk=author_id)
     pass
-    
-
+                    
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
