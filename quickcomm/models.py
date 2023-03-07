@@ -1,9 +1,11 @@
+import base64
 import uuid
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+
 
 # NOTE: The models in this file do not take into account how the site will
 # interact with other APIs. Ideally, we should be able to reuse the model
@@ -15,6 +17,7 @@ from django.contrib.contenttypes.models import ContentType
 
 # We used UUIDs for pkeys to be more secure.
 # TODO what are the constraints on fields being null?
+
 
 class Author(models.Model):
     """An author is a person associated with a user account via a one-to-one
@@ -36,18 +39,25 @@ class Author(models.Model):
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
 
-    def follows(self, author):
+    def is_following(self, author):
         """Returns true if this author (self) follows the given author."""
         return Follow.objects.filter(follower=self, following=author).exists()
 
-    def following(self, author):
+    def is_followed_by(self, author):
         """Returns true if this author (self) is followed by the given author."""
         return Follow.objects.filter(follower=author, following=self).exists()
+    
+    def follower_count(self):
+        """return number of profiles following author (self)"""
+        return Follow.objects.filter(following=self).count()
+    
+    def get_followers(self):
+        return Follow.objects.filter(following=self)
 
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
         given author. In other words, a true friend."""
-        return self.follows(author) and self.following(author)
+        return self.is_following(author) and self.is_followed_by(author)
 
     def follow(self, author):
         """Follows the given author."""
@@ -57,12 +67,15 @@ class Author(models.Model):
     def __str__(self):
         return f"{self.display_name} ({self.user.username})"
 
+
 class Follow(models.Model):
     """A follow is is a many-to-many relationship between authors representing a
     follow."""
 
-    follower = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='follower')
-    following = models.ForeignKey(Author, on_delete=models.CASCADE, related_name='following')
+    follower = models.ForeignKey(
+        Author, on_delete=models.CASCADE, related_name='follower')
+    following = models.ForeignKey(
+        Author, on_delete=models.CASCADE, related_name='following')
 
     def save(self, *args, **kwargs):
         saved = super(Follow, self).save(*args, **kwargs)
@@ -77,10 +90,11 @@ class Follow(models.Model):
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
-        return self.following.follows(self.follower)
+        return self.following.is_following(self.follower)
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
+
 
 class Post(models.Model):
     """A post is a post made by an author."""
@@ -107,7 +121,8 @@ class Post(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
     published = models.DateTimeField(auto_now_add=True)
-    visibility = models.CharField(max_length=50, choices=PostVisibility.choices)
+    visibility = models.CharField(
+        max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
@@ -129,8 +144,29 @@ class Post(models.Model):
 
         return saved
 
+    @property
+    def content_formatted(self):
+        """Returns the content of the post as either base64 or plain text."""
+        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
+            file = ImageFile.objects.get(post=self).image.read()
+            return base64.b64encode(file).decode('utf-8')
+        return self.content
+
+    @content_formatted.setter
+    def content_formatted(self, value):
+        """Sets the content of the post from either base64 or plain text."""
+        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
+            ImageFile.objects.get(post=self).delete()
+            ImageFile.objects.create(post=self, image=base64.b64decode(value)).save()
+        else:
+            self.content = value
+
+    def get_image_url(self, request):
+        """Returns the absolute URL of the image associated with the post."""
+        return request.build_absolute_uri("/authors/"+self.author_id.__str__()+"/posts/"+self.id.__str__()+"/")
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
+
 
 class Comment(models.Model):
     """A comment is a comment made by an author on a post."""
@@ -158,6 +194,11 @@ class Comment(models.Model):
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
 
+class ImageFile(models.Model):
+    """An image file is a file that is an image. This is used so our internal
+    representation is a file and not a base64 string."""
+    post = models.OneToOneField(Post, on_delete=models.CASCADE, primary_key=True)
+    image = models.ImageField(upload_to='images/')
 
 
 class Inbox(models.Model):
@@ -195,7 +236,7 @@ class Inbox(models.Model):
 
     # The author is the author who owns the inbox.
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
-
+    
     # The inbox type is the type of item in the inbox.
     inbox_type = models.CharField(max_length=50, choices=InboxType.choices)
 
@@ -211,6 +252,7 @@ class Inbox(models.Model):
 
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"
+
 
 class Like(models.Model):
     """A like is a relationship between an author and a post."""
@@ -230,3 +272,10 @@ class Like(models.Model):
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"
 
+class RegistrationSettings(models.Model):
+    """A flag for admin users to determine if new users are active or not by default.
+    Should only have 1 value in database"""
+    are_new_users_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.are_new_users_active.__str__()}"
