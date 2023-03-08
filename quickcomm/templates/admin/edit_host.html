@@ -1,0 +1,9 @@
+{% extends 'admin/change_form.html' %}
+{% comment %} Taken from https://books.agiliq.com/projects/django-admin-cookbook/en/latest/custom_button.html {% endcomment %}
+
+{% block submit_buttons_bottom %}
+    {{ block.super }}
+    <div class="submit-row">
+            <input type="submit" value="Ping Server" name="_ping">
+    </div>
+{% endblock %}
