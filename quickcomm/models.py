@@ -86,8 +86,11 @@ class Author(models.Model):
     # Taken on: Feb 6, 2023
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    host = models.URLField(validators=[URLValidator])
+    # FIXME the user is only null if the author is remote. This should be
+    # enforced in the model.
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, null=True, blank=True,help_text="The host that this author is associated with. This is only used for remote authors. Internal authors will have this field set to null. This field should NOT be set manually.")
+    external_url = models.CharField(max_length=100, blank=True, null=True)
     display_name = models.CharField(max_length=100)
     github = models.URLField(blank=True, null=True, validators=[URLValidator])
     profile_image = models.URLField(
