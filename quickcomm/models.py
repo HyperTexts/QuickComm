@@ -1,10 +1,14 @@
 import base64
+import datetime
+import os
 import uuid
 from django.db import models
+from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+import ping3
 
 
 # NOTE: The models in this file do not take into account how the site will
@@ -17,6 +21,58 @@ from django.contrib.contenttypes.models import ContentType
 
 # We used UUIDs for pkeys to be more secure.
 # TODO what are the constraints on fields being null?
+
+class Host(models.Model):
+    """A host is a remote server that hosts authors."""
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    url = models.URLField(validators=[URLValidator], help_text="The URL of the host API. This must be in proper form (e.g. https://example.com/).", verbose_name="Host URL")
+
+    last_successful_ping = models.DateTimeField(null=True, blank=True)
+    last_ping = models.DateTimeField(null=True, blank=True)
+    last_ping_result = models.BooleanField(null=True, blank=True)
+
+    nickname = models.CharField(max_length=100, help_text="The nickname of the host. This is only used for display purposes.", verbose_name="Nickname", null=True, blank=True)
+
+    @property
+    def nickname_or_url(self):
+        if self.nickname:
+            return self.nickname
+        return self.url
+
+    def ping(self):
+        """Pings the host to see if it is online. Return True if online, False
+        otherwise. This method uses the os.system() method to ping the host."""
+
+        # strip the protocol from the url
+        clean_url = self.url.split('/')[2]
+
+        # strip the port from the url
+        clean_url = clean_url.split(':')[0]
+
+        # ping the host
+        req = os.system(f"ping -c 1 {clean_url}")
+        success = req == 0
+
+        # last ping is now, set the last ping result
+        self.last_ping = datetime.datetime.now()
+        self.last_ping_result = success
+        if success:
+            self.last_successful_ping = self.last_ping
+
+        return success
+
+    def save(self, *args, **kwargs):
+        """Override save to ping the host before saving."""
+        self.ping()
+        super(Host, self).save(*args, **kwargs)
+
+    def __str__(self):
+        if self.nickname:
+            return f"{self.nickname} ({self.url})"
+        return f"{self.url}"
+
 
 
 class Author(models.Model):
