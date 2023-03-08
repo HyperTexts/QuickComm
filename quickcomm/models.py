@@ -163,7 +163,7 @@ class Post(models.Model):
 
     def get_image_url(self, request):
         """Returns the absolute URL of the image associated with the post."""
-        return request.build_absolute_uri("/authors/"+self.author_id.__str__()+"/posts/"+self.id.__str__()+"/")
+        return request.build_absolute_uri("/api/authors/"+self.author_id.__str__()+"/posts/"+self.id.__str__()+"/image/")
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
 

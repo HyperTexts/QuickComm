@@ -2,7 +2,7 @@
 
 <div class="card border-primary mb-2">
     <div class="card-header">
-      <strong>{{ time|naturaltime }}</strong> <a href="#">@{{ stream.localAuthor.user.username }}</a> GitHub Event
+      <strong>{{ time|naturaltime }}</strong> <a href={% url "view_profile" author_id=stream.localAuthor.id %}>@{{ stream.localAuthor.user.username }}</a> GitHub Event
     </div>
     <div class="card-body">
         <div class="container">

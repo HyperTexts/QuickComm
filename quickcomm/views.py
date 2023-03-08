@@ -12,7 +12,6 @@ from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainText
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 
-from quickcomm.forms import CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateRegisterForm
 from quickcomm.models import Author, Follow, Inbox
 from .external_requests import get_github_stream
 
@@ -25,6 +24,7 @@ def get_current_author(request):
         author = None
     return author
 
+@login_required
 def index(request):
 
     current_author = get_current_author(request)

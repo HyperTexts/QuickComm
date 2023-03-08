@@ -5,7 +5,7 @@
   <div class="card-header">
     <p class="card-text">
       <strong>{{ time|naturaltime }}</strong>
-      <a href="#">@{{ comment.author.user.username }}</a> commented on your
+      <a href={% url "view_profile" author_id=comment.author.id %}>@{{ comment.author.user.username }}</a> commented on your
       post.
     </p>
   </div>

@@ -1,5 +1,4 @@
 import base64
-import base64
 from django import forms
 from quickcomm.validators import validate_image_upload_format
 from .models import ImageFile, Post, Author, Comment
@@ -161,7 +160,7 @@ class CreateLoginForm(forms.Form):
         
 class EditProfileForm(forms.Form):
     display_name = forms.CharField(max_length=100, required=False)
-    github = forms.URLField(validators=[URLValidator], required=False)
+    github = forms.CharField(required=False)
     profile_image = forms.URLField(validators=[URLValidator], required=False)
         
     def save(self, author):
