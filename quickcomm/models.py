@@ -9,6 +9,9 @@ from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 import ping3
+from quickcomm.external_host_deserializers import deserialize_author
+
+from quickcomm.external_host_requests import get_authors
 
 
 # NOTE: The models in this file do not take into account how the site will
@@ -41,6 +44,21 @@ class Host(models.Model):
             return self.nickname
         return self.url
 
+    def sync(self):
+        """Syncs the host with the remote API."""
+        self.sync_authors()
+
+    def sync_authors(self):
+        """Syncs the authors with the remote API."""
+        ext_authors = get_authors(self.url)
+        for ext_author in ext_authors:
+            deserialize_author(ext_author, self).save()
+
+        # TODO delete authors that are no longer on the remote host
+        # TODO don't delete posts that were private by accident
+
+
+
     def ping(self):
         """Pings the host to see if it is online. Return True if online, False
         otherwise. This method uses the os.system() method to ping the host."""
@@ -63,6 +81,7 @@ class Host(models.Model):
 
         return success
 
+    # TODO move to the receiver mixins
     def save(self, *args, **kwargs):
         """Override save to ping the host before saving."""
         self.ping()
