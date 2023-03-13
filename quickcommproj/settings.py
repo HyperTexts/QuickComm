@@ -38,7 +38,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["quick-comm.herokuapp.com"]
 
-STATIC_ROOT = BASE_DIR / 'static'
 
 # https://whitenoise.readthedocs.io/en/stable/django.html
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
@@ -138,11 +137,13 @@ USE_I18N = True
 USE_TZ = True
 
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = 'staticfiles/'
 
+# https://whitenoise.readthedocs.io/en/latest/django.html
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
