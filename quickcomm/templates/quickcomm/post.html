@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load image_extras %}
 {% block content %}
   <div class="card mb-3">
     <div class="card-body">
@@ -7,7 +8,13 @@
         <h5 class="card-title align-self-center">{{ post.author }} </h5>
       </div>
       <!-- <img src="image_url" class="card-img-top" alt="Image"> -->
+      {% if post.content_type == post.PostType.PNG %}
+        {% image post %}
+      {% elif post.content_type == post.PostType.JPG %}
+        {% image post %}
+        {% else %}
       <p class="card-text">{{ post.content }}</p>
+      {% endif %}
       <p class="card-text">{{ post.description}}</p>
 
       <div class="d-flex justify-content-between align-items-center">
