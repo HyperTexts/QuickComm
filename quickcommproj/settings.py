@@ -184,3 +184,6 @@ SWAGGER_SETTINGS = {
  }
 
 django_on_heroku.settings(locals())
+
+options = DATABASES['default'].get('OPTIONS', {})
+options.pop('sslmode', None)
