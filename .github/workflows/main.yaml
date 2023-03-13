@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - main
+  pull-request:
+    branches:
+      - main
 
 jobs:
   build:
@@ -15,4 +18,3 @@ jobs:
           heroku_api_key: ${{secrets.HEROKU_API_KEY}}
           heroku_app_name: "quick-comm" #Must be unique in Heroku
           heroku_email: "micheal.chow672@gmail.com"
-          team: "hyper-texts"
