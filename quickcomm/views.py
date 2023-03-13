@@ -57,7 +57,6 @@ def index(request):
 
     context = {
         'inbox': inbox,
-        'inbox': inbox,
         'current_author': current_author,
     }
     return render(request, 'quickcomm/index.html', context)
