@@ -12,9 +12,19 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 import django_on_heroku
+import dj_database_url
+import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# https://bennettgarner.medium.com/deploying-django-to-heroku-connecting-heroku-postgres-fcc960d290d1
+# this should allow us to continue using our local sqlite3 database
+# needs a .env file with the line "DATABASE_URL=sqlite:///db.sqlite3" at root
+
+DOTENV_FILE = BASE_DIR / '.env'
+if DOTENV_FILE.is_file():
+    dotenv.load_dotenv(DOTENV_FILE.as_posix())
 
 
 # Quick-start development settings - unsuitable for production
@@ -30,9 +40,13 @@ ALLOWED_HOSTS = ["quick-comm.herokuapp.com"]
 
 STATIC_ROOT = BASE_DIR / 'static'
 
+# https://whitenoise.readthedocs.io/en/stable/django.html
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 # Application definition
 
 INSTALLED_APPS = [
+    "whitenoise.runserver_nostatic"
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -88,13 +102,9 @@ LOGIN_REDIRECT_URL = '/'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
+# https://bennettgarner.medium.com/deploying-django-to-heroku-connecting-heroku-postgres-fcc960d290d1
+DATABASES = {}
+DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -132,6 +142,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
+
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
