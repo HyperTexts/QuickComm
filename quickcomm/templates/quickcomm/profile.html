@@ -12,9 +12,14 @@
             <div class="col-md-2 align-self-center">
                 Followers: <a href = "{% url 'view_followers' author.id %}">{{ author.follower_count }}</a>
             </div>
+            {% if author.user_id == user.id %}
+            <div class="col-md-2 align-self-center">
+                Requests<a href="{%  url 'view_requests' author.id %}">{{author.requests_count}}</a>
+            </div>
+            {% endif %}
             {% if user.is_authenticated and user.id != author.user_id%}
                 <div class="col-md-2 align-self-center">
-                    <a href="#" class="btn btn-outline-primary me-2">Follow</a>
+                    <a href="{% url 'send_follow_request' author.id %}" class="btn btn-outline-primary me-2">Follow</a>
                 </div>
             {% endif %}
             {% if user.is_authenticated and user.id == author.user_id %}

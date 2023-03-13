@@ -103,4 +103,7 @@ urlpatterns = [
     path('create/image', views.create_image, name='create_image'),
     re_path(r'^openapi(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     re_path(r'^openapi/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
+    path('send_follow_request/<uuid:author_id>/', views.send_follow_request, name='send_follow_request'),
+    path('accept_request/<uuid:author_id>/', views.accept_request, name='accept_request'),
+    path('authors/<uuid:author_id>/requests/', views.view_requests, name='view_requests'),
 ]

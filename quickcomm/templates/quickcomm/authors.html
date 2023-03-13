@@ -2,14 +2,17 @@
 
 {% block content %}
     <h1>All Authors</h1>
+    
         {% for author in page_obj %}
             <div class ="row">
                 {% if not author.profile_image %}
                     <div class="col-1">
+
                         <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
                     </div>
                 {% else %}
                     <div class="col-1">
+
                         <img src="{{ author.profile_image }}" width="32" height="32" class="rounded-circle">
                     </div>
                 {% endif %}
