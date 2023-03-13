@@ -1,4 +1,4 @@
-<div class="card text-white bg-secondary mb-2">
+<div class="card text-white bg-primary mb-2">
     <div class="card-body">
       <p class="card-title h4">
         {{ post.title }}
@@ -14,7 +14,7 @@
             <span class="lead">File post.</span>
         {% endif %}
 
-        <a href="#" class="text-white h6">View Post</a>
+        <a href={% url "post_view" author_id=post.author.id post_id=post.id %} class="text-white h6">View Post</a>
       </p>
     </div>
   </div>

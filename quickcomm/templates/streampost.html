@@ -3,7 +3,7 @@
 
 <div class="card mb-3">
     <div class="card-header">
-    <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a href="#">@{{ post.author.user.username }}</a> created a post.</p>
+    <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a href={% url "view_profile" author_id=post.author.id %}>@{{ post.author.user.username }}</a> created a post.</p>
     </div>
     <div class="card-body">
         {% minipost post %}
