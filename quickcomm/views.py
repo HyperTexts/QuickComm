@@ -9,10 +9,9 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
+from quickcomm.models import Author, Follow, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 
-from quickcomm.models import Author, Follow, Inbox
 from .external_requests import get_github_stream
 
 # Create your views here.
@@ -57,7 +56,6 @@ def index(request):
 
 
     context = {
-        'inbox': inbox,
         'inbox': inbox,
         'current_author': current_author,
     }
@@ -120,7 +118,7 @@ def login(request):
         form = CreateLoginForm(request.POST)
         if form.is_valid():
             user = authenticate(
-                username=request.POST['display_name'], password=request.POST['password'])
+                username=request.POST['username'], password=request.POST['password'])
             if user is not None:
                 auth_login(request, user)
                 return redirect('/')

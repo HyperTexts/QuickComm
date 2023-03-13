@@ -11,9 +11,20 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
+import django_on_heroku
+import dj_database_url
+import dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# https://bennettgarner.medium.com/deploying-django-to-heroku-connecting-heroku-postgres-fcc960d290d1
+# this should allow us to continue using our local sqlite3 database
+# needs a .env file with the line "DATABASE_URL=sqlite:///db.sqlite3" at root
+
+DOTENV_FILE = BASE_DIR / '.env'
+if DOTENV_FILE.is_file():
+    dotenv.load_dotenv(DOTENV_FILE.as_posix())
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,13 +36,16 @@ SECRET_KEY = 'django-insecure-tho*l-%9=()%tjnl&c@n^gqsw5)(s0u6ix+-(b0@8&8-=@71&*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["quick-comm.herokuapp.com"]
 
-STATIC_ROOT = BASE_DIR / 'static'
+
+# https://whitenoise.readthedocs.io/en/stable/django.html
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Application definition
 
 INSTALLED_APPS = [
+    # "whitenoise.runserver_nostatic"
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -57,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'quickcomm.middleware.no_csfr',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'quickcommproj.urls'
@@ -86,13 +101,9 @@ LOGIN_REDIRECT_URL = '/'
 # Database
 # https://docs.djangoproject.com/en/4.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }
-}
-
+# https://bennettgarner.medium.com/deploying-django-to-heroku-connecting-heroku-postgres-fcc960d290d1
+DATABASES = {}
+DATABASES['default'] = dj_database_url.config(conn_max_age=600)
 
 # Password validation
 # https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
@@ -126,10 +137,14 @@ USE_I18N = True
 USE_TZ = True
 
 
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = 'staticfiles/'
+
+# https://whitenoise.readthedocs.io/en/latest/django.html
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
@@ -168,3 +183,8 @@ SWAGGER_SETTINGS = {
     'DEFAULT_AUTO_SCHEMA_CLASS': 'quickcomm.swagger.CompoundTagsSchema',
 
  }
+
+django_on_heroku.settings(locals())
+
+# options = DATABASES['default'].get('OPTIONS', {})
+# options.pop('sslmode', None)

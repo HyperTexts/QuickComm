@@ -7,6 +7,7 @@
             {% csrf_token %}
             {% bootstrap_form form %}
             {% bootstrap_button button_type="submit" content="Login" %}
+            {% bootstrap_button button_type="link" href="../register/" button_class="btn-secondary" content="Sign Up" %}
         </form>
     </div>
 {% endblock %}
