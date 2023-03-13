@@ -26,7 +26,7 @@ SECRET_KEY = 'django-insecure-tho*l-%9=()%tjnl&c@n^gqsw5)(s0u6ix+-(b0@8&8-=@71&*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["quick-comm.herokuapp.com"]
 
 STATIC_ROOT = BASE_DIR / 'static'
 
@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'quickcomm.middleware.no_csfr',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 ROOT_URLCONF = 'quickcommproj.urls'
