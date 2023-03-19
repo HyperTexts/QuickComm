@@ -38,6 +38,9 @@ def index(request):
     following.append(author)
     for follow in following:
         github = get_github_stream(follow.github)
+        if 'message' in github:
+            if github['message'] == 'Not Found':
+                continue
         github = [dict(item, **{
             'format': 'github',
             'localAuthor': Author.objects.all()[0],
