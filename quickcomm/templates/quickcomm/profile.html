@@ -14,6 +14,11 @@
             </div>
             {% if author.user_id == user.id %}
             <div class="col-md-2 align-self-center">
+                Following<a href="{%  url 'view_following' author.id %}">{{author.following_count}}</a>
+            </div>
+            {% endif %}
+            {% if author.user_id == user.id %}
+            <div class="col-md-2 align-self-center">
                 Requests<a href="{%  url 'view_requests' author.id %}">{{author.requests_count}}</a>
             </div>
             {% endif %}
@@ -22,6 +27,7 @@
                     <a href="{% url 'send_follow_request' author.id %}" class="btn btn-outline-primary me-2">Follow</a>
                 </div>
             {% endif %}
+         
             {% if user.is_authenticated and user.id == author.user_id %}
                 <div class="col-md-2 align-self-center">
                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">

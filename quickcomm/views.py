@@ -277,7 +277,14 @@ def view_followers(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
-
+def view_following(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = get_current_author(request)
+    
+    return render(request, 'quickcomm/following.html', {
+                    'author': author,
+                    'current_author': current_author,
+                    })
 def view_requests(request,author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
@@ -291,7 +298,7 @@ def send_follow_request(request,author_id):
     from_user=get_current_author(request)
     to_user=get_object_or_404(Author,pk=author_id)
 
-
+    
     follow,create=follow_request.objects.get_or_create(from_user=from_user, to_user=to_user)
     if create:
         follow.save()
@@ -300,6 +307,8 @@ def send_follow_request(request,author_id):
         #     'to_user':to_user,
         # })
         return HttpResponse('Friend request sent')
+    elif to_user.is_followed_by(from_user):
+        return HttpResponse("Already following")
     else:
         return HttpResponse('Friend request was created already')
 @login_required
@@ -318,6 +327,17 @@ def accept_request(request,author_id):
                     'author':follower,
                     'current_author': target,
     })
+@login_required
+def unfriend(request,author_id):
+    current_author=get_current_author(request)
+    following=get_object_or_404(Author,pk=author_id)
+    unfriended_person=Follow.objects.get(follower=current_author,following=following)
+    unfriended_person.delete()
+    # return render(request,'quickcomm/profile.html',{
+    #     'author':following,
+    #     'current_author':current_author,
+    # })
+    return HttpResponse('Unfollowed sucessfully')
 @login_required
 def decline_request(request,author_id):
     from_user=get_current_author(request)
@@ -344,4 +364,13 @@ def view_author_posts(request, author_id):
     }
     
     return render(request, 'quickcomm/posts.html', context)
+
+def share_post(request,author_id):
+    author=get_object_or_404(Author,pk=author_id)
+    current_author=get_current_author(request)
+
+    posts = Post.objects.filter(author=author)
+    
+    size=request.GET.get('size','10')
+    pass
 

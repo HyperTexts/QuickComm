@@ -54,6 +54,11 @@ class Author(models.Model):
     def get_followers(self):
         return Follow.objects.filter(following=self)
     
+    def get_following(self):
+        return Follow.objects.filter(follower=self)
+    def following_count(self):
+        return Follow.objects.filter(follower=self).count()
+    
     def get_requests(self):
         return follow_request.objects.filter(to_user=self)
     def requests_count(self):
@@ -92,7 +97,15 @@ class Follow(models.Model):
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
 
         return saved
+    def delete(self, *args, **kwargs):
+        if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
+            print("Yes")
+            Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        deleted=super(Follow,self).delete(*args,**kwargs)
+        return deleted
 
+
+    
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
