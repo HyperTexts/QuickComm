@@ -1,3 +1,5 @@
+from dateutil import parser
+from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -10,6 +12,8 @@ from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainText
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox,Follow,follow_request
 from django.contrib.auth.forms import UserCreationForm
 
+from quickcomm.models import Author, Follow, Inbox
+from .external_requests import get_github_stream
 
 # Create your views here.
 
@@ -20,10 +24,43 @@ def get_current_author(request):
         author = None
     return author
 
+@login_required
 def index(request):
+
     current_author = get_current_author(request)
-    inbox = Inbox.objects.filter(author=current_author).order_by('-added')
+
+    # Get the author object for the current user
+    author = Author.objects.get(user=request.user)
+    inbox = list(Inbox.objects.filter(author=current_author).order_by('-added'))
+
+    # Get the GitHub stream for all of the author's followed users
+    following = [ follow.following for follow in Follow.objects.filter(follower=author) ]
+    following.append(author)
+    for follow in following:
+        github = get_github_stream(follow.github)
+        if 'message' in github:
+            if github['message'] == 'Not Found':
+                continue
+        github = [dict(item, **{
+            'format': 'github',
+            'localAuthor': Author.objects.all()[0],
+            'added': parser.parse(item["created_at"])
+                                }) for item in github]
+        inbox.extend(github)
+
+    def get_date(item):
+        """Get the date of the item, regardless of whether it's a dict or an object."""
+        if isinstance(item, dict):
+            return item['added']
+        else:
+            return item.added
+
+    # Sort the inbox by date, most recent first
+    inbox.sort(key=lambda x: get_date(x), reverse=True)
+
+
     context = {
+        'inbox': inbox,
         'inbox': inbox,
         'current_author': current_author,
     }

@@ -1,13 +1,12 @@
 {% extends 'base.html' %}
 {% load image_extras %}
+{% load stream_extras %}
 
 {% block content %}
     <h1>{{author.display_name}}'s Posts</h1>
         {% for post in page_obj %}
-            <ul>
-                <a href="{% url 'post_view' author.id post.id %}"><li>{{ post.title }} by {{ post.author }} <i>[{{ post.id }}]</i></li></a>
-                <li>{% image post %}</li>
-            </ul>
+            {% minipost post %}
+
         {% endfor %}
 
     <nav aria-label="post list pages">

@@ -135,3 +135,5 @@ venv/
 
 # macOS #
 .DS_Store
+
+github_cache.sqlite
