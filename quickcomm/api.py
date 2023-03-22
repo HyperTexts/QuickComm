@@ -99,6 +99,75 @@ class AuthorViewSet(viewsets.ModelViewSet):
     def retrieve(self, *args, **kwargs):
         return super(AuthorViewSet, self).retrieve(*args, **kwargs)
 
+class FollowerViewSet(viewsets.ModelViewSet):
+    """This is a viewset that allows us to interact with the Follower model."""
+
+    serializer_class = AuthorSerializer
+    queryset = Author.objects.all()
+    http_method_names = ['get']
+    lookup_value_regex = '[^/]+'
+    authentication_classes = [APIBasicAuthentication, SessionAuthentication]
+    pagination_class = FollowersPagination
+
+    def get_queryset(self):
+        """Returns followers for this specific author."""
+
+        self.paginator.url = self.request.build_absolute_uri()
+
+        #check if authors_pk exists in kwargs
+        if 'authors_pk' not in self.kwargs:
+            return Author.objects.none()
+
+        self.paginator.upper_response_param = 'author'
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
+
+        try:
+            return Author.objects.filter(follower__following=self.kwargs['authors_pk'])
+        except:
+            raise exceptions.NotFound('Author not found')
+        # return Follow.objects.filter(following=self.kwargs['authors_pk'])
+
+    @swagger_auto_schema(
+            operation_summary="Get a list of all followers for a specific author.",
+            operation_description="This endpoint returns a list of all followers for a specific author.",
+            responses={200: FollowersSerializer, 404: "Author not found"},
+    )
+
+    @authAPI
+    def list(self, request, authors_pk=None):
+        return super(FollowerViewSet, self).list(request)
+
+
+    def retrieve(self, request, authors_pk=None, pk=None, *args, **kwargs):
+
+        # determine if pk is a full URL or just the ID
+        try:
+            author = Author.objects.get(pk=authors_pk)
+        except:
+            raise exceptions.NotFound('Author not found')
+
+        if pk.startswith('http'):
+            # url decode the pk
+            pk = urllib.parse.unquote(pk)
+            # get the host of the author
+            followingAuthor = Author.get_from_url(pk)
+            # check if the author is following the author
+        else:
+            # TODO beware!!! We have to wrap any internal issues with this or redo 500 page
+            try:
+                followingAuthor = Author.objects.get(pk=pk)
+            except:
+                raise exceptions.NotFound('Author not found')
+
+        if not followingAuthor:
+            raise exceptions.NotFound('Author not found')
+
+        if not followingAuthor.is_following(author):
+            raise exceptions.NotFound('Author is not following')
+
+        return Response(status=200, data={'detail': 'Author is following'})
+
+
 class PostViewSet(viewsets.ModelViewSet):
     """This is a viewset that allows us to interact with the Post model."""
 
