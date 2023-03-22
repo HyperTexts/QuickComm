@@ -4,13 +4,22 @@
 
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from rest_framework import viewsets
 from rest_framework.response import Response
+from rest_framework.authentication import SessionAuthentication
+from rest_framework import exceptions
+from django.contrib.auth.models import User
+import urllib.parse
 
-from .models import Author, Post, Comment, Follow, Like, ImageFile
-from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer
+
+from quickcomm.authenticators import APIBasicAuthentication
+from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, CommentLikesPagination, CommentsPagination, FollowersPagination, PostLikesPagination, PostsPagination
+
+from .models import Author, CommentLike, Inbox, Post, Comment, Follow, Like, ImageFile
+from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, FollowersSerializer
 from .models import Author, Post, Comment, Follow, Like
-from .serializers import AuthorSerializer, AuthorsSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer, PostsSerializer
+from .serializers import AuthorSerializer, AuthorsSerializer, PostSerializer, CommentSerializer, PostsSerializer
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -172,8 +181,10 @@ class PostViewSet(viewsets.ModelViewSet):
     """This is a viewset that allows us to interact with the Post model."""
 
     serializer_class = PostSerializer
+    pagination_class = PostsPagination
     queryset = Post.objects.all()
     http_method_names = ['get', 'put', 'post', 'delete']
+    authentication_classes = [APIBasicAuthentication, SessionAuthentication]
 
     # TODO extend wiht decorators for unlisted and listed posts
     # these should also return 404s when not found, rather than
