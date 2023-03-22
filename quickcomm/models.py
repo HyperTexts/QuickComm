@@ -66,6 +66,7 @@ class Host(models.Model):
 
     url = models.URLField(validators=[URLValidator], help_text="The URL of the host API. This must be in proper form (e.g. https://example.com/).", verbose_name="Host URL")
 
+    username_password_base64 = models.CharField(max_length=100, help_text="The username and password to use to authenticate to the host. This is a base64 encoded string of the form 'username:password'.", verbose_name="Username and Password", null=True, blank=True)
     last_successful_ping = models.DateTimeField(null=True, blank=True)
     last_ping = models.DateTimeField(null=True, blank=True)
     last_ping_result = models.BooleanField(null=True, blank=True)
