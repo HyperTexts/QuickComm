@@ -3,13 +3,12 @@ import datetime
 import os
 import uuid
 from django.db import models
-from django.contrib import admin
 from django.contrib.auth.models import User
 from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-import ping3
-from quickcomm.external_host_deserializers import deserialize_author
+from django.utils import timezone
+# import requests from django library
 
 from quickcomm.external_host_requests import get_authors
 
@@ -24,6 +23,41 @@ from quickcomm.external_host_requests import get_authors
 
 # We used UUIDs for pkeys to be more secure.
 # TODO what are the constraints on fields being null?
+
+class HostAuthenticator(models.Model):
+    """A host authenticator is a username and password that can be used to
+    authenticate to a host."""
+
+    # Note: passwords are stored in plain-text. They are API keys, so they are
+    # not sensitive. If we want to store them in a more secure way, we can
+    # hash them, but for now, we will leave them as is.
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    username = models.CharField(max_length=100, help_text="The username to use to authenticate to the host.", verbose_name="Username")
+    password = models.CharField(max_length=100, help_text="The password to use to authenticate to the host.", verbose_name="Password")
+    nickname = models.CharField(max_length=100, help_text="The nickname of the host authenticator. This is only used for display purposes.", verbose_name="Nickname", null=True, blank=True)
+
+
+    @property
+    def nickname_or_username(self):
+        if self.nickname:
+            return self.nickname
+        return self.username
+
+    @property
+    def base64string(self):
+        return base64.b64encode(f"{self.username}:{self.password}".encode('ascii')).decode('ascii')
+
+    def check_password(self, password):
+        return self.password == password
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    def __str__(self):
+        return f"{self.username}"
 
 class Host(models.Model):
     """A host is a remote server that hosts authors."""
