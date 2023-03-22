@@ -1,23 +1,48 @@
 from rest_framework import serializers
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework.reverse import reverse
+from django.urls import reverse as django_reverse
 from .models import Author, Post, Comment, Follow, Like
+from .pagination import CommentsPagination
+from django.core.paginator import Paginator
+
 
 # This file contains the serializers for the API. Serializers are used to convert
 # model objects into JSON.
+
+
 
 class AuthorSerializer(serializers.ModelSerializer):
     """This is a serializer for the Author model."""
 
     type = serializers.CharField(default='author', read_only=True)
-    id = serializers.HyperlinkedRelatedField(read_only=True, view_name='author-detail')
-    url = serializers.HyperlinkedIdentityField( view_name='author-detail', read_only=True)
+    id = serializers.SerializerMethodField(method_name='get_id')
+    url = serializers.SerializerMethodField(method_name='get_id')
     profileImage = serializers.URLField(source='profile_image', required=False)
-    host = serializers.URLField(required=False)
+    host = serializers.SerializerMethodField(method_name='get_host')
     displayName = serializers.CharField(source='display_name', required=False)
     github = serializers.URLField(required=False)
 
     # TODO keep GitHub as a URLField
+
+
+    def get_host(self, obj):
+        """This method defines a custom getter that returns the absolute URL of
+        the author as the ID."""
+        request = self.context.get('request')
+        if obj.host is None:
+            return request.build_absolute_uri("/api/")
+        return obj.host.url
+
+    def get_id(self, obj):
+        """This method defines a custom getter that returns the absolute URL of
+        the author as the ID."""
+        request = self.context.get('request')
+        if obj.host is None:
+            return request.build_absolute_uri(reverse('author-detail', args=[obj.id]))
+        else:
+            return obj.external_url
+
 
     @staticmethod
     def get_examples():
@@ -49,14 +74,41 @@ class AuthorSerializer(serializers.ModelSerializer):
         model = Author
         fields = ['type', 'id', 'url', 'host', 'displayName', 'github', 'profileImage']
 
+# TODO fix time unit of published
+class CommentSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(default='comment', read_only=True)
+    author = AuthorSerializer(read_only=True)
+    comment = serializers.CharField(required=False)
+    contentType = serializers.CharField(required=False, source='content_type')
+    published = serializers.DateTimeField(required=False)
+    id = serializers.SerializerMethodField()
+
+
+    def get_id(self, obj):
+        """This method defines a custom getter that returns the absolute URL of
+        the post as the ID."""
+        request = self.context.get('request')
+        return request.build_absolute_uri(reverse('comment-detail', kwargs={'pk': obj.id.__str__(), 'posts_pk': obj.post_id.__str__(), 'authors_pk': obj.post.author_id.__str__()}))
+
+    class Meta:
+        model = Comment
+        fields = ('type','author', 'comment', 'contentType', 'published',  'id')
 
 class AuthorsSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='authors', read_only=True)
-    data = AuthorSerializer(many=True, read_only=True)
+    items = AuthorSerializer(many=True, read_only=True)
 
     class Meta:
         model = Author
-        fields = ['type', 'data']
+        fields = ['type', 'items']
+
+class FollowersSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(default='followers', read_only=True)
+    items = AuthorSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Author
+        fields = ['type', 'items']
 
 class PostSerializer(serializers.ModelSerializer):
     """This is a serializer for the Post model."""
@@ -79,6 +131,37 @@ class PostSerializer(serializers.ModelSerializer):
     published = serializers.DateTimeField(required=False)
     visibility = serializers.CharField(required=False)
     unlisted = serializers.BooleanField(required=False)
+
+    # get pagination comments
+    commentsSrc = serializers.SerializerMethodField(method_name='get_comments_src')
+    comments = serializers.SerializerMethodField(method_name='get_comments')
+    count = serializers.IntegerField(required=False, read_only=True)
+
+    def get_comments(self, obj):
+        return self.context.get('request').build_absolute_uri(
+        reverse('comment-list', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.id.__str__()}))
+
+    def get_comments_src(self, obj):
+        page = 1,
+        size = 10
+        request = self.context.get('request')
+
+
+        comments = Comment.objects.filter(post_id=obj.id).order_by('published')
+        paginator = Paginator(comments, size)
+        comments = paginator.get_page(page)
+        serializer = CommentSerializer(comments, many=True, context={'request': request})
+        return {
+            "type": "comments",
+            "page": page,
+            "size": size,
+            "post": request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'pk': obj.id.__str__()})),
+            "id": request.build_absolute_uri(reverse('comment-list', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.id.__str__()
+                                                                             })),
+            "comments": serializer.data,
+        }
+
+
 
 
     @staticmethod
@@ -127,32 +210,69 @@ class PostSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('type', 'id', 'url', 'title', 'source', 'origin', 'description', 'contentType', 'content', 'author', 'categories', 'published', 'visibility', 'unlisted')
+        fields = ('type', 'id', 'url', 'title', 'source', 'origin', 'description', 'contentType', 'content', 'author', 'categories', 'published', 'visibility', 'unlisted', 'count', 'comments', 'commentsSrc')
 
 
+
+# THIS IS ONLY USED FOR DOCUMENTATION
+# TODO use this instead of hardcoding dictionaries in the views
 class PostsSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='posts', read_only=True)
-    data = PostSerializer(many=True, read_only=True)
+    items = PostSerializer(many=True, read_only=True)
 
     class Meta:
         model = Post
-        fields = ['type', 'data']
+        fields = ['type', 'items']
 
-class CommentSerializer(serializers.ModelSerializer):
-    # TODO implement this
-    class Meta:
-        model = Comment
-        fields = ('id', 'comment', 'author', 'contentType', 'published', 'post')
 
-class FollowSerializer(serializers.ModelSerializer):
-    # TODO implement this
-    class Meta:
-        model = Follow
-        fields = ('id', 'follower', 'author', 'host')
 
-class LikeSerializer(serializers.ModelSerializer):
-    # TODO implement this
+
+
+class LikeActivitySerializer(serializers.ModelSerializer):
+
+    type = serializers.CharField(default='Like', read_only=True)
+    summary = serializers.SerializerMethodField()
+    author = AuthorSerializer(read_only=True)
+    object = serializers.SerializerMethodField()
+
+    def get_object(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(reverse('post-detail', kwargs={'pk': obj.post_id.__str__(), 'authors_pk': obj.author_id.__str__()}))
+
+    def get_summary(self, obj):
+        return obj.author.display_name.__str__() + " Likes your post"
+
+    def get_context(self, obj):
+        return 'https://www.w3.org/ns/activitystreams'
+
     class Meta:
         model = Like
-        fields = ('id', 'author', 'post')
+        fields = ('@context', 'summary', 'type', 'author', 'object')
+        extra_kwargs = {
+            '@context': {'source': 'context', 'read_only': True},
+        }
+
+class CommentLikeActivitySerializer(serializers.ModelSerializer):
+
+    type = serializers.CharField(default='Like', read_only=True)
+    summary = serializers.SerializerMethodField()
+    author = AuthorSerializer(read_only=True)
+    object = serializers.SerializerMethodField()
+
+    def get_object(self, obj):
+        request = self.context.get('request')
+        return request.build_absolute_uri(reverse('comment-detail', kwargs={'pk': obj.comment_id.__str__(), 'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.comment.post_id.__str__()}))
+
+    def get_summary(self, obj):
+        return obj.author.display_name.__str__() + " Likes your comment"
+
+    def get_context(self, obj):
+        return 'https://www.w3.org/ns/activitystreams'
+
+    class Meta:
+        model = Like
+        fields = ('@context', 'summary', 'type', 'author', 'object')
+        extra_kwargs = {
+            '@context': {'source': 'context', 'read_only': True},
+        }
 
