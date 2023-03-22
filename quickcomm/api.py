@@ -285,6 +285,29 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({'type': 'likes', 'items': serializer.data})
 
 
+class AuthorLikedViewSet(viewsets.ModelViewSet):
+    serializer_class = LikeActivitySerializer
+    pagination_class = AuthorLikedPagination
+    # TODO this only returns likes for posts and not comments
+    queryset = Like.objects.all()
+    http_method_names = ['get']
+    authentication_classes = [APIBasicAuthentication, SessionAuthentication]
+
+    def get_queryset(self):
+        """Returns likes for this specific author."""
+        self.paginator.url = self.request.build_absolute_uri()
+
+        #check if authors_pk exists in kwargs
+        if 'authors_pk' not in self.kwargs:
+            return Like.objects.none()
+
+        self.paginator.upper_response_param = 'author'
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
+        try:
+            return Like.objects.filter(author=self.kwargs['authors_pk'])
+        except:
+            raise exceptions.NotFound('Author not found')
+
 class PostLikesViewSet(viewsets.ModelViewSet):
 
     serializer_class = LikeActivitySerializer
