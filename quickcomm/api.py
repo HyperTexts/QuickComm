@@ -285,6 +285,52 @@ class PostViewSet(viewsets.ModelViewSet):
         return Response({'type': 'likes', 'items': serializer.data})
 
 
+class PostLikesViewSet(viewsets.ModelViewSet):
+
+    serializer_class = LikeActivitySerializer
+    pagination_class = PostLikesPagination
+    queryset = Like.objects.all()
+    http_method_names = ['get']
+    authentication_classes = [APIBasicAuthentication, SessionAuthentication]
+
+    def get_queryset(self):
+        """Returns likes for this specific post and author."""
+        self.paginator.url = self.request.build_absolute_uri()
+
+        #check if authors_pk exists in kwargs
+        if 'authors_pk' not in self.kwargs or 'posts_pk' not in self.kwargs:
+            return Like.objects.none()
+
+        self.paginator.upper_response_param = 'post'
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': self.kwargs['authors_pk'], 'pk': self.kwargs['posts_pk']}))
+        try:
+            return Like.objects.filter(post=self.kwargs['posts_pk'], post__author=self.kwargs['authors_pk'])
+        except:
+            raise exceptions.NotFound('Post not found')
+
+class CommentLikesViewSet(viewsets.ModelViewSet):
+
+    serializer_class = CommentLikeActivitySerializer
+    pagination_class = CommentLikesPagination
+    queryset = CommentLike.objects.all()
+    http_method_names = ['get']
+    authentication_classes = [APIBasicAuthentication, SessionAuthentication]
+
+    def get_queryset(self):
+        """Returns likes for this specific comment and author."""
+        self.paginator.url = self.request.build_absolute_uri()
+
+        #check if authors_pk exists in kwargs
+        if 'authors_pk' not in self.kwargs or 'posts_pk' not in self.kwargs or 'comments_pk' not in self.kwargs:
+            return CommentLike.objects.none()
+
+        self.paginator.upper_response_param = 'comment'
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('comment-detail', kwargs={'authors_pk': self.kwargs['authors_pk'], 'posts_pk': self.kwargs['posts_pk'], 'pk': self.kwargs['comments_pk']}))
+        try:
+            return CommentLike.objects.filter(comment=self.kwargs['comments_pk'], comment__post=self.kwargs['posts_pk'], comment__post__author=self.kwargs['authors_pk'])
+        except:
+            raise exceptions.NotFound('Comment not found')
+
 
 class CommentViewSet(viewsets.ModelViewSet):
     """This is a viewset that allows us to interact with the Comment model."""
@@ -295,10 +341,6 @@ class CommentViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post']
     authentication_classes = [APIBasicAuthentication, SessionAuthentication]
 
-class FollowViewSet(viewsets.ModelViewSet):
-    # TODO implement
-    queryset = Follow.objects.all()
-    serializer_class = FollowSerializer
     # TODO extend wiht decorators for unlisted and listed posts
     # these should also return 404s when not found, rather than
     # 403s
