@@ -67,6 +67,7 @@ class Host(models.Model):
     url = models.URLField(validators=[URLValidator], help_text="The URL of the host API. This must be in proper form (e.g. https://example.com/).", verbose_name="Host URL")
 
     username_password_base64 = models.CharField(max_length=100, help_text="The username and password to use to authenticate to the host. This is a base64 encoded string of the form 'username:password'.", verbose_name="Username and Password", null=True, blank=True)
+
     last_successful_ping = models.DateTimeField(null=True, blank=True)
     last_ping = models.DateTimeField(null=True, blank=True)
     last_ping_result = models.BooleanField(null=True, blank=True)
@@ -83,20 +84,54 @@ class Host(models.Model):
         """Syncs the host with the remote API."""
         self.sync_authors()
 
-    def sync_authors(self):
+    def sync_authors(self, admin=None, request=None):
         """Syncs the authors with the remote API."""
-        ext_authors = get_authors(self.url)
-        for ext_author in ext_authors:
-            deserialize_author(ext_author, self).save()
+
+        try:
+            ext_authors = get_authors(self.url)
+            for ext_author in ext_authors:
+                self.deserialize_author(ext_author).save()
+        except Exception as e:
+            if admin is not None and request is not None:
+                admin.message_user(request, "Error syncing authors: {}".format(e))
 
         # TODO delete authors that are no longer on the remote host
         # TODO don't delete posts that were private by accident
 
+    def deserialize_author(self, item):
+        """Deserialize an author from a dictionary. This either creates a new author or updates an existing author."""
+
+        # get host from item
+        host = self
+
+        # TODO should we store the ID or the url?
+
+        # check if author exists
+        external_url = item["url"]
+        try:
+            author = Author.objects.get(external_url=external_url)
+            assert(author is not None)
+            # update author with new data
+            author.display_name = item["displayName"]
+            author.github = item.get("github", None)
+            author.profile_image = item.get("profileImage", None)
+            return author
+        except Author.DoesNotExist:
+            return Author(
+                external_url=item["url"],
+                host=host,
+                display_name=item["displayName"],
+                github=item.get("github", None),
+                profile_image=item.get("profileImage", None),
+            )
 
 
     def ping(self):
         """Pings the host to see if it is online. Return True if online, False
         otherwise. This method uses the os.system() method to ping the host."""
+
+        # FIXME ping is not the best way to check if a host is online. We
+        # should use a more reliable method.
 
         # strip the protocol from the url
         clean_url = self.url.split('/')[2]
@@ -109,7 +144,7 @@ class Host(models.Model):
         success = req == 0
 
         # last ping is now, set the last ping result
-        self.last_ping = datetime.datetime.now()
+        self.last_ping = timezone.now()
         self.last_ping_result = success
         if success:
             self.last_successful_ping = self.last_ping
@@ -119,7 +154,7 @@ class Host(models.Model):
     # TODO move to the receiver mixins
     def save(self, *args, **kwargs):
         """Override save to ping the host before saving."""
-        self.ping()
+        # self.ping()
         super(Host, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -142,16 +177,57 @@ class Author(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     # FIXME the user is only null if the author is remote. This should be
     # enforced in the model.
-    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     host = models.ForeignKey(Host, on_delete=models.CASCADE, null=True, blank=True,help_text="The host that this author is associated with. This is only used for remote authors. Internal authors will have this field set to null. This field should NOT be set manually.")
-    external_url = models.CharField(max_length=100, blank=True, null=True)
+    external_url = models.CharField(max_length=100, blank=True, null=True, help_text="The external URL of the author. This is only used for remote authors. Internal authors will have this field set to null. This field should NOT be set manually.", verbose_name="External URL")
     display_name = models.CharField(max_length=100)
-    github = models.URLField(blank=True, null=True, validators=[URLValidator])
+    github = models.URLField(blank=True, null=True, validators=[URLValidator], help_text="The URL of the author's GitHub profile. This must be in proper form (e.g. https://github.com/abramhindle).", verbose_name="GitHub URL")
     profile_image = models.URLField(
-        blank=True, null=True, validators=[URLValidator])
+        blank=True, null=True, validators=[URLValidator], help_text="The URL of the author's profile image. This must be in proper form (e.g. https://example.com/image.png).", verbose_name="Profile Image URL")
 
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
+
+
+    # TODO always use trailing slash
+
+    @staticmethod
+    def get_from_url(url):
+        """Returns the author with the given URL."""
+        if url[-1] == '/':
+            url = url[:-1]
+
+        author = Author.objects.filter(external_url=url).first()
+        if author is not None:
+            return author
+
+        author_id = url.split('/')[-1]
+        try:
+            author = Author.objects.filter(id=author_id).first()
+        except:
+            return None
+
+        if author.host is None:
+            return author
+
+        return None
+
+
+    @property
+    def is_local(self):
+        """Returns true if the author is local."""
+        return self.host is None
+
+    @property
+    def is_remote(self):
+        """Returns true if the author is remote."""
+        return self.host is not None
+
+    @property
+    def location(self):
+        """Returns External or Internal"""
+        if self.is_local:
+            return "Internal"
+        return "External"
 
     def is_following(self, author):
         """Returns true if this author (self) follows the given author."""
@@ -177,9 +253,13 @@ class Author(models.Model):
         """Follows the given author."""
         return Follow.objects.create(follower=self, following=author)
 
+    @staticmethod
+    def safe_queryset():
+        """Returns a safe queryset of authors that excludes all foreign authors"""
+        return Author.objects.filter(host=None)
 
     def __str__(self):
-        return f"{self.display_name} ({self.user.username})"
+        return f"{self.display_name}"
 
 
 class Follow(models.Model):
@@ -281,6 +361,21 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
 
+    @property
+    def comments(self):
+        """Returns the comments for this post."""
+        return Comment.objects.filter(post=self)
+
+    @property
+    def count(self):
+        """Returns the number of comments for this post."""
+        return self.comments.count()
+
+    @property
+    def likes(self):
+        """Returns the likes for this post."""
+        return Like.objects.filter(post=self)
+
 
 class Comment(models.Model):
     """A comment is a comment made by an author on a post."""
@@ -344,6 +439,7 @@ class Inbox(models.Model):
         COMMENT = 'comment'
         FOLLOW = 'follow'
         LIKE = 'like'
+        COMMENTLIKE = 'commentlike'
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
@@ -383,8 +479,34 @@ class Like(models.Model):
 
         return saved
 
+    @property
+    def context(self):
+        return "https://www.w3.org/ns/activitystreams"
+
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"
+
+class CommentLike(models.Model):
+    """A comment like is a relationship between an author and a comment."""
+
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        saved = super(CommentLike, self).save(*args, **kwargs)
+        # When we save a comment like, we also need to create an inbox post for the
+        # author of the post.
+
+        Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
+
+        return saved
+
+    @property
+    def context(self):
+        return "https://www.w3.org/ns/activitystreams"
+
+    def __str__(self):
+        return f"{self.author.__str__()} likes {self.comment.__str__()}"
 
 class RegistrationSettings(models.Model):
     """A flag for admin users to determine if new users are active or not by default.
