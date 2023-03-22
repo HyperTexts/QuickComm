@@ -1,10 +1,8 @@
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
-from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
