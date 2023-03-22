@@ -57,10 +57,15 @@ def authAuthor(view):
 class AuthorViewSet(viewsets.ModelViewSet):
     """This is a viewset that allows us to interact with the Author model."""
 
-
-    queryset = Author.objects.all()
+    queryset = Author.safe_queryset()
     serializer_class = AuthorSerializer
+    pagination_class = AuthorsPagination
     http_method_names = ['get', 'patch', 'post']
+    authentication_classes = [APIBasicAuthentication, SessionAuthentication]
+
+    def get_queryset(self):
+        self.paginator.url = self.request.build_absolute_uri()
+        return super().get_queryset()
 
 
     @swagger_auto_schema(
@@ -68,10 +73,9 @@ class AuthorViewSet(viewsets.ModelViewSet):
         operation_description="This endpoint returns a list of all authors on the server.",
         responses={200: AuthorsSerializer},
     )
+    # @authAPI
     def list(self, request):
-        queryset = Author.objects.all()
-        serializer = AuthorSerializer(queryset, many=True, context={'request': request})
-        return Response({'type': 'authors', 'data': serializer.data})
+        return super(AuthorViewSet, self).list(request)
 
     @swagger_auto_schema(
             operation_summary="Update parts of an author.",
@@ -79,6 +83,9 @@ class AuthorViewSet(viewsets.ModelViewSet):
             responses={200: "Success", 404: "Author not found", 403: "Not authorized"},
             security=[{"BasicAuth": []}],
     )
+
+    @authAPI
+    @authAuthor
     def partial_update(*args, **kwargs):
         super().partial_update(*args, **kwargs)
         return Response(status=200)
@@ -88,6 +95,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
             operation_description="This endpoint returns the details of a specific author.",
             responses={200: AuthorSerializer, 404: "Author not found"},
     )
+    @authAPI
     def retrieve(self, *args, **kwargs):
         return super(AuthorViewSet, self).retrieve(*args, **kwargs)
 
