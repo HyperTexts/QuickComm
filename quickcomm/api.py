@@ -22,6 +22,37 @@ from drf_yasg.utils import swagger_auto_schema
 
 # TODO what kind of response should we return for successful requests?
 # TODO turn these into mixins
+# TODO pagination
+
+
+# create a decorator that checks if the user is authenticated using API authentication
+def authAPI(view):
+    def wrapper(self, request, *args, **kwargs):
+        # if the user is authenticated, via either API or session authentication, then
+        # call the view
+        if request.user.is_authenticated:
+            return view(self, request, *args, **kwargs)
+        else:
+            raise exceptions.AuthenticationFailed('Not authenticated')
+
+    return wrapper
+
+# create a decorator that checks if the user is the author of the object
+def authAuthor(view):
+    def wrapper(self, request, *args, **kwargs):
+        # get the object
+        obj = self.get_object()
+
+        # check if the user is the author
+        # TODO FIX ME we need to add a check for the current user being the author
+        # after Jordan's changes
+        if isinstance(request.user, User): # and request.user.author == obj:
+            return view(self, request, *args, **kwargs)
+        else:
+            # raise a not authorized exception
+            raise exceptions.PermissionDenied('Not authorized')
+
+    return wrapper
 
 class AuthorViewSet(viewsets.ModelViewSet):
     """This is a viewset that allows us to interact with the Author model."""
