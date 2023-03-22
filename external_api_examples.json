@@ -1,0 +1,2907 @@
+{
+	"info": {
+		"_postman_id": "a2e23fdf-6ecc-4015-aa31-ad36d8d5d768",
+		"name": "CMPUT 404 QuickComm Test Suite",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25373722"
+	},
+	"item": [
+		{
+			"name": "Authors",
+			"item": [
+				{
+					"name": "Get list of authors",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get list of authors",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:14:09 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept, Cookie"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "444"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/\",\n    \"type\": \"authors\",\n    \"page\": 1,\n    \"size\": 10,\n    \"items\": [\n        {\n            \"type\": \"author\",\n            \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n            \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n            \"host\": \"http://localhost:8000/api/\",\n            \"displayName\": \"Rajan Maghera\",\n            \"github\": \"http://github.com/rajanmaghera\",\n            \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Get list of authors with pagination",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors?size=1&page=1",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "1"
+										},
+										{
+											"key": "page",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:14:55 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept, Cookie"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "457"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/?size=1&page=1\",\n    \"type\": \"authors\",\n    \"page\": 1,\n    \"size\": 1,\n    \"items\": [\n        {\n            \"type\": \"author\",\n            \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n            \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n            \"host\": \"http://localhost:8000/api/\",\n            \"displayName\": \"Rajan Maghera\",\n            \"github\": \"http://github.com/rajanmaghera\",\n            \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Get list of authors with incorrect pagination",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors?size=1&page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors"
+									],
+									"query": [
+										{
+											"key": "size",
+											"value": "1"
+										},
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:15:35 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept, Cookie"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get author details",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get author details",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:20:27 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "354"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"type\": \"author\",\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n    \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n    \"host\": \"http://localhost:8000/api/\",\n    \"displayName\": \"Rajan Maghera\",\n    \"github\": \"http://github.com/rajanmaghera\",\n    \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n}"
+						},
+						{
+							"name": "Get invalid author details",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/abc123",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"abc123"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:21:12 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "23"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Not found.\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Followers",
+			"item": [
+				{
+					"name": "Get an author's list of followers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"followers"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Get an author's list of followers",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:24:31 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1010"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/\",\n    \"author\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n    \"type\": \"followers\",\n    \"page\": 1,\n    \"size\": 10,\n    \"items\": [\n        {\n            \"type\": \"author\",\n            \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n            \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n            \"host\": \"http://localhost:8000/api/\",\n            \"displayName\": \"Rajan Maghera\",\n            \"github\": \"http://github.com/rajanmaghera\",\n            \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n        },\n        {\n            \"type\": \"author\",\n            \"id\": \"https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e\",\n            \"url\": \"https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e\",\n            \"host\": \"https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io/\",\n            \"displayName\": \"Lara Croft\",\n            \"github\": \"http://github.com/laracroft\",\n            \"profileImage\": \"https://i.imgur.com/k7XVwpB.jpeg\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Get an author's list of followers where query is invalid",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:39:59 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						},
+						{
+							"name": "Get an author's list of followers where author is not found",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3ed59a4-db1bc-80311da2163d/followers",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3ed59a4-db1bc-80311da2163d",
+										"followers"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:37:37 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "29"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author not found\"\n}"
+						}
+					]
+				},
+				{
+					"name": "See if a follower exists",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"followers",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Valid internal user",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:42:15 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "32"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author is following\"\n}"
+						},
+						{
+							"name": "Valid external user",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:48:02 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "32"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author is following\"\n}"
+						},
+						{
+							"name": "Valid internal user via an external URL",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/http%3A%2F%2Flocalhost%3A8000%2Fapi%2Fauthors%2F9c3e59a4-9b14-4ddf-b1bc-80311da2163d%2F",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers",
+										"http%3A%2F%2Flocalhost%3A8000%2Fapi%2Fauthors%2F9c3e59a4-9b14-4ddf-b1bc-80311da2163d%2F"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:47:06 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "32"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author is following\"\n}"
+						},
+						{
+							"name": "Invalid internal user",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/abc123",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers",
+										"abc123"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:53:54 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "29"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author not found\"\n}"
+						},
+						{
+							"name": "Invalid external user via an external URL",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/followers/http%3A%2F%2Flocalhost%3A8000%2Fapi%2Fauthors%2F9c3e59a4-9b14-4ddf-b1bc-8031a2163d%2F",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"followers",
+										"http%3A%2F%2Flocalhost%3A8000%2Fapi%2Fauthors%2F9c3e59a4-9b14-4ddf-b1bc-8031a2163d%2F"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 07:56:02 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "29"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author not found\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Posts",
+			"item": [
+				{
+					"name": "Get an author's list of posts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"posts"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic list",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:23:18 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "2429"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/\",\n    \"author\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n    \"type\": \"posts\",\n    \"page\": 1,\n    \"size\": 10,\n    \"items\": [\n        {\n            \"type\": \"post\",\n            \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n            \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n            \"title\": \"Hello\",\n            \"source\": \"http://127.0.0.1:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n            \"origin\": \"http://127.0.0.1:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n            \"description\": \"123abc\",\n            \"contentType\": \"text/plain\",\n            \"content\": \"hahahhaha\",\n            \"author\": {\n                \"type\": \"author\",\n                \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"host\": \"http://localhost:8000/api/\",\n                \"displayName\": \"Rajan Maghera\",\n                \"github\": \"http://github.com/rajanmaghera\",\n                \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n            },\n            \"categories\": [\n                \"a\",\n                \"b\",\n                \"c\",\n                \",\",\n                \"1\",\n                \"2\",\n                \"3\"\n            ],\n            \"published\": \"2023-03-21T18:22:57.078265-06:00\",\n            \"visibility\": \"PUBLIC\",\n            \"unlisted\": false,\n            \"count\": 1,\n            \"comments\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/\",\n            \"commentsSrc\": {\n                \"type\": \"comments\",\n                \"page\": [\n                    1\n                ],\n                \"size\": 10,\n                \"post\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n                \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/\",\n                \"comments\": [\n                    {\n                        \"type\": \"comment\",\n                        \"author\": {\n                            \"type\": \"author\",\n                            \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                            \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                            \"host\": \"http://localhost:8000/api/\",\n                            \"displayName\": \"Rajan Maghera\",\n                            \"github\": \"http://github.com/rajanmaghera\",\n                            \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n                        },\n                        \"comment\": \"WOW ! So cool!\",\n                        \"contentType\": \"text/plain\",\n                        \"published\": \"2023-03-21T18:36:45.043895-06:00\",\n                        \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/\"\n                    }\n                ]\n            }\n        }\n    ]\n}"
+						},
+						{
+							"name": "Invalid pagination parameters",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:05:47 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get a post",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"posts",
+								"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:06:23 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, PUT, POST, DELETE"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "2213"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"type\": \"post\",\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n    \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n    \"title\": \"Hello\",\n    \"source\": \"http://127.0.0.1:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n    \"origin\": \"http://127.0.0.1:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n    \"description\": \"123abc\",\n    \"contentType\": \"text/plain\",\n    \"content\": \"hahahhaha\",\n    \"author\": {\n        \"type\": \"author\",\n        \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n        \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n        \"host\": \"http://localhost:8000/api/\",\n        \"displayName\": \"Rajan Maghera\",\n        \"github\": \"http://github.com/rajanmaghera\",\n        \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n    },\n    \"categories\": [\n        \"a\",\n        \"b\",\n        \"c\",\n        \",\",\n        \"1\",\n        \"2\",\n        \"3\"\n    ],\n    \"published\": \"2023-03-21T18:22:57.078265-06:00\",\n    \"visibility\": \"PUBLIC\",\n    \"unlisted\": false,\n    \"count\": 1,\n    \"comments\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/\",\n    \"commentsSrc\": {\n        \"type\": \"comments\",\n        \"page\": 1,\n        \"size\": 10,\n        \"post\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n        \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/\",\n        \"comments\": [\n            {\n                \"type\": \"comment\",\n                \"author\": {\n                    \"type\": \"author\",\n                    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                    \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                    \"host\": \"http://localhost:8000/api/\",\n                    \"displayName\": \"Rajan Maghera\",\n                    \"github\": \"http://github.com/rajanmaghera\",\n                    \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n                },\n                \"comment\": \"WOW ! So cool!\",\n                \"contentType\": \"text/plain\",\n                \"published\": \"2023-03-21T18:36:45.043895-06:00\",\n                \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/\"\n            }\n        ]\n    }\n}"
+						},
+						{
+							"name": "Invalid post ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/abc123",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"abc123"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:07:31 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, PUT, POST, DELETE"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "23"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Not found.\"\n}"
+						},
+						{
+							"name": "Invalid author ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/123abc/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"123abc",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:09:25 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, PUT, POST, DELETE"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "29"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author not found\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Comments",
+			"item": [
+				{
+					"name": "Get the comments of a post",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"posts",
+								"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+								"comments"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic list",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:24:46 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "958"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/\",\n    \"post\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n    \"type\": \"comments\",\n    \"page\": 1,\n    \"size\": 10,\n    \"comments\": [\n        {\n            \"type\": \"comment\",\n            \"author\": {\n                \"type\": \"author\",\n                \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"host\": \"http://localhost:8000/api/\",\n                \"displayName\": \"Rajan Maghera\",\n                \"github\": \"http://github.com/rajanmaghera\",\n                \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n            },\n            \"comment\": \"WOW ! So cool!\",\n            \"contentType\": \"text/plain\",\n            \"published\": \"2023-03-21T18:36:45.043895-06:00\",\n            \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Invalid query parameters",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:25:22 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						},
+						{
+							"name": "Invalid author ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/923ads/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"923ads",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:27:07 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "38"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Post or author not found.\"\n}"
+						},
+						{
+							"name": "Invalid post ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c213c/comments",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c213c",
+										"comments"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:27:58 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET, POST"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "38"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Post or author not found.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get a single comment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"posts",
+								"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+								"comments",
+								"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+								""
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic response",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										""
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:30:32 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "651"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"type\": \"comment\",\n    \"author\": {\n        \"type\": \"author\",\n        \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n        \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n        \"host\": \"http://localhost:8000/api/\",\n        \"displayName\": \"Rajan Maghera\",\n        \"github\": \"http://github.com/rajanmaghera\",\n        \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n    },\n    \"comment\": \"WOW ! So cool!\",\n    \"contentType\": \"text/plain\",\n    \"published\": \"2023-03-21T18:36:45.043895-06:00\",\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/\"\n}"
+						},
+						{
+							"name": "Invalid author ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c123d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c123d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										""
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:31:12 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "38"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Post or author not found.\"\n}"
+						},
+						{
+							"name": "Invalid post ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/jsa123/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"jsa123",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										""
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:32:05 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "38"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Post or author not found.\"\n}"
+						},
+						{
+							"name": "Invalid comment ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cy678",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"cy678"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:32:35 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "23"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Not found.\"\n}"
+						}
+					]
+				}
+			]
+		},
+		{
+			"name": "Likes",
+			"item": [
+				{
+					"name": "Get the likes of a post",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/likes",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"posts",
+								"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+								"likes"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic list",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"likes"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:43:58 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "896"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/likes/\",\n    \"post\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\",\n    \"type\": \"likes\",\n    \"page\": 1,\n    \"size\": 10,\n    \"items\": [\n        {\n            \"@context\": \"https://www.w3.org/ns/activitystreams\",\n            \"summary\": \"Rajan Maghera Likes your post\",\n            \"type\": \"Like\",\n            \"author\": {\n                \"type\": \"author\",\n                \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"host\": \"http://localhost:8000/api/\",\n                \"displayName\": \"Rajan Maghera\",\n                \"github\": \"http://github.com/rajanmaghera\",\n                \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n            },\n            \"object\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Invalid author ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/213d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"213d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"likes"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:45:06 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "27"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Post not found\"\n}"
+						},
+						{
+							"name": "Invalid post ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/jkl2j/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"jkl2j",
+										"likes"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:45:56 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "27"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Post not found\"\n}"
+						},
+						{
+							"name": "Invalid query params",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/likes?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"likes"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:46:30 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get the likes of a comment",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/likes",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"posts",
+								"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+								"comments",
+								"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+								"likes"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic list",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										"likes"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:54:43 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "1103"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/likes/\",\n    \"comment\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/\",\n    \"type\": \"likes\",\n    \"page\": 1,\n    \"size\": 10,\n    \"items\": [\n        {\n            \"@context\": \"https://www.w3.org/ns/activitystreams\",\n            \"summary\": \"Greg Johnson Likes your comment\",\n            \"type\": \"Like\",\n            \"author\": {\n                \"type\": \"author\",\n                \"id\": \"https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io/authors/1d698d25ff008f7538453c120f581471\",\n                \"url\": \"https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io/authors/1d698d25ff008f7538453c120f581471\",\n                \"host\": \"https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io/\",\n                \"displayName\": \"Greg Johnson\",\n                \"github\": \"http://github.com/gjohnson\",\n                \"profileImage\": \"https://i.imgur.com/k7XVwpB.jpeg\"\n            },\n            \"object\": \"http://localhost:8000/api/authors/9eedffcb-785a-49d2-bead-ab39fa317550/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Invalid author ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/213dsa/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"213dsa",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										"likes"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:56:22 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "30"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Comment not found\"\n}"
+						},
+						{
+							"name": "Invalid post ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c123/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c123",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										"likes"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:56:56 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "30"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Comment not found\"\n}"
+						},
+						{
+							"name": "Invalid comment ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/c28e/likes",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"c28e",
+										"likes"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:57:32 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "30"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Comment not found\"\n}"
+						},
+						{
+							"name": "Invalid query params",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/comments/cceb925d-4f98-48a3-9ff7-0f9b0b90128e/likes?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"posts",
+										"c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c",
+										"comments",
+										"cceb925d-4f98-48a3-9ff7-0f9b0b90128e",
+										"likes"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 08:55:47 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						}
+					]
+				},
+				{
+					"name": "Get an author's liked items",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/liked",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+								"liked"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Basic list",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/liked",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"liked"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 09:02:59 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "812"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/liked/\",\n    \"author\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n    \"type\": \"liked\",\n    \"page\": 1,\n    \"size\": 10,\n    \"items\": [\n        {\n            \"@context\": \"https://www.w3.org/ns/activitystreams\",\n            \"summary\": \"Rajan Maghera Likes your post\",\n            \"type\": \"Like\",\n            \"author\": {\n                \"type\": \"author\",\n                \"id\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"url\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/\",\n                \"host\": \"http://localhost:8000/api/\",\n                \"displayName\": \"Rajan Maghera\",\n                \"github\": \"http://github.com/rajanmaghera\",\n                \"profileImage\": \"https://avatars.githubusercontent.com/u/16507599?v=4\"\n            },\n            \"object\": \"http://localhost:8000/api/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/posts/c83ff87c-9ea3-4f9d-80e1-38ee938cfc0c/\"\n        }\n    ]\n}"
+						},
+						{
+							"name": "Invalid author ID",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/921d/liked",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"921d",
+										"liked"
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 09:04:04 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "29"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Author not found\"\n}"
+						},
+						{
+							"name": "Invalid query params",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{url}}/authors/9c3e59a4-9b14-4ddf-b1bc-80311da2163d/liked?page=2",
+									"host": [
+										"{{url}}"
+									],
+									"path": [
+										"authors",
+										"9c3e59a4-9b14-4ddf-b1bc-80311da2163d",
+										"liked"
+									],
+									"query": [
+										{
+											"key": "page",
+											"value": "2"
+										}
+									]
+								}
+							},
+							"status": "Not Found",
+							"code": 404,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Wed, 22 Mar 2023 09:03:36 GMT"
+								},
+								{
+									"key": "Server",
+									"value": "WSGIServer/0.2 CPython/3.9.6"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								},
+								{
+									"key": "Vary",
+									"value": "Accept"
+								},
+								{
+									"key": "Allow",
+									"value": "GET"
+								},
+								{
+									"key": "X-Frame-Options",
+									"value": "DENY"
+								},
+								{
+									"key": "Content-Length",
+									"value": "26"
+								},
+								{
+									"key": "X-Content-Type-Options",
+									"value": "nosniff"
+								},
+								{
+									"key": "Referrer-Policy",
+									"value": "same-origin"
+								},
+								{
+									"key": "Cross-Origin-Opener-Policy",
+									"value": "same-origin"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"detail\": \"Invalid page.\"\n}"
+						}
+					]
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "KmN1NRXNdw",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "{{username}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "http://localhost:8000/api"
+		},
+		{
+			"key": "username",
+			"value": "P02PrUGuHk"
+		}
+	]
+}
