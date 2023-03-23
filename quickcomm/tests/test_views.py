@@ -193,4 +193,4 @@ class EditProfileViewTest(TestCase):
 
             self.assertEqual(response.status_code, 200)
             self.assertNotEqual(author.profile_image, Author.objects.all()[0].profile_image)
-
+            
