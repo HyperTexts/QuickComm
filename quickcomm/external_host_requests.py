@@ -256,3 +256,70 @@ class BaseQCRequest:
             check_author=[''],
             following=author)
 
+class THTHQCRequest(BaseQCRequest):
+
+    def map_raw_author(self, external_data):
+        return {
+            'type': external_data['type'],
+            'external_url': external_data['url'],
+            'display_name': external_data['displayName'],
+            'profile_image': None if external_data['profileImage'] == '' else external_data['profileImage'],
+            'github': None if external_data['github'] == '' else external_data['github'],
+                }
+
+    def map_raw_post(self, raw_post):
+        return {
+            'type': raw_post['type'],
+            'title': raw_post['title'],
+            'external_url': raw_post['id'],
+            'source': raw_post['source'],
+            'origin': raw_post['origin'],
+            'description': raw_post['description'],
+            'content': raw_post['content'],
+            'content_type': raw_post['contentType'],
+            'published': raw_post['published'],
+            'visibility': raw_post['visibility'],
+            'unlisted': raw_post['unlisted'],
+        }
+
+    def map_raw_comment(self, raw_comment):
+        return {
+            'type': raw_comment['type'],
+            'external_url': raw_comment['id'],
+            'comment': raw_comment['comment'],
+            'content_type': raw_comment['contentType'],
+            'published': raw_comment['published'],
+        }
+
+    def map_raw_post_like(self, raw_post_like):
+        return {
+            'type': raw_post_like['type'],
+            'summary': raw_post_like['summary'],
+        }
+
+    def map_raw_comment_like(self, raw_comment_like):
+        return {
+            'type': raw_comment_like['type'],
+            'summary': raw_comment_like['summary'],
+        }
+
+    def map_raw_follower(self, raw_follower):
+        return {}
+
+    def map_list_authors(self, data):
+        return data
+
+    def map_list_posts(self, data):
+        return data
+
+    def map_list_comments(self, data):
+        return data
+
+    def map_list_post_likes(self, data):
+        return data
+
+    def map_list_comment_likes(self, data):
+        return data
+
+    def map_list_followers(self, data):
+        return data
