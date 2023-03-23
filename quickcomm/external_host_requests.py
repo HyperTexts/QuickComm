@@ -90,9 +90,44 @@ class BaseQCRequest:
     def map_raw_follower_singular(self, raw_follower):
         return self.map_raw_follower(raw_follower)
 
+    # TODO get list response function
+
+    def get_singular_response(self, deserializer, endpoint, map_func, ensure_success=True):
+
+        logging.info(f'Getting {endpoint}.')
+        response = session.get(endpoint, headers={'Authorization':f'Basic {self.auth}'})
+
         # check response code
-        if response.status_code != 200:
-            raise Exception(f'Error getting authors from {url}: {response.status_code}')
+        if ensure_success and response.status_code != 200:
+            logging.error(f'Response code for {endpoint} was not successful.')
+            return
+
+        try:
+            json_response = response.json()
+        except Exception as e:
+            logging.error('Could not parse response as JSON.', exc_info=True)
+            return
+
+        try:
+            mapped_item = map_func(json_response)
+        except Exception as e:
+            logging.error('Could not map item.', exc_info=True)
+            return
+
+        serialized_item = deserializer(data=mapped_item)
+
+        try:
+            serialized_item.is_valid(raise_exception=True)
+        except Exception as e:
+            logging.error('Could not validate item.', exc_info=True)
+            return
+
+        try:
+            serialized_item.save(host=self.host_obj)
+        except Exception as e:
+            logging.error('Could not save item.', exc_info=True)
+            return
+
 
         # check response type
         assert(response.json()["type"] == "authors")
