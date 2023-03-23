@@ -128,17 +128,69 @@ class BaseQCRequest:
             logging.error('Could not save item.', exc_info=True)
             return
 
+    def get_paginated_response(self, deserializer, endpoint, map_func, list_base_func, check_author=[], **kwargs):
 
-        # check response type
-        assert(response.json()["type"] == "authors")
+        logging.info(f'Getting {endpoint} with pagination.')
 
-        # loop though authors
-        curr_authors = response.json()["items"]
-        if len(curr_authors) == 0:
-            empty = True
-            break
-        authors += curr_authors
-        page += 1
 
-    return authors
+        empty = False
+        page = 1
 
+        while not empty:
+
+            # call api
+            response = session.get(endpoint, params={'page': page, 'size': 100}, headers={'Authorization':f'Basic {self.auth}'})
+            logging.debug('Called endpoint for page ' + str(page) + '.')
+
+            # check response code
+            if response.status_code != 200:
+                logging.info('Response code was not 200. Assuming empty and ending loop.')
+                empty = True
+                break
+
+            try:
+                json_response = response.json()
+            except Exception as e:
+                logging.error('Could not parse response as JSON.', exc_info=True)
+                empty = True
+                break
+
+            # loop though authors
+            try:
+                current_raw_items = list_base_func(json_response)
+            except Exception as e:
+                logging.error('Could not get list of authors from JSON response.', exc_info=True)
+                empty = True
+                break
+
+            if len(current_raw_items) == 0:
+                logging.info('No more authors. Ending loop.')
+                empty = True
+                break
+
+
+            for item in current_raw_items:
+
+                extra_kwargs = {}
+                for author_item in check_author:
+
+                    if author_item == '':
+                        raw_author = item
+                        author_item = 'author'
+                    else:
+                        if item.get(author_item, None) is None:
+                            logging.info('Author not in item. Skipping.')
+                            continue
+                        raw_author = item[author_item]
+
+                    author = self.return_single_item(raw_author, self.map_raw_author, self.deserializers.author,
+                         )
+                    if author is None:
+                        logging.info('Author was not valid. Skipping.')
+                        continue
+                    extra_kwargs[author_item] = author
+
+                self.return_single_item(item, map_func, deserializer, **extra_kwargs, **kwargs)
+
+
+            page += 1
