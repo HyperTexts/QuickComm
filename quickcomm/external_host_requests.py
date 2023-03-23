@@ -194,3 +194,22 @@ class BaseQCRequest:
 
 
             page += 1
+
+    def return_single_item(self, item, map_func, deserializer, **kwargs):
+        try:
+            mapped_item = map_func(item)
+        except Exception as e:
+            logging.error('Could not map author.', exc_info=True)
+            return
+        serialized_item = deserializer(data=mapped_item)
+        try:
+            serialized_item.is_valid(raise_exception=True)
+        except Exception as e:
+            logging.error('Could not validate author.', exc_info=True)
+            return None
+        try:
+            return serialized_item.save(**kwargs)
+        except Exception as e:
+            logging.error('Could not save author.', exc_info=True)
+            return None
+
