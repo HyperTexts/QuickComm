@@ -213,3 +213,46 @@ class BaseQCRequest:
             logging.error('Could not save author.', exc_info=True)
             return None
 
+    def update_authors(self):
+        return self.get_paginated_response(self.deserializers.author,
+            self.host + self.AUTHORS_ENDPOINT,
+        self.map_raw_author, self.map_list_authors,
+        parent=self.host_obj
+        )
+
+
+    def update_posts(self, author):
+        # Update the author first from the data given in the post
+        return self.get_paginated_response(self.deserializers.post,
+            author.external_url + self.POSTS_ENDPOINT,
+            self.map_raw_post, self.map_list_posts,
+            author=author)
+
+    def update_comments(self, post):
+        return self.get_paginated_response(self.deserializers.comment,
+            post.external_url + self.COMMENTS_ENDPOINT,
+            self.map_raw_comment, self.map_list_comments,
+            check_author=["author"],
+            post=post)
+
+    def update_post_likes(self, post):
+        return self.get_paginated_response(self.deserializers.post_like,
+            post.external_url + self.POST_LIKES_ENDPOINT,
+            self.map_raw_post_like, self.map_list_post_likes,
+            check_author=["author"],
+            post=post)
+
+    def update_comment_likes(self, comment):
+        return self.get_paginated_response(self.deserializers.comment_like,
+            comment.external_url + self.COMMENT_LIKES_ENDPOINT,
+            self.map_raw_comment_like, self.map_list_comment_likes,
+            check_author=["author"],
+            comment=comment)
+
+    def update_followers(self, author):
+        return self.get_paginated_response(self.deserializers.follower,
+            author.external_url + self.FOLLOWERS_ENDPOINT,
+            self.map_raw_follower, self.map_list_followers,
+            check_author=[''],
+            following=author)
+
