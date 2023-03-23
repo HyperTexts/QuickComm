@@ -80,50 +80,8 @@ class Host(models.Model):
             return self.nickname
         return self.url
 
-    def sync(self):
-        """Syncs the host with the remote API."""
-        self.sync_authors()
-
-    def sync_authors(self, admin=None, request=None):
-        """Syncs the authors with the remote API."""
-
-        try:
-            ext_authors = get_authors(self.url)
-            for ext_author in ext_authors:
-                self.deserialize_author(ext_author).save()
-        except Exception as e:
-            if admin is not None and request is not None:
-                admin.message_user(request, "Error syncing authors: {}".format(e))
-
         # TODO delete authors that are no longer on the remote host
         # TODO don't delete posts that were private by accident
-
-    def deserialize_author(self, item):
-        """Deserialize an author from a dictionary. This either creates a new author or updates an existing author."""
-
-        # get host from item
-        host = self
-
-        # TODO should we store the ID or the url?
-
-        # check if author exists
-        external_url = item["url"]
-        try:
-            author = Author.objects.get(external_url=external_url)
-            assert(author is not None)
-            # update author with new data
-            author.display_name = item["displayName"]
-            author.github = item.get("github", None)
-            author.profile_image = item.get("profileImage", None)
-            return author
-        except Author.DoesNotExist:
-            return Author(
-                external_url=item["url"],
-                host=host,
-                display_name=item["displayName"],
-                github=item.get("github", None),
-                profile_image=item.get("profileImage", None),
-            )
 
 
     def ping(self):
@@ -161,8 +119,6 @@ class Host(models.Model):
         if self.nickname:
             return f"{self.nickname} ({self.url})"
         return f"{self.url}"
-
-
 
 class Author(models.Model):
     """An author is a person associated with a user account via a one-to-one
