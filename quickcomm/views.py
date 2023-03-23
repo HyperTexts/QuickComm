@@ -141,7 +141,6 @@ def post_view(request, post_id, author_id):
     is_liked = False
     if request.user.is_authenticated:
         like = Like.objects.filter(post=post, author=current_author)
-        print(like)
         if like:
             is_liked = True
 
