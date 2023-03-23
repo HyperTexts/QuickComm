@@ -140,8 +140,6 @@ def post_view(request, post_id, author_id):
     post_comments = Comment.objects.filter(post=post).order_by("-published")
     is_liked = False
     if request.user.is_authenticated:
-        # like_key = "post_like_{post_id}"
-        # is_liked = request.session.get(like_key, False)
         like = Like.objects.filter(post=post, author=current_author)
         print(like)
         if like:
@@ -159,14 +157,34 @@ def post_like(request, post_id, author_id):
     # post = get_object_or_404(Post, pk=post_id)
 
     if request.user.is_authenticated:
-        author = Author.objects.all().get(user=request.user)
-        like_obj, created_obj = Like.objects.get_or_create(post=post, author=author)
-        if not created_obj:
-            like_obj.delete()
-        like_key = f"post_like_{post_id}"
-        request.session[like_key] = not created_obj
-
+        if request.method == 'POST':
+            author = Author.objects.all().get(user=request.user)
+            like_obj, created_obj = Like.objects.get_or_create(post=post, author=author)
+            if not created_obj:
+                post.likes.remove(request.user)
+                like_obj.delete()
+            else:
+                post.likes.add(request.user)
+            like_key = f"post_like_{post_id}"
+            request.session[like_key] = not created_obj
     return redirect("post_view", post_id=post_id, author_id=author_id)
+
+   
+@login_required
+def like_comment(request, post_id, author_id, comment_id):
+    comment_like = False
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            author = Author.objects.all().get(user=request.user)
+            comment = get_object_or_404(Comment, id=comment_id)
+            if request.user in comment.likes.all():
+                comment.likes.remove(request.user)
+            else:
+                comment.likes.add(request.user)
+            like_key = f"comment_like_{comment_id}"
+            request.session[like_key] = request.user in comment.likes.all()
+            return redirect('like_comment', post_id=post_id, author_id = author_id, comment_id = comment.id)
+        return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @login_required
 def post_comment(request, post_id, author_id):
@@ -183,7 +201,6 @@ def post_comment(request, post_id, author_id):
             comment.save()
             return redirect('post_comment', post_id=post_id, author_id=author_id)
     return redirect("post_view", post_id=post_id, author_id=author_id)
-   
 
 @login_required
 def logout(request):

@@ -124,6 +124,7 @@ class Post(models.Model):
     visibility = models.CharField(
         max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
+    likes = models.ManyToManyField(User, related_name='post_likes')
 
     def save(self, *args, **kwargs):
         saved = super(Post, self).save(*args, **kwargs)
@@ -181,6 +182,8 @@ class Comment(models.Model):
     comment = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=CommentType.choices)
     published = models.DateTimeField(auto_now_add=True)
+    likes = models.ManyToManyField(User, related_name='comment_likes')
+
 
     def save(self, *args, **kwargs):
         saved = super(Comment, self).save(*args, **kwargs)
@@ -259,7 +262,7 @@ class Like(models.Model):
 
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-
+    
     def save(self, *args, **kwargs):
         saved = super(Like, self).save(*args, **kwargs)
         # When we save a like, we also need to create an inbox post for the
