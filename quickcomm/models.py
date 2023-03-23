@@ -168,25 +168,57 @@ class Author(models.Model):
         return None
 
 
+    # This section defines the types of authors that can exist on our server.
+    # Since we have to "cache" all author objects to get them to display in
+    # the frontend, we will have 3 types of authors:
+    #
+    # 1. local authors on our own server
+    # 2. remote authors on connected servers
+    # 3. temporary authors that are on a server that is not connected
+    #
+    # An example of where a temporary author is used is when looking at the
+    # comments of a remote post. To display the comment, we will create a new
+    # author object with the information from the comment. This author object
+    # will be temporary and for the time being be saved to the database. We can
+    # then decide to remove it later if we want to.
+    #
+    # We will only update these authors based on the information from the remote
+    # we are connected to. We will never connect to the temporary server as we
+    # do not have access to it.
+    #
+    # An edge case is when the server that we are connected to has a new user
+    # we do not know about. In this case, we will create a temporary author
+    # object. When we visit an author page that is temporary, we will run a full
+    # scan of all host authors. If then it does not show up, we will display a
+    # message saying that the author information is not available.
+
     @property
     def is_local(self):
         """Returns true if the author is local."""
-        return self.host is None
+        return self.external_url is None
 
     @property
     def is_remote(self):
         """Returns true if the author is remote."""
-        return self.host is not None
+        return self.external_url is not None
+
+    @property
+    def is_temporary(self):
+        """Returns true if the author is temporary."""
+        return self.host is None
 
     @property
     def location(self):
         """Returns External or Internal"""
         if self.is_local:
             return "Internal"
+        elif self.is_temporary:
+            return "External (temporary)"
         return "External"
 
     def is_following(self, author):
         """Returns true if this author (self) follows the given author."""
+
         return Follow.objects.filter(follower=self, following=author).exists()
 
     def is_followed_by(self, author):
@@ -208,6 +240,11 @@ class Author(models.Model):
     def follow(self, author):
         """Follows the given author."""
         return Follow.objects.create(follower=self, following=author)
+
+    @property
+    def followers(self):
+        """Returns a queryset of all followers of this author."""
+        return Author.objects.filter(following=self)
 
     @staticmethod
     def safe_queryset():
