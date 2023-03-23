@@ -1,17 +1,15 @@
 import base64
-import datetime
 import os
 import uuid
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 # import requests from django library
 
-from quickcomm.external_host_requests import get_authors
 
+# TODO we have to delete external objects when they don't show up in the big list. However, we have to be careful not to delete posts if they are private
 
 # NOTE: The models in this file do not take into account how the site will
 # interact with other APIs. Ideally, we should be able to reuse the model
@@ -23,7 +21,7 @@ from quickcomm.external_host_requests import get_authors
 
 # We used UUIDs for pkeys to be more secure.
 # TODO what are the constraints on fields being null?
-
+# TODO make all char sizes huge
 class HostAuthenticator(models.Model):
     """A host authenticator is a username and password that can be used to
     authenticate to a host."""
@@ -254,7 +252,6 @@ class Author(models.Model):
     def __str__(self):
         return f"{self.display_name}"
 
-
 class Follow(models.Model):
     """A follow is is a many-to-many relationship between authors representing a
     follow."""
@@ -269,6 +266,8 @@ class Follow(models.Model):
         # When we save a follow, we also need to create an inbox post for the
         # author being followed.
 
+        # TODO determine when inbox posts should be created
+
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
 
@@ -281,7 +280,6 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
-
 
 class Post(models.Model):
     """A post is a post made by an author."""
@@ -311,9 +309,17 @@ class Post(models.Model):
     visibility = models.CharField(
         max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
+    external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
 
     def save(self, *args, **kwargs):
         saved = super(Post, self).save(*args, **kwargs)
+
+        # TODO move saving image logic here?
+
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
+
         # When we save a post, we also need to create an inbox post for each
         # follower of the author.
 
@@ -383,11 +389,16 @@ class Comment(models.Model):
     comment = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=CommentType.choices)
     published = models.DateTimeField(auto_now_add=True)
+    external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
 
     def save(self, *args, **kwargs):
         saved = super(Comment, self).save(*args, **kwargs)
         # When we save a comment, we also need to create an inbox post for the
         # author of the post.
+
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
 
         Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.COMMENT)
 
@@ -468,6 +479,10 @@ class Like(models.Model):
         # When we save a like, we also need to create an inbox post for the
         # author of the post.
 
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
+
         Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
 
         return saved
@@ -489,6 +504,10 @@ class CommentLike(models.Model):
         saved = super(CommentLike, self).save(*args, **kwargs)
         # When we save a comment like, we also need to create an inbox post for the
         # author of the post.
+
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
 
         Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
 
