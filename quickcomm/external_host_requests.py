@@ -36,6 +36,60 @@ class BaseQCRequest:
         self.auth = host.username_password_base64
         self.deserializers = deserializers
 
+    def map_list_authors(self ,data):
+        raise NotImplementedError
+
+    def map_raw_author(self, raw_author):
+        raise NotImplementedError
+
+    def map_raw_post(self, raw_post):
+        raise NotImplementedError
+
+    def map_list_posts(self, data):
+        raise NotImplementedError
+
+    def map_list_comments(self, data):
+        raise NotImplementedError
+
+    def map_raw_comment(self, raw_comment):
+        raise NotImplementedError
+
+    def map_list_post_likes(self, data):
+        raise NotImplementedError
+
+    def map_raw_post_like(self, raw_post_like):
+        raise NotImplementedError
+
+    def map_list_comment_likes(self, data):
+        raise NotImplementedError
+
+    def map_raw_comment_like(self, raw_comment_like):
+        raise NotImplementedError
+
+    def map_list_followers(self, data):
+        raise NotImplementedError
+
+    def map_raw_follower(self, raw_follower):
+        raise NotImplementedError
+
+    def map_raw_author_singular(self, raw_author):
+        return self.map_raw_author(raw_author)
+
+    def map_raw_post_singular(self, raw_post):
+        return self.map_raw_post(raw_post)
+
+    def map_raw_comment_singular(self, raw_comment):
+        return self.map_raw_comment(raw_comment)
+
+    def map_raw_post_like_singular(self, raw_post_like):
+        return self.map_raw_post_like(raw_post_like)
+
+    def map_raw_comment_like_singular(self, raw_comment_like):
+        return self.map_raw_comment_like(raw_comment_like)
+
+    def map_raw_follower_singular(self, raw_follower):
+        return self.map_raw_follower(raw_follower)
+
         # check response code
         if response.status_code != 200:
             raise Exception(f'Error getting authors from {url}: {response.status_code}')
