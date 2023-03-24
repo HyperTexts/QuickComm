@@ -213,7 +213,7 @@ class CommentDeserializer(serializers.ModelSerializer):
         assert(author is not None)
 
         comment = Comment.objects.filter(external_url=self.validated_data['external_url']).first()
-        if comment is None:
+        if comment is None or self.validated_data['external_url'] is None:
             comment = Comment.objects.create(**self.validated_data, post=post, author=author)
         else:
             assert(comment.post == post)
