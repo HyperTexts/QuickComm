@@ -111,8 +111,8 @@ class AuthorDeserializer(serializers.ModelSerializer):
 class PostDeserializer(serializers.ModelSerializer):
     external_url = serializers.URLField()
     title = serializers.CharField()
-    source = serializers.URLField()
-    origin = serializers.URLField()
+    source = serializers.URLField(required=False, allow_null=True)
+    origin = serializers.URLField(required=False, allow_null=True)
     description = serializers.CharField()
     content_type = serializers.ChoiceField(choices=Post.PostType.choices)
     content = serializers.CharField()
@@ -309,4 +309,4 @@ class InboxSerializers:
     comment = CommentActivitySerializer
     post_like = LikeActivitySerializer
     comment_like = CommentLikeActivitySerializer
-    follower = FollowActivitySerializer
+    follow = FollowActivitySerializer

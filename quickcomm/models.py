@@ -285,6 +285,8 @@ class Follow(models.Model):
         # When we save a follow, we also need to create an inbox post for the
         # author being followed.
 
+        # TODO follow is still having some issues on when to run
+
         # If both the follower and following are remote, we do not need to
         # create an inbox post.
         if self.follower.is_remote and self.following.is_remote:
@@ -292,7 +294,6 @@ class Follow(models.Model):
 
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
-
         return saved
 
     def delete(self, *args, **kwargs):
@@ -303,6 +304,10 @@ class Follow(models.Model):
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
         return self.following.is_following(self.follower)
+
+    @property
+    def context(self):
+        return 'https://www.w3.org/ns/activitystreams'
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"

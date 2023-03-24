@@ -36,7 +36,7 @@ class BaseQCRequest:
     POST_LIKES_ENDPOINT = '/likes'
     COMMENT_LIKES_ENDPOINT = '/likes'
     FOLLOWERS_ENDPOINT = '/followers'
-    INBOX_ENDPOINT = '/inbox'
+    INBOX_ENDPOINT = '/inbox/'
 
     paginate_posts = True
     paginate_followers = True
@@ -153,7 +153,10 @@ class BaseQCRequest:
     def map_outbound_follow(self, activity_data):
         raise NotImplementedError
 
-
+    def _clean_url(self, url):
+        if url[-1] == '/':
+            return url[:-1]
+        return url
 
     def _get_singular_response(self, deserializer, endpoint, map_func, ensure_success=True):
 
@@ -278,14 +281,13 @@ class BaseQCRequest:
 
     def _send_to_inbox(self, author, item, serializer, map_func):
         logging.info(f'Sending {item} to inbox of {author}.')
-        endpoint = f'{author.external_url}{self.INBOX_ENDPOINT}'
+        endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
         print(data)
         res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
             )
         # print string response
-        print(res.text)
         try:
             res.raise_for_status()
         except Exception as e:
@@ -313,7 +315,7 @@ class BaseQCRequest:
 
     def update_authors(self):
         return self._get_list_response(self.deserializers.author,
-            self.host + self.AUTHORS_ENDPOINT,
+            self._clean_url(self.host) + self.AUTHORS_ENDPOINT,
         self.map_raw_author, self.map_list_authors,
         host=self.host_obj,
         paginated=True
@@ -326,9 +328,10 @@ class BaseQCRequest:
             )
 
     def update_posts(self, author):
+
         # Update the author first from the data given in the post
         return self._get_list_response(self.deserializers.post,
-            author.external_url + self.POSTS_ENDPOINT,
+            self._clean_url(author.external_url) + self.POSTS_ENDPOINT,
             self.map_raw_post, self.map_list_posts,
             author=author,
             paginated=self.paginate_posts
@@ -336,7 +339,7 @@ class BaseQCRequest:
 
     def update_comments(self, post):
         return self._get_list_response(self.deserializers.comment,
-            post.external_url + self.COMMENTS_ENDPOINT,
+            self._clean_url(post.external_url) + self.COMMENTS_ENDPOINT,
             self.map_raw_comment, self.map_list_comments,
             check_author=["author"],
             post=post,
@@ -345,7 +348,7 @@ class BaseQCRequest:
 
     def update_post_likes(self, post):
         return self._get_list_response(self.deserializers.post_like,
-            post.external_url + self.POST_LIKES_ENDPOINT,
+            self._clean_url(post.external_url) + self.POST_LIKES_ENDPOINT,
             self.map_raw_post_like, self.map_list_post_likes,
             check_author=["author"],
             post=post,
@@ -354,7 +357,7 @@ class BaseQCRequest:
 
     def update_comment_likes(self, comment):
         return self._get_list_response(self.deserializers.comment_like,
-            comment.external_url + self.COMMENT_LIKES_ENDPOINT,
+            self._clean_url(comment.external_url) + self.COMMENT_LIKES_ENDPOINT,
             self.map_raw_comment_like, self.map_list_comment_likes,
             check_author=["author"],
             comment=comment,
@@ -363,7 +366,7 @@ class BaseQCRequest:
 
     def update_followers(self, author):
         return self._get_list_response(self.deserializers.follower,
-            author.external_url + self.FOLLOWERS_ENDPOINT,
+            self._clean_url(author.external_url) + self.FOLLOWERS_ENDPOINT,
             self.map_raw_follower, self.map_list_followers,
             check_author=[''],
             following=author,
@@ -615,8 +618,6 @@ class THTHQCRequest(BaseQCRequest):
 
             return activity_data
 
-
-
 class InternalQCRequest(BaseQCRequest):
 
     def map_raw_author(self, external_data):
@@ -668,22 +669,22 @@ class InternalQCRequest(BaseQCRequest):
         return {}
 
     def map_list_authors(self, data):
-        return data
+        return data['items']
 
     def map_list_posts(self, data):
-        return data
+        return data['items']
 
     def map_list_comments(self, data):
-        return data
+        return data['comments']
 
     def map_list_post_likes(self, data):
-        return data
+        return data['items']
 
     def map_list_comment_likes(self, data):
-        return data
+        return data['items']
 
     def map_list_followers(self, data):
-        return data
+        return data['items']
 
     def map_inbound_post_object(self, raw_post):
         return raw_post['object']
@@ -695,13 +696,13 @@ class InternalQCRequest(BaseQCRequest):
         return raw_comment['object']
 
     def map_inbound_comment_author(self, raw_comment):
-        return raw_comment['actor']
+        return raw_comment['author']
 
     def map_inbound_like_object_url(self, raw_like):
         return raw_like['object']
 
     def map_inbound_like_author(self, raw_like):
-        return raw_like['actor']
+        return raw_like['author']
 
     def map_inbound_like_object(self, raw_like):
         return raw_like

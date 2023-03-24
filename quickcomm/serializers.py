@@ -300,21 +300,18 @@ class FollowActivitySerializer(serializers.ModelSerializer):
     def get_summary(self, obj):
         return obj.follower.display_name.__str__() + " wants to follow " + obj.following.display_name.__str__()
 
-    def get_context(self, obj):
-        return 'https://www.w3.org/ns/activitystreams'
-
     class Meta:
         model = Follow
         fields = ('@context', 'summary', 'type', 'actor', 'object')
         extra_kwargs = {
-            '@context': {'read_only': True},
+            '@context': {'read_only': True, 'source': 'context'},
         }
 
 class PostActivitySerializer(serializers.ModelSerializer):
 
     type = serializers.CharField(default='Post', read_only=True)
     summary = serializers.SerializerMethodField()
-    actor = AuthorSerializer(read_only=True)
+    author = AuthorSerializer(read_only=True)
     object = PostSerializer(read_only=True, source='*')
 
     def get_summary(self, obj):
@@ -322,7 +319,7 @@ class PostActivitySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post
-        fields = ('@context', 'summary', 'type', 'actor', 'object')
+        fields = ('@context', 'summary', 'type', 'author', 'object')
         extra_kwargs = {
             '@context': {'read_only': True, 'source': 'context'},
         }
@@ -331,7 +328,7 @@ class CommentActivitySerializer(serializers.ModelSerializer):
 
         type = serializers.CharField(default='Comment', read_only=True)
         summary = serializers.SerializerMethodField()
-        actor = AuthorSerializer(read_only=True)
+        author = AuthorSerializer(read_only=True)
         comment = CommentSerializer(read_only=True, source='*')
         object = serializers.SerializerMethodField()
 
@@ -347,7 +344,7 @@ class CommentActivitySerializer(serializers.ModelSerializer):
 
         class Meta:
             model = Comment
-            fields = ('@context', 'summary', 'type', 'actor', 'comment', 'object')
+            fields = ('@context', 'summary', 'type', 'author', 'comment', 'object')
             extra_kwargs = {
                 '@context': {'read_only': True, 'source': 'context'},
             }

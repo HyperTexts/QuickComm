@@ -197,11 +197,11 @@ LOGGING = {
         }
     },
     'loggers': {
-        'testlogger': {
+        '': {
             'handlers': ['console'],
             'level': 'INFO',
         }
     }
 }
 
-django_on_heroku.settings(locals())
+django_on_heroku.settings(locals(), logging=False)
