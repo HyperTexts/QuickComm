@@ -29,7 +29,7 @@ def export_http_request_on_inbox_save(sender):
         req.send_comment(obj, author)
     elif inbox_type == Inbox.InboxType.LIKE:
         req.send_post_like(obj, author)
-    elif inbox_type == Inbox.InboxType.COMMENT_LIKE:
+    elif inbox_type == Inbox.InboxType.COMMENTLIKE:
         req.send_comment_like(obj, author)
     elif inbox_type == Inbox.InboxType.FOLLOW:
         req.send_follow(obj, author)

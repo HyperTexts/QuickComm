@@ -138,8 +138,14 @@ class PostDeserializer(serializers.ModelSerializer):
             post = Post.objects.create(**self.validated_data, author=author)
 
             if data is not None:
+
+                if post.content_type == Post.PostType.PNG:
+                    ext = 'png'
+                # elif post.content_type == Post.PostType.JPG:
+                else:
+                    ext = '.jpg'
                 # use random uuid as filename
-                filename = uuid.uuid4().__str__() + '.data'
+                filename = uuid.uuid4().__str__() + '.' + ext
                 data = ContentFile(data, name=filename)
 
                 image = ImageFile.objects.create(post=post, image=data)
