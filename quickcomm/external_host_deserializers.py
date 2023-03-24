@@ -17,6 +17,8 @@ from quickcomm.external_host_requests import THTHQCRequest
 from quickcomm.models import Author, Comment, CommentLike, Follow, ImageFile, Like, Post
 import base64
 
+from quickcomm.serializers import CommentActivitySerializer, CommentLikeActivitySerializer, FollowActivitySerializer, LikeActivitySerializer, PostActivitySerializer
+
 # TODO use forms from creating items to validate data? that way we don't have duplicate information
 
 def sync_authors(self):
@@ -24,29 +26,35 @@ def sync_authors(self):
     THTHQCRequest(self, Deserializers).update_authors()
 
 def sync_posts(self):
-    THTHQCRequest(self.host, Deserializers).update_posts(
+    THTHQCRequest(self.host, Deserializers, InboxSerializers).update_posts(
         self
     )
 
 def sync_comments(self):
-    THTHQCRequest(self.author.host, Deserializers).update_comments(
+    THTHQCRequest(self.author.host, Deserializers, InboxSerializers).update_comments(
         self
     )
 
 def sync_post_likes(self):
-    THTHQCRequest(self.author.host, Deserializers).update_post_likes(
+    THTHQCRequest(self.author.host, Deserializers, InboxSerializers).update_post_likes(
         self
     )
 
 def sync_comment_likes(self):
-    THTHQCRequest(self.author.host, Deserializers).update_comment_likes(
+    THTHQCRequest(self.author.host, Deserializers, InboxSerializers).update_comment_likes(
         self
     )
 
 def sync_followers(self):
-    THTHQCRequest(self.host, Deserializers).update_followers(
+    THTHQCRequest(self.host, Deserializers, InboxSerializers).update_followers(
         self
     )
+
+def import_http_inbox_item(author, item):
+    return THTHQCRequest(None, Deserializers, InboxSerializers).import_inbox_item(
+        author, item
+    )
+
 class AuthorDeserializer(serializers.ModelSerializer):
     external_url = serializers.URLField()
     display_name = serializers.CharField()
@@ -261,3 +269,10 @@ class Deserializers:
     comment_like = CommentLikeDeserializer
     follower = FollowerDeserializer
 
+
+class InboxSerializers:
+    post = PostActivitySerializer
+    comment = CommentActivitySerializer
+    post_like = LikeActivitySerializer
+    comment_like = CommentLikeActivitySerializer
+    follower = FollowActivitySerializer
