@@ -11,9 +11,10 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework import exceptions
 from django.contrib.auth.models import User
 import urllib.parse
-
+from rest_framework.decorators import action
 
 from quickcomm.authenticators import APIBasicAuthentication
+from quickcomm.external_host_deserializers import import_http_inbox_item
 from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, CommentLikesPagination, CommentsPagination, FollowersPagination, PostLikesPagination, PostsPagination
 
 from .models import Author, CommentLike, Inbox, Post, Comment, Follow, Like, ImageFile
@@ -69,7 +70,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.safe_queryset()
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
-    http_method_names = ['get', 'patch', 'post']
+    http_method_names = ['get', 'post']
     authentication_classes = [APIBasicAuthentication, SessionAuthentication]
 
     def get_queryset(self):
@@ -107,6 +108,32 @@ class AuthorViewSet(viewsets.ModelViewSet):
     @authAPI
     def retrieve(self, *args, **kwargs):
         return super(AuthorViewSet, self).retrieve(*args, **kwargs)
+
+    @authAPI
+    def inbox(self, request, pk=None):
+        try:
+            author = Author.objects.get(pk=pk)
+        except Exception:
+            raise exceptions.NotFound('Author not found')
+
+        try:
+            item = import_http_inbox_item(author, request.data)
+        except exceptions.APIException as e:
+            raise e
+        # except Exception:
+        #     raise exceptions.ParseError('Could not parse inbox item')
+
+        # save item to inbox
+        inbox = Inbox.objects.create(
+            author=author,
+            content_object=item,
+            inbox_type=Inbox.InboxType.POST
+        )
+        inbox.save()
+
+
+        return Response(status=200, data={'inbox': 'inbox'})
+
 
 class FollowerViewSet(viewsets.ModelViewSet):
     """This is a viewset that allows us to interact with the Follower model."""
