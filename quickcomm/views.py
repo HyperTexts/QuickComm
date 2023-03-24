@@ -22,14 +22,28 @@ def get_current_author(request):
         author = None
     return author
 
-@login_required
+# This is a decorator that will be used to check if the user is logged in and
+# redirect them to the login page if they are not. This will also check if there
+# exists some author object for the user, and if not, direct the user to create
+# one.
+def author_required(func):
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            try:
+                author = Author.objects.get(user=request.user)
+            except Author.DoesNotExist:
+                return render(request, 'quickcomm/noauthorerror.html')
+            request.author = author
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('login')
+    return wrapper
+
+@author_required
 def index(request):
 
-    current_author = get_current_author(request)
-
-    # Get the author object for the current user
-    author = Author.objects.get(user=request.user)
-    inbox = list(Inbox.objects.filter(author=current_author).order_by('-added'))
+    author = request.author
+    inbox = list(Inbox.objects.filter(author=author).order_by('-added'))
 
     # Get the GitHub stream for all of the author's followed users
     following = [ follow.following for follow in Follow.objects.filter(follower=author) ]
@@ -59,16 +73,14 @@ def index(request):
 
     context = {
         'inbox': inbox,
-        'inbox': inbox,
-        'current_author': current_author,
+        'current_author': author,
     }
     return render(request, 'quickcomm/index.html', context)
 
 
-@login_required
+@author_required
 def create_post(request):
-    current_author = get_current_author(request)
-    current_author = get_current_author(request)
+    current_author = request.author
     if request.method == 'POST':
         form = CreatePlainTextForm(request.POST)
         if form.is_valid():
@@ -88,9 +100,9 @@ def get_image(post, request):
 
 
 
-@login_required
+@author_required
 def create_markdown(request):
-    current_author = get_current_author(request)
+    current_author = request.author
     if request.method == 'POST':
         form = CreateMarkdownForm(request.POST)
         if form.is_valid():
@@ -103,9 +115,9 @@ def create_markdown(request):
         form = CreateMarkdownForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'CommonMark Markdown', 'current_author': current_author,})
 
-@login_required
+@author_required
 def create_image(request):
-    current_author = get_current_author(request)
+    current_author = request.author
     if request.method == 'POST':
         form = CreateImageForm(request.POST, request.FILES)
         if form.is_valid():
@@ -131,9 +143,9 @@ def login(request):
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
 
-@login_required
+@author_required
 def post_view(request, post_id, author_id):
-    current_author = get_current_author(request)
+    current_author = request.author
     post = get_object_or_404(Post, pk=post_id)
     post_comments = Comment.objects.filter(post=post).order_by("-published")
     is_liked = False
@@ -149,7 +161,7 @@ def post_view(request, post_id, author_id):
 
     return render(request, "quickcomm/post.html", context)
 
-@login_required
+@author_required
 def post_like(request, post_id, author_id):
     objects = Post.objects.all()
     post = objects.get(pk=post_id)
@@ -157,7 +169,7 @@ def post_like(request, post_id, author_id):
     # post = get_object_or_404(Post, pk=post_id)
 
     if request.user.is_authenticated:
-        author = Author.objects.all().get(user=request.user)
+        author = request.author
         like_obj, created_obj = Like.objects.get_or_create(post=post, author=author)
         if not created_obj:
             like_obj.delete()
@@ -166,14 +178,14 @@ def post_like(request, post_id, author_id):
 
     return redirect("post_view", post_id=post_id, author_id=author_id)
 
-@login_required
+@author_required
 def post_comment(request, post_id, author_id):
     post = Post.objects.get(pk=post_id)
 
     if request.method == 'POST':
         form = CreateCommentForm(request.POST)
         if form.is_valid():
-            author = Author.objects.all().get(user=request.user)
+            author = request.author
             comment = Comment()
             comment.post = post
             comment.author = author
@@ -218,8 +230,9 @@ def register(request):
         }
     return render(request, 'quickcomm/register.html', context)
 
+@author_required
 def view_authors(request):
-    current_author = get_current_author(request)
+    current_author = request.author
 
     authors = Author.objects.all().order_by('display_name')
 
@@ -234,12 +247,13 @@ def view_authors(request):
         'size': size,
         'current_author': current_author,
     }
-    
+
     return render(request, 'quickcomm/authors.html', context)
 
+@author_required
 def view_profile(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
-    current_author = get_current_author(request)
+    current_author = request.author
     form = EditProfileForm()
 
     if not current_author:
@@ -247,7 +261,7 @@ def view_profile(request, author_id):
                     'author': author,
                     'form': form
                     })
-        
+
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
     if current_author.user == author.user:
         if request.method == 'POST':
@@ -259,26 +273,28 @@ def view_profile(request, author_id):
                 form = EditProfileForm(initial=current_attributes)
         else:
             form = EditProfileForm(initial=current_attributes)
-    current_author = get_current_author(request)
+    current_author = request.author
     author = get_object_or_404(Author, pk=author_id)
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
                     'current_author': current_author,
                     'form': form,
                     })
-    
+
+@author_required
 def view_followers(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
-    current_author = get_current_author(request)
-    
+    current_author = request.author
+
     return render(request, 'quickcomm/followers.html', {
                     'author': author,
                     'current_author': current_author,
                     })
-                    
+
+@author_required
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
-    current_author = get_current_author(request)
+    current_author = request.author
 
     posts = Post.objects.filter(author=author)
 
@@ -294,6 +310,6 @@ def view_author_posts(request, author_id):
         'size': size,
         'current_author': current_author,
     }
-    
+
     return render(request, 'quickcomm/posts.html', context)
 
