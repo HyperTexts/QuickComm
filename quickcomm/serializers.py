@@ -280,14 +280,12 @@ class CommentActivitySerializer(serializers.ModelSerializer):
         def get_summary(self, obj):
             return obj.author.display_name.__str__() + " commented on your post"
 
-        def get_context(self, obj):
-            return 'https://www.w3.org/ns/activitystreams'
-    
+
         class Meta:
             model = Comment
             fields = ('@context', 'summary', 'type', 'actor', 'comment', 'object')
             extra_kwargs = {
-                '@context': {'read_only': True},
+                '@context': {'read_only': True, 'source': 'context'},
             }
 
 

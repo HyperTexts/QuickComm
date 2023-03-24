@@ -7,13 +7,14 @@ from quickcomm.external_host_deserializers import sync_authors, sync_comment_lik
 
 # Register your models here.
 
-from .models import Author, CommentLike, Host, HostAuthenticator, Post, Comment, Follow, Like, RegistrationSettings, Inbox
+from .models import Author, CommentLike, Host, HostAuthenticator, ImageFile, Post, Comment, Follow, Like, RegistrationSettings, Inbox
 
 admin.site.register(Follow)
 admin.site.register(Like)
 admin.site.register(Inbox)
 admin.site.register(RegistrationSettings)
 admin.site.register(CommentLike)
+admin.site.register(ImageFile)
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
@@ -287,7 +288,7 @@ class HostAdmin(admin.ModelAdmin):
     fieldsets = (
         (None, {
             'description': 'A host is a remote server that follows the CMPUT 404 Social Distribution protocol.',
-            'fields': ('url', 'nickname', 'username_password_base64')
+            'fields': ('url', 'nickname', 'username_password_base64', 'serializer_class')
         }),
         ('Ping Details', {
             'classes': ('collapse'),
