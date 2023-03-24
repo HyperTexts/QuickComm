@@ -90,17 +90,54 @@ class CommentSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         return request.build_absolute_uri(reverse('comment-detail', kwargs={'pk': obj.id.__str__(), 'posts_pk': obj.post_id.__str__(), 'authors_pk': obj.post.author_id.__str__()}))
 
+    @staticmethod
+    def get_examples():
+        examples = {
+            "type": "comment",
+            "comment": "This is a comment.",
+            "contentType": "text/plain",
+            "published": "2020-04-03T20:00:00Z",
+            "id": "http://localhost:8000/api/authors/de574df8-6543-4566-b1cb-8cb74c70e8be/posts/de574df8-6543-4566-b1cb-8cb74c70e2be/comments/de574df8-6543-4566-b1cb-8cb74c70e0be/"
+        }
+        return examples
     class Meta:
         model = Comment
         fields = ('type','author', 'comment', 'contentType', 'published',  'id')
 
-class AuthorsSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(default='authors', read_only=True)
-    items = AuthorSerializer(many=True, read_only=True)
+def get_paginated_serializer(pagination_class, serializer, example=None):
+    class PaginatedItems(serializers.ModelSerializer):
 
-    class Meta:
-        model = Author
-        fields = ['type', 'items']
+        id = serializers.URLField()
+        type = serializers.CharField(default=pagination_class.response_type, read_only=True)
+        page = serializers.IntegerField(read_only=True)
+        size = serializers.IntegerField(read_only=True)
+        # TODO use pagination_class to get the correct item
+        items = serializer(many=True, read_only=True)
+
+        @staticmethod
+        def get_examples():
+            return {
+                "type": pagination_class.response_type,
+                "id": "http://localhost:8000/api/authors" if example is None else example,
+                "page": 1,
+                "size": 10,
+            }
+
+        @staticmethod
+        def get_descriptions():
+            return {
+                "type": "The type of object.",
+                "id": "The unique identifier for the response.",
+                "page": "The current page.",
+                "size": "The number of items per page.",
+            }
+
+        class Meta:
+            model = serializer.Meta.model
+            ref_name = serializer.Meta.model.__name__ + 'Paginated'
+            fields = ['id', 'type', 'page', 'size', 'items']
+
+    return PaginatedItems
 
 class FollowersSerializer(serializers.ModelSerializer):
     type = serializers.CharField(default='followers', read_only=True)
@@ -178,7 +215,34 @@ class PostSerializer(serializers.ModelSerializer):
             "content": "This is my first post!",
             "categories":["web","tutorial"],
             "visibility": "PUBLIC",
-            "unlisted": False
+            "unlisted": False,
+            "comments": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/posts/eb5901f2-b85b-4656-8940-c85dedab7b91/comments/",
+            "count": 1,
+            "commentsSrc": {
+                "type": "comments",
+                "page": 1,
+                "size": 10,
+                "post": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/posts/eb5901f2-b85b-4656-8940-c85dedab7b91/",
+                "id": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/posts/eb5901f2-b85b-4656-8940-c85dedab7b91/comments/",
+                "comments": [
+                    {
+                        "type": "comment",
+                        "id": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/posts/eb5901f2-b85b-4656-8940-c85dedab7b91/comments/eb5901f2-b85b-4656-8940-c85dedab7b91/",
+                        "author": {
+                            "type": "author",
+                            "id": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/",
+                            "host": "http://localhost:8000/",
+                            "displayName": "Test User",
+                            "url": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/",
+                            "github": "http://github.com/testuser"
+                        },
+                        "comment": "This is a comment!",
+                        "contentType": "text/plain",
+                        "published": "2019-04-20T20:00:00Z",
+                    }
+                ]
+
+            }
         }
         return examples
 
@@ -307,6 +371,24 @@ class LikeActivitySerializer(serializers.ModelSerializer):
 
     def get_context(self, obj):
         return 'https://www.w3.org/ns/activitystreams'
+
+    @staticmethod
+    def get_examples():
+        return {
+            "@context": "https://www.w3.org/ns/activitystreams",
+            "type": "Like",
+            "summary": "Alice Likes your post",
+            "object": "http://localhost:8000/api/authors/e3b90f3f-1c01-4b60-aaf6-01a1554505df/posts/eb5901f2-b85b-4656-8940-c85dedab7b91/"
+        }
+
+    @staticmethod
+    def get_descriptions():
+        return {
+            "@context": "The context of the activity. Must be 'https://www.w3.org/ns/activitystreams'.",
+            "type": "The type of the activity. Must be 'Like'.",
+            "summary": "A description of the activity.",
+            "object": "The object of the activity."
+        }
 
     class Meta:
         model = Like
