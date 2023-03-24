@@ -226,6 +226,69 @@ class PostsSerializer(serializers.ModelSerializer):
 
 
 
+class FollowActivitySerializer(serializers.ModelSerializer):
+
+    type = serializers.CharField(default='Follow', read_only=True)
+    summary = serializers.SerializerMethodField()
+    actor = AuthorSerializer(read_only=True, source='follower')
+    object = AuthorSerializer(read_only=True, source='following')
+
+    def get_summary(self, obj):
+        return obj.follower.display_name.__str__() + " wants to follow " + obj.following.display_name.__str__()
+
+    def get_context(self, obj):
+        return 'https://www.w3.org/ns/activitystreams'
+
+    class Meta:
+        model = Follow
+        fields = ('@context', 'summary', 'type', 'actor', 'object')
+        extra_kwargs = {
+            '@context': {'read_only': True},
+        }
+
+class PostActivitySerializer(serializers.ModelSerializer):
+
+    type = serializers.CharField(default='Post', read_only=True)
+    summary = serializers.SerializerMethodField()
+    actor = AuthorSerializer(read_only=True)
+    object = PostSerializer(read_only=True, source='*')
+
+    def get_summary(self, obj):
+        return obj.author.display_name.__str__() + " posted a new post"
+
+    class Meta:
+        model = Post
+        fields = ('@context', 'summary', 'type', 'actor', 'object')
+        extra_kwargs = {
+            '@context': {'read_only': True, 'source': 'context'},
+        }
+
+class CommentActivitySerializer(serializers.ModelSerializer):
+
+        type = serializers.CharField(default='Comment', read_only=True)
+        summary = serializers.SerializerMethodField()
+        actor = AuthorSerializer(read_only=True)
+        comment = CommentSerializer(read_only=True, source='*')
+        object = serializers.SerializerMethodField()
+
+        def get_object(self, obj):
+            if obj.post.external_url:
+                return obj.post.external_url
+            request = self.context.get('request')
+            return request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.post_id.__str__()}))
+
+        def get_summary(self, obj):
+            return obj.author.display_name.__str__() + " commented on your post"
+
+        def get_context(self, obj):
+            return 'https://www.w3.org/ns/activitystreams'
+    
+        class Meta:
+            model = Comment
+            fields = ('@context', 'summary', 'type', 'actor', 'comment', 'object')
+            extra_kwargs = {
+                '@context': {'read_only': True},
+            }
 
 
 class LikeActivitySerializer(serializers.ModelSerializer):
@@ -236,6 +299,8 @@ class LikeActivitySerializer(serializers.ModelSerializer):
     object = serializers.SerializerMethodField()
 
     def get_object(self, obj):
+        if obj.post.external_url:
+            return obj.post.external_url
         request = self.context.get('request')
         return request.build_absolute_uri(reverse('post-detail', kwargs={'pk': obj.post_id.__str__(), 'authors_pk': obj.author_id.__str__()}))
 
@@ -260,6 +325,8 @@ class CommentLikeActivitySerializer(serializers.ModelSerializer):
     object = serializers.SerializerMethodField()
 
     def get_object(self, obj):
+        if obj.comment.external_url:
+            return obj.comment.external_url
         request = self.context.get('request')
         return request.build_absolute_uri(reverse('comment-detail', kwargs={'pk': obj.comment_id.__str__(), 'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.comment.post_id.__str__()}))
 
