@@ -11,15 +11,15 @@ from rest_framework.authentication import SessionAuthentication
 from rest_framework import exceptions
 from django.contrib.auth.models import User
 import urllib.parse
-from rest_framework.decorators import action
+import logging
 
 from quickcomm.authenticators import APIBasicAuthentication
 from quickcomm.external_host_deserializers import import_http_inbox_item
 from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, CommentLikesPagination, CommentsPagination, FollowersPagination, PostLikesPagination, PostsPagination
 
-from .models import Author, CommentLike, Inbox, Post, Comment, Follow, Like, ImageFile
+from .models import Author, CommentLike, Host, Inbox, Post, Comment, Like, ImageFile
 from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, FollowersSerializer
-from .models import Author, Post, Comment, Follow, Like
+from .models import Author, Post, Comment, Like
 from .serializers import AuthorSerializer, AuthorsSerializer, PostSerializer, CommentSerializer, PostsSerializer
 
 from drf_yasg.utils import swagger_auto_schema
@@ -111,28 +111,44 @@ class AuthorViewSet(viewsets.ModelViewSet):
 
     @authAPI
     def inbox(self, request, pk=None):
+
+        host = None
+
+        # Determine which host is making the response
+        origin = request.headers.get('Origin')
+        if origin is None:
+            logging.warning('No origin header found for request, using default')
+        else:
+            try:
+                host = Host.objects.get(url=origin)
+                logging.info('Incoming request from host: ' + host.url)
+            except Exception as e:
+                logging.warning(f'No host found for origin header {origin}, using default', exc_info=True)
+
+        # Determine who's inbox we want to add an item to
         try:
             author = Author.objects.get(pk=pk)
         except Exception:
             raise exceptions.NotFound('Author not found')
 
         try:
-            item = import_http_inbox_item(author, request.data)
+            item, inbox_type = import_http_inbox_item(author, request.data, host)
         except exceptions.APIException as e:
             raise e
-        # except Exception:
+        # except Exception as e:
         #     raise exceptions.ParseError('Could not parse inbox item')
 
         # save item to inbox
         inbox = Inbox.objects.create(
             author=author,
             content_object=item,
-            inbox_type=Inbox.InboxType.POST
+            inbox_type=inbox_type
         )
+
         inbox.save()
 
 
-        return Response(status=200, data={'inbox': 'inbox'})
+        return Response(status=200, data={'detail': 'Success.'})
 
 
 class FollowerViewSet(viewsets.ModelViewSet):
