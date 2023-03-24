@@ -6,6 +6,7 @@ from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 from quickcomm.signals import export_http_request_on_inbox_save
 
@@ -146,6 +147,7 @@ class Author(models.Model):
     # Taken on: Feb 6, 2023
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, help_text="The user associated with this author. This is only used for internal authors. Remote authors will have this field set to null. This field should NOT be set manually.", verbose_name="User")
     # FIXME the user is only null if the author is remote. This should be
     # enforced in the model.
     host = models.ForeignKey(Host, on_delete=models.CASCADE, null=True, blank=True,help_text="The host that this author is associated with. This is only used for remote authors. Internal authors will have this field set to null. This field should NOT be set manually.")

@@ -174,7 +174,7 @@ class AuthorAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('display_name', 'github', 'profile_image', 'profile_image_html', 'location')
+            'fields': ('display_name', 'github', 'profile_image', 'profile_image_html', 'location', 'user')
         }),
         ('Host Details', {
             'fields': ('host', 'external_url')
