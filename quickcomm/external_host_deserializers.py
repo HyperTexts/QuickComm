@@ -138,7 +138,11 @@ class PostDeserializer(serializers.ModelSerializer):
             post = Post.objects.create(**self.validated_data, author=author)
 
             if data is not None:
-                image = ImageFile(post=post, image=data)
+                # use random uuid as filename
+                filename = uuid.uuid4().__str__() + '.data'
+                data = ContentFile(data, name=filename)
+
+                image = ImageFile.objects.create(post=post, image=data)
                 image.save()
 
         else:
@@ -154,11 +158,20 @@ class PostDeserializer(serializers.ModelSerializer):
             post.external_url = self.validated_data['external_url']
 
             if post.content_type == Post.PostType.PNG or post.content_type == Post.PostType.JPG:
+
+                if post.content_type == Post.PostType.PNG:
+                    ext = 'png'
+                # elif post.content_type == Post.PostType.JPG:
+                else:
+                    ext = '.jpg'
+
                 data = base64.b64decode(self.validated_data['content'])
+                filename = uuid.uuid4().__str__() + '.' + ext
+                data = ContentFile(data, name=filename)
 
                 image = ImageFile.objects.filter(post=post).first()
                 if image is None:
-                    image = ImageFile(post=post, image=data)
+                    image = ImageFile.objects.create(post=post, image=data)
                     image.save()
                 else:
                     image.image = data
@@ -182,7 +195,8 @@ class PostDeserializer(serializers.ModelSerializer):
 
 # TODO fix comment data types, right now only allow md and plaintext
 class CommentDeserializer(serializers.ModelSerializer):
-    external_url = serializers.URLField()
+    # if external_url is not provided, then we will generate one as we assume this is a local comment
+    external_url = serializers.URLField(required=False, allow_null=True)
     comment = serializers.CharField()
     published = serializers.DateTimeField()
     content_type = serializers.ChoiceField(choices=Post.PostType.choices)
@@ -191,6 +205,7 @@ class CommentDeserializer(serializers.ModelSerializer):
     def save(self, post=None, author=None):
         assert(post is not None)
         assert(author is not None)
+
         comment = Comment.objects.filter(external_url=self.validated_data['external_url']).first()
         if comment is None:
             comment = Comment.objects.create(**self.validated_data, post=post, author=author)
@@ -255,7 +270,7 @@ class CommentLikeDeserializer(serializers.ModelSerializer):
 
 class FollowerDeserializer(serializers.ModelSerializer):
 
-    def save(self, author=None, following=None):
+    def save(self, author=None, following=None, request=False):
         assert(author is not None)
         assert(following is not None)
         item = Follow.objects.filter(
