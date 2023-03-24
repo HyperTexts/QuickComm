@@ -693,7 +693,13 @@ class InternalQCRequest(BaseQCRequest):
         return raw_post['author']
 
     def map_inbound_comment_object(self, raw_comment):
-        return raw_comment['object']
+        if raw_comment['comment'].get('id', False):
+            del raw_comment['comment']['id']
+
+        if raw_comment['comment'].get('url', False):
+            del raw_comment['comment']['url']
+
+        return raw_comment['comment']
 
     def map_inbound_comment_author(self, raw_comment):
         return raw_comment['author']
