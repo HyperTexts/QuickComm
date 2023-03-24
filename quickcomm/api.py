@@ -18,9 +18,9 @@ from quickcomm.external_host_deserializers import import_http_inbox_item
 from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, CommentLikesPagination, CommentsPagination, FollowersPagination, PostLikesPagination, PostsPagination
 
 from .models import Author, CommentLike, Host, Inbox, Post, Comment, Like, ImageFile
-from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, FollowersSerializer
+from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, FollowersSerializer, get_paginated_serializer
 from .models import Author, Post, Comment, Like
-from .serializers import AuthorSerializer, AuthorsSerializer, PostSerializer, CommentSerializer, PostsSerializer
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, PostsSerializer
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -81,9 +81,14 @@ class AuthorViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
         operation_summary="Get a list of all authors.",
         operation_description="This endpoint returns a list of all authors on the server.",
-        responses={200: AuthorsSerializer},
+        responses={200: get_paginated_serializer(
+                        AuthorsPagination,
+                        AuthorSerializer
+        )
+                   },
+
     )
-    # @authAPI
+    @authAPI
     def list(self, request):
         return super(AuthorViewSet, self).list(request)
 
@@ -109,6 +114,13 @@ class AuthorViewSet(viewsets.ModelViewSet):
     def retrieve(self, *args, **kwargs):
         return super(AuthorViewSet, self).retrieve(*args, **kwargs)
 
+    @swagger_auto_schema(
+            request_body=LikeActivitySerializer(),
+            operation_summary="Send an item to an inbox.",
+            operation_description="This endpoint allows you to send an item to an inbox of a specific author. The item must be a valid inbox item.",
+            responses={200: "Success", 404: "Author not found"},
+            security=[{"BasicAuth": []}],
+    )
     @authAPI
     def inbox(self, request, pk=None):
 
@@ -182,7 +194,11 @@ class FollowerViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
             operation_summary="Get a list of all followers for a specific author.",
             operation_description="This endpoint returns a list of all followers for a specific author.",
-            responses={200: FollowersSerializer, 404: "Author not found"},
+            responses={200: get_paginated_serializer(
+                        FollowersPagination,
+                        AuthorSerializer
+            )
+            , 404: "Author not found"},
     )
 
     @authAPI
@@ -253,7 +269,10 @@ class PostViewSet(viewsets.ModelViewSet):
     @swagger_auto_schema(
             operation_summary="Get a list of all posts for a specific author.",
             operation_description="This endpoint returns a list of all posts for a specific author.",
-            responses={200: PostsSerializer, 404: "Author not found"},
+            responses={200: get_paginated_serializer(
+                        PostsPagination,
+                        PostSerializer
+            ), 404: "Author not found"},
     )
 
     @authAPI
@@ -362,6 +381,15 @@ class AuthorLikedViewSet(viewsets.ModelViewSet):
         except:
             raise exceptions.NotFound('Author not found')
 
+    @swagger_auto_schema(
+            operation_summary="Get a list of all items liked by a specific author.",
+            operation_description="This endpoint returns a list of all items liked by a specific author.",
+            responses={200: get_paginated_serializer(AuthorLikedPagination, LikeActivitySerializer), 404: "Author not found"},
+    )
+    @authAPI
+    def list(self, request, authors_pk=None):
+        return super(AuthorLikedViewSet, self).list(request)
+
 class PostLikesViewSet(viewsets.ModelViewSet):
 
     serializer_class = LikeActivitySerializer
@@ -385,6 +413,16 @@ class PostLikesViewSet(viewsets.ModelViewSet):
         except:
             raise exceptions.NotFound('Post not found')
 
+    @swagger_auto_schema(
+            operation_summary="Get a list of all authors who liked a specific post.",
+            operation_description="This endpoint returns a list of all authors who liked a specific post.",
+            responses={200: get_paginated_serializer(PostLikesPagination, LikeActivitySerializer), 404: "Post not found"},
+    )
+    @authAPI
+    def list(self, request, authors_pk=None, posts_pk=None):
+        return super(PostLikesViewSet, self).list(request)
+
+
 class CommentLikesViewSet(viewsets.ModelViewSet):
 
     serializer_class = CommentLikeActivitySerializer
@@ -407,6 +445,16 @@ class CommentLikesViewSet(viewsets.ModelViewSet):
             return CommentLike.objects.filter(comment=self.kwargs['comments_pk'], comment__post=self.kwargs['posts_pk'], comment__post__author=self.kwargs['authors_pk'])
         except:
             raise exceptions.NotFound('Comment not found')
+
+    @swagger_auto_schema(
+            operation_summary='Get a list of all people who liked a specific comment.',
+            operation_description='This endpoint returns a list of all people who liked a specific comment.',
+            responses={200: get_paginated_serializer(CommentLikesPagination, CommentLikeActivitySerializer), 404: 'Comment not found'},
+    )
+    @authAPI
+    def list(self, request, authors_pk=None, posts_pk=None, comments_pk=None):
+        return super(CommentLikesViewSet, self).list(request)
+
 
 
 class CommentViewSet(viewsets.ModelViewSet):
@@ -437,4 +485,23 @@ class CommentViewSet(viewsets.ModelViewSet):
             return Comment.objects.filter(post=self.kwargs['posts_pk'], post__author=self.kwargs['authors_pk'])
         except:
             raise exceptions.NotFound('Post or author not found.')
+
+    @swagger_auto_schema(
+            operation_summary="Get a list of all comments for a specific post.",
+            operation_description="This endpoint returns a list of all comments for a specific post.",
+            responses={200: get_paginated_serializer(CommentsPagination, CommentSerializer), 404: "Post or author not found"},
+    )
+    @authAPI
+    def list(self, request, authors_pk=None, posts_pk=None):
+        return super(CommentViewSet, self).list(request)
+
+    @swagger_auto_schema(
+            operation_summary="View a specific comment.",
+            operation_description="This endpoint returns a specific comment.",
+            responses={200: CommentSerializer, 404: "Comment not found"},
+    )
+    @authAPI
+    def retrieve(self, request, authors_pk=None, posts_pk=None, pk=None):
+        return super(CommentViewSet, self).retrieve(request)
+
 
