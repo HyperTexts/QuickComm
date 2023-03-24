@@ -27,7 +27,6 @@ class AuthorRouter(routers.SimpleRouter):
             url=r'^{prefix}/{lookup}{trailing_slash}$',
             mapping={
                 'get': 'retrieve',
-                'post': 'partial_update',
             },
             name='{basename}-detail',
             detail=True,
@@ -78,7 +77,6 @@ class CommentsRouter(nested_routers.NestedSimpleRouter):
             url=r'^{prefix}{trailing_slash}$',
             mapping={
                 'get': 'list',
-                'post': 'create'
             },
             name='{basename}-list',
             detail=False,
@@ -96,19 +94,6 @@ class CommentsRouter(nested_routers.NestedSimpleRouter):
         ),
     ]
 
-class InboxRouter(nested_routers.NestedSimpleRouter):
-    routes = [
-        # List route.
-        Route(
-            url=r'^{prefix}{trailing_slash}$',
-            mapping={
-                'post': 'create',
-            },
-            name='{basename}-list',
-            detail=False,
-            initkwargs={'suffix': 'List'}
-        ),
-    ]
 
 class PostLikesRouter(nested_routers.NestedSimpleRouter):
     routes = [
@@ -174,7 +159,6 @@ class PostRouter(nested_routers.NestedSimpleRouter):
             url=r'^{prefix}{trailing_slash}$',
             mapping={
                 'get': 'list',
-                'post': 'create'
             },
             name='{basename}-list',
             detail=False,
@@ -185,9 +169,6 @@ class PostRouter(nested_routers.NestedSimpleRouter):
             url=r'^{prefix}/{lookup}{trailing_slash}$',
             mapping={
                 'get': 'retrieve',
-                'post': 'partial_update',
-                'delete': 'destroy',
-                'put': 'update',
             },
             name='{basename}-detail',
             detail=True,
