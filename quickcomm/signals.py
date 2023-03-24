@@ -4,13 +4,10 @@
 # model serializers in the model classes.
 
 
-
 def export_http_request_on_inbox_save(sender):
 
     # import here to avoid circular imports
-    from quickcomm.external_host_requests import THTHQCRequest
-    from quickcomm.external_host_deserializers import Deserializers, InboxSerializers
-
+    from quickcomm.external_host_deserializers import get_request_class_from_host
     from quickcomm.models import Inbox
 
     print("Inbox item added, sending to external host...")
@@ -24,8 +21,17 @@ def export_http_request_on_inbox_save(sender):
     inbox_type = sender.inbox_type
     author = sender.author
     obj = sender.content_object
+    req = get_request_class_from_host(author.host)
 
     if inbox_type == Inbox.InboxType.POST:
-        THTHQCRequest(author.host, Deserializers, InboxSerializers).send_post(obj, author)
+        req.send_post(obj, author)
+    elif inbox_type == Inbox.InboxType.COMMENT:
+        req.send_comment(obj, author)
+    elif inbox_type == Inbox.InboxType.LIKE:
+        req.send_post_like(obj, author)
+    elif inbox_type == Inbox.InboxType.COMMENT_LIKE:
+        req.send_comment_like(obj, author)
+    elif inbox_type == Inbox.InboxType.FOLLOW:
+        req.send_follow(obj, author)
 
     return
