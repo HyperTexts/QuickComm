@@ -75,6 +75,8 @@ class AuthorDeserializer(serializers.ModelSerializer):
     github = serializers.URLField(required=False, allow_null=True)
 
     # TODO error catching the save when type does not match
+    # TODO don't overwrite the author if it is a local author, someone could try to attach it!
+    # TODO move all of this to use get_from_url and discern between types of authors
     def save(self, host=None):
         author = Author.get_from_url(self.validated_data['external_url'])
         if author is None:

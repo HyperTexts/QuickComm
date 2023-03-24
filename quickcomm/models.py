@@ -166,21 +166,28 @@ class Author(models.Model):
     @staticmethod
     def get_from_url(url):
         """Returns the author with the given URL."""
-
-        author = Author.objects.filter(external_url=url).first()
-        if author is not None:
-            return author
+        try:
+            author = Author.objects.filter(external_url=url).first()
+            if author is not None:
+                return author
+        except:
+            pass
 
         if url[-1] == '/':
             url = url[:-1]
 
-            author = Author.objects.filter(external_url=url).first()
-            if author is not None:
-                return author
+            try:
+                author = Author.objects.filter(external_url=url).first()
+                if author is not None:
+                    return author
+            except:
+                pass
 
-        author_id = url.split('/')[-1]
         try:
+            author_id = url.split('/')[-1]
             author = Author.objects.filter(id=author_id).first()
+            if author is None:
+                return None
         except:
             return None
 
