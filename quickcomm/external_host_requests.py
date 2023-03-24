@@ -5,11 +5,13 @@
 # a dictionary format. This file also deals with the weirdness of pagination
 # and caching external requests.
 
+from asyncio import exceptions
 import requests_cache
 import logging
+from .request_exposer import get_request
 
 # This caches the requests for 5 minutes, but this can be changed
-session = requests_cache.CachedSession('external_cache', expire_after=300)
+session = requests_cache.CachedSession('external_cache', expire_after=1)
 
 class BaseQCRequest:
     """This class is used to make requests to other servers. It is used to
@@ -23,18 +25,20 @@ class BaseQCRequest:
     POST_LIKES_ENDPOINT = '/likes'
     COMMENT_LIKES_ENDPOINT = '/likes'
     FOLLOWERS_ENDPOINT = '/followers'
+    INBOX_ENDPOINT = '/inbox'
 
-    def __init__(self, host, deserializers):
+    def __init__(self, host, deserializers, serializers):
         """Initialize the request object. This will set the host and the
         session to use for the requests."""
 
         self.host_obj = host
-        self.host = host.url
-        if self.host[-1] == '/':
-            self.host = self.host[:-1]
-        self.session = session
-        self.auth = host.username_password_base64
+        if host is not None:
+            self.host = host.url
+            if self.host[-1] == '/':
+                self.host = self.host[:-1]
+            self.auth = host.username_password_base64
         self.deserializers = deserializers
+        self.serializers = serializers
 
     def map_list_authors(self ,data):
         raise NotImplementedError
@@ -89,6 +93,13 @@ class BaseQCRequest:
 
     def map_raw_follower_singular(self, raw_follower):
         return self.map_raw_follower(raw_follower)
+
+    # INBOX ITEMS MAPS
+    def map_inbox_post_content_field(self, raw_post):
+        raise NotImplementedError
+
+    def map_inbox_post_author_field(self, raw_post):
+        raise NotImplementedError
 
     # TODO get list response function
 
@@ -195,6 +206,20 @@ class BaseQCRequest:
 
             page += 1
 
+    def send_to_inbox(self, author, item, serializer):
+        logging.info(f'Sending {item} to inbox of {author}.')
+        endpoint = f'{author.external_url}{self.INBOX_ENDPOINT}'
+        serialized_item = serializer(item, context={'request': get_request()})
+        data = serialized_item.data
+        res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
+            )
+        try:
+            res.raise_for_status()
+        except Exception as e:
+            logging.error(f'Could not send {item} to inbox of {author}.', exc_info=True)
+            return False
+        return True
+
     def return_single_item(self, item, map_func, deserializer, **kwargs):
         try:
             mapped_item = map_func(item)
@@ -219,6 +244,11 @@ class BaseQCRequest:
         self.map_raw_author, self.map_list_authors,
         parent=self.host_obj
         )
+
+    def update_author(self, full_author_url):
+        return self.get_singular_response(self.deserializers.author,
+            full_author_url,
+            self.map_raw_author_singular)
 
 
     def update_posts(self, author):
@@ -255,6 +285,36 @@ class BaseQCRequest:
             self.map_raw_follower, self.map_list_followers,
             check_author=[''],
             following=author)
+
+    def send_post(self, post, author):
+        return self.send_to_inbox(author, post, self.serializers.post)
+
+    def import_post(self, author, data):
+        raw_author = self.map_inbox_post_author_field(data)
+        post_author = self.return_single_item(raw_author, self.map_raw_author, self.deserializers.author)
+        if post_author is None:
+            logging.info('Author was not valid')
+            raise exceptions.ValidationError('Author was not valid')
+
+        raw_post = self.map_inbox_post_content_field(data)
+        post = self.return_single_item(raw_post, self.map_raw_post, self.deserializers.post, author=post_author)
+        if post is None:
+            logging.info('Post was not valid')
+            raise exceptions.ValidationError('Post was not valid')
+
+        return post
+
+
+
+
+    def import_inbox_item(self, author, data):
+        # lowercase the type
+        data['type'] = data['type'].lower()
+        if data['type'] == 'post':
+            return self.import_post(author, data)
+
+        raise exceptions.ValidationError('Type not supported')
+
 
 class THTHQCRequest(BaseQCRequest):
 
@@ -323,3 +383,9 @@ class THTHQCRequest(BaseQCRequest):
 
     def map_list_followers(self, data):
         return data
+
+    def map_inbox_post_content_field(self, raw_post):
+        return raw_post['object']
+
+    def map_inbox_post_author_field(self, raw_post):
+        return raw_post['author']
