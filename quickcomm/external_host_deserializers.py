@@ -6,53 +6,66 @@
 # to other servers can then be made independently of our internal calls.
 
 # TODO make sure that our API only return local hosts
-# TODO what do we do when we see authors that aren't on any of our servers or a host we know about?
+# TODO achieve this by having special querysets in the models that only return items we want on the frontend
 # TODO handle case where looking at an author's liked items returns a post or comment that doesn't exist on our server
-# in that case, we don't want to represent the post or comment on our end
+# in that case, we don't want to represent the post or comment on our end, we just wanna store the external url
 
-
-
+import uuid
 from rest_framework import serializers
-from quickcomm.external_host_requests import THTHQCRequest
-from quickcomm.models import Author, Comment, CommentLike, Follow, ImageFile, Like, Post
+from django.core.files.base import ContentFile
+from quickcomm.external_host_requests import InternalQCRequest, THTHQCRequest
+from quickcomm.models import Author, Comment, CommentLike, Follow, Host, ImageFile, Like, Post
 import base64
 
 from quickcomm.serializers import CommentActivitySerializer, CommentLikeActivitySerializer, FollowActivitySerializer, LikeActivitySerializer, PostActivitySerializer
 
 # TODO use forms from creating items to validate data? that way we don't have duplicate information
 
-def sync_authors(self):
+def get_request_class_from_host(host: Host):
+    if host is None:
+        return InternalQCRequest(host, Deserializers, InboxSerializers)
+
+    serializer_type = host.serializer_class
+    if serializer_type == Host.SerializerClass.THTH:
+        return THTHQCRequest(host, Deserializers, InboxSerializers)
+    elif serializer_type == Host.SerializerClass.INTERNAL:
+        return InternalQCRequest(host, Deserializers, InboxSerializers)
+    else:
+        raise Exception("Unknown serializer type")
+
+
+def sync_authors(host: Host):
     """Syncs the authors with the remote API."""
-    THTHQCRequest(self, Deserializers).update_authors()
+    get_request_class_from_host(host).update_authors()
 
-def sync_posts(self):
-    THTHQCRequest(self.host, Deserializers, InboxSerializers).update_posts(
-        self
+def sync_posts(author: Author):
+    get_request_class_from_host(author.host).update_posts(
+        author
     )
 
-def sync_comments(self):
-    THTHQCRequest(self.author.host, Deserializers, InboxSerializers).update_comments(
-        self
+def sync_comments(post: Post):
+    get_request_class_from_host(post.author.host).update_comments(
+        post
     )
 
-def sync_post_likes(self):
-    THTHQCRequest(self.author.host, Deserializers, InboxSerializers).update_post_likes(
-        self
+def sync_post_likes(post: Post):
+    get_request_class_from_host(post.author.host).update_post_likes(
+        post
     )
 
-def sync_comment_likes(self):
-    THTHQCRequest(self.author.host, Deserializers, InboxSerializers).update_comment_likes(
-        self
+def sync_comment_likes(comment: Comment):
+    get_request_class_from_host(comment.post.author.host).update_comment_likes(
+        comment
     )
 
-def sync_followers(self):
-    THTHQCRequest(self.host, Deserializers, InboxSerializers).update_followers(
-        self
+def sync_followers(author: Author):
+    get_request_class_from_host(author.host).update_followers(
+        author
     )
 
-def import_http_inbox_item(author, item):
-    return THTHQCRequest(None, Deserializers, InboxSerializers).import_inbox_item(
-        author, item
+def import_http_inbox_item(author: Author, item, host):
+    return get_request_class_from_host(host).import_inbox_item(
+        item
     )
 
 class AuthorDeserializer(serializers.ModelSerializer):
