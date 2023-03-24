@@ -362,6 +362,7 @@ class Post(models.Model):
         followers = Follow.objects.filter(following=self.author)
 
         for follower in followers:
+            print(follower.follower)
             if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
                 Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
 
