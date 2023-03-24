@@ -114,6 +114,7 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
+    
 class FollowRequest(models.Model):
     """A request is a prompt for a user to accept a follower"""
     from_user=models.ForeignKey(Author, on_delete=models.CASCADE,related_name='from_user')
