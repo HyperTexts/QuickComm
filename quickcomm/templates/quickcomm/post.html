@@ -1,11 +1,17 @@
 {% extends 'base.html' %}
 {% load image_extras %}
+{% load external_extras %}
 {% block content %}
   <div class="card mb-3">
     <div class="card-body">
       <div style="display:flex;">
         <img src="{{ post.author.profile_image }}" width="75" height="75" class="rounded-circle">
         <h5 class="card-title align-self-center">{{ post.author }} </h5>
+        {% if post.author.host %}
+          <div style="margin-left: 10px; margin-top: 10px;">
+          {% externalbadge post.author.host %}
+          </div>
+        {% endif %}
       </div>
       <!-- <img src="image_url" class="card-img-top" alt="Image"> -->
       {% if post.content_type == post.PostType.PNG %}

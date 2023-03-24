@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
+{% load external_extras %}
 {% block content %}
     <div class="container">
         <div class="row">
@@ -8,6 +9,9 @@
             </div>
             <div class="col-md-2 align-self-center">
                 <h2 class="align-middle">{{ author.display_name }}</h2>
+                {% if author.host %}
+                    {% externalbadge author %}
+                {% endif %}
             </div>
             <div class="col-md-2 align-self-center">
                 Followers: <a href = "{% url 'view_followers' author.id %}">{{ author.follower_count }}</a>

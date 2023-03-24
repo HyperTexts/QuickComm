@@ -4,7 +4,7 @@
     <div class="card-header">
     <p class="card-text">
       <strong>{{ time|naturaltime }}</strong>
-      <a href={% url "view_profile" author_id=follow.follower.id %}>@{{ follow.follower.user.username }}</a> is now following you.
+      <a href={% url "view_profile" author_id=follow.follower.id %}>@{{ follow.follower.display_name }}</a> is now following you.
     </p>
     </div>
     <div class="card-body">
