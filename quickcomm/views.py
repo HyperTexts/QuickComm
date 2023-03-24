@@ -188,7 +188,6 @@ def like_comment(request, post_id, author_id, comment_id):
                 comment.likes.add(request.user)
             like_key = f"comment_like_{comment_id}"
             request.session[like_key] = request.user in comment.likes.all()
-            return redirect('like_comment', post_id=post_id, author_id = author_id, comment_id = comment.id)
         return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @login_required
