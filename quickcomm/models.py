@@ -79,6 +79,7 @@ class Host(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     url = models.URLField(validators=[URLValidator], help_text="The URL of the host API. This must be in proper form (e.g. https://example.com/).", verbose_name="Host URL")
+    serializer_class = models.CharField(max_length=100, choices=SerializerClass.choices, default=SerializerClass.INTERNAL, help_text="The serializer class to use for the host. This is used to determine which serializer to use when interacting with the host.", verbose_name="Serializer Class")
 
     username_password_base64 = models.CharField(max_length=100, help_text="The username and password to use to authenticate to the host. This is a base64 encoded string of the form 'username:password'.", verbose_name="Username and Password", null=True, blank=True)
 
@@ -289,6 +290,10 @@ class Follow(models.Model):
 
         return saved
 
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        super(Post, self).delete(*args, **kwargs)
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
@@ -330,7 +335,7 @@ class Post(models.Model):
     def save(self, *args, **kwargs):
         saved = super(Post, self).save(*args, **kwargs)
 
-        # TODO move saving image logic here?
+        # FIXME move saving image logic here?
 
         # skip inbox logic for remote authors
         if self.author.is_remote:
@@ -352,6 +357,12 @@ class Post(models.Model):
             Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
 
         return saved
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        super(Post, self).delete(*args, **kwargs)
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+
 
     @property
     def content_formatted(self):
@@ -425,6 +436,16 @@ class Comment(models.Model):
 
         return saved
 
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        super(Post, self).delete(*args, **kwargs)
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+
+    @property
+    def context(self):
+        """Returns the context for this post."""
+        return 'https://www.w3.org/ns/activitystreams'
+
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
 
@@ -458,6 +479,7 @@ class Inbox(models.Model):
     #     author=some_author,
     #     content_object=some_post,
     # )
+
     @property
     def format(self): return "inbox"
 
@@ -486,6 +508,17 @@ class Inbox(models.Model):
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
+    def save(self, *args, **kwargs):
+        sel = super(Inbox, self).save(*args, **kwargs)
+        # skip inbox logic if we are updating the inbox
+        # if self.id:
+        #     return sel
+
+        # call remote method:
+        export_http_request_on_inbox_save(self)
+
+        return sel
+
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"
 
@@ -508,6 +541,11 @@ class Like(models.Model):
         Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
 
         return saved
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        super(Post, self).delete(*args, **kwargs)
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
 
     @property
     def context(self):
@@ -534,6 +572,11 @@ class CommentLike(models.Model):
         Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
 
         return saved
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        super(Post, self).delete(*args, **kwargs)
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
 
     @property
     def context(self):
