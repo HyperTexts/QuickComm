@@ -267,6 +267,7 @@ def view_profile(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     'form': form,
+                    'is_following': current_author.is_following(author),
                     })
     
 def view_followers(request, author_id):
