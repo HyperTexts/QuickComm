@@ -13,7 +13,7 @@ from requests.adapters import HTTPAdapter
 
 from urllib3 import Retry
 
-from quickcomm.models import Inbox
+from quickcomm.models import Inbox, Post
 from .request_exposer import get_request
 
 # This caches the requests for 5 minutes, but this can be changed
@@ -131,6 +131,9 @@ class BaseQCRequest:
         raise NotImplementedError
 
     def map_inbound_comment_author(self, raw_comment):
+        raise NotImplementedError
+
+    def map_inbound_comment_object_url(self, raw_comment):
         raise NotImplementedError
 
     def map_inbound_follow_object(self, raw_follow):
@@ -449,8 +452,14 @@ class BaseQCRequest:
 
         elif data['type'] == 'comment':
             logging.debug("Inbox item type is comment")
+            object_url = self.map_inbound_comment_object_url(data)
+            post = Post.get_by_url(object_url)
+            if post is None:
+                logging.info('Post was not valid')
+                raise exceptions.ValidationError('Post was not valid')
+
             return self.import_base(data, self.map_inbound_comment_author, self.map_inbound_comment_object, self.map_raw_comment,
-            self.deserializers.comment), Inbox.InboxType.COMMENT
+            self.deserializers.comment, post=post), Inbox.InboxType.COMMENT
 
         elif data['type'] == 'follow':
             logging.debug("Inbox item type is follow request")
@@ -558,10 +567,13 @@ class THTHQCRequest(BaseQCRequest):
         return raw_post['author']
 
     def map_inbound_comment_object(self, raw_comment):
-        if raw_comment['object'].get('id', False):
+        if raw_comment['comment'].get('id', False):
             # remove this property, we will be making a new comment
-            del raw_comment['object']['id']
+            del raw_comment['comment']['id']
 
+        return raw_comment['comment']
+
+    def map_inbound_comment_object_url(self, raw_comment):
         return raw_comment['object']
 
     def map_inbound_comment_author(self, raw_comment):
@@ -703,6 +715,9 @@ class InternalQCRequest(BaseQCRequest):
 
     def map_inbound_comment_author(self, raw_comment):
         return raw_comment['author']
+
+    def map_inbound_comment_object_url(self, raw_comment):
+        return raw_comment['object']
 
     def map_inbound_like_object_url(self, raw_like):
         return raw_like['object']

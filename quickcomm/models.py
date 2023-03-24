@@ -166,12 +166,17 @@ class Author(models.Model):
     @staticmethod
     def get_from_url(url):
         """Returns the author with the given URL."""
-        if url[-1] == '/':
-            url = url[:-1]
 
         author = Author.objects.filter(external_url=url).first()
         if author is not None:
             return author
+
+        if url[-1] == '/':
+            url = url[:-1]
+
+            author = Author.objects.filter(external_url=url).first()
+            if author is not None:
+                return author
 
         author_id = url.split('/')[-1]
         try:
@@ -416,6 +421,34 @@ class Post(models.Model):
     def context(self):
         """Returns the context for this post."""
         return 'https://www.w3.org/ns/activitystreams'
+
+    # TODO use request here to get the url
+    @staticmethod
+    def get_from_url(url):
+        """Returns the post with the given URL."""
+
+        post = Post.objects.filter(external_url=url).first()
+        if post is not None:
+            return Post
+
+        if url[-1] == '/':
+            url = url[:-1]
+
+            post = Post.objects.filter(external_url=url).first()
+            if post is not None:
+                return Post
+
+
+        post_id= url.split('/')[-1]
+        try:
+            post = Post.objects.get(id=post_id)
+        except:
+            return None
+
+        if post.author.host is None:
+            return post
+
+        return None
 
 
 class Comment(models.Model):
