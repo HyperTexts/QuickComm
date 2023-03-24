@@ -453,7 +453,7 @@ class BaseQCRequest:
         elif data['type'] == 'comment':
             logging.debug("Inbox item type is comment")
             object_url = self.map_inbound_comment_object_url(data)
-            post = Post.get_by_url(object_url)
+            post = Post.get_from_url(object_url)
             if post is None:
                 logging.info('Post was not valid')
                 raise exceptions.ValidationError('Post was not valid')
