@@ -13,7 +13,7 @@ from requests.adapters import HTTPAdapter
 
 from urllib3 import Retry
 
-from quickcomm.models import Inbox, Post
+from quickcomm.models import Comment, Inbox, Post
 from .request_exposer import get_request
 
 # This caches the requests for 5 minutes, but this can be changed
@@ -442,13 +442,20 @@ class BaseQCRequest:
 
             if 'comments' in object_url.split('/'):
                 logging.debug("Inbox item type is comment like")
+                comment = Comment.get_from_url(object_url)
+                if comment is None:
+                    logging.info('Comment was not valid')
+                    raise exceptions.ValidationError('Comment was not valid')
                 return self.import_base(data, self.map_inbound_like_author, self.map_inbound_like_object, self.map_raw_comment_like,
-                self.deserializers.comment_like), Inbox.InboxType.COMMENTLIKE
-
+                self.deserializers.comment_like, comment=comment), Inbox.InboxType.COMMENTLIKE
 
             logging.debug("Inbox item type is post like")
+            post = Post.get_from_url(object_url)
+            if post is None:
+                logging.info('Post was not valid')
+                raise exceptions.ValidationError('Post was not valid')
             return self.import_base(data, self.map_inbound_like_author, self.map_inbound_like_object, self.map_raw_post_like,
-            self.deserializers.post_like), Inbox.InboxType.POSTLIKE
+            self.deserializers.post_like, post=post), Inbox.InboxType.POSTLIKE
 
         elif data['type'] == 'comment':
             logging.debug("Inbox item type is comment")

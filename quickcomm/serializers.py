@@ -10,6 +10,8 @@ from django.core.paginator import Paginator
 # This file contains the serializers for the API. Serializers are used to convert
 # model objects into JSON.
 
+# TODO check for the case where we have a temporary author.
+# we don't want the host to be us
 
 
 class AuthorSerializer(serializers.ModelSerializer):

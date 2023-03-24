@@ -484,6 +484,34 @@ class Comment(models.Model):
         super(Post, self).delete(*args, **kwargs)
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
 
+
+    @staticmethod
+    def get_from_url(url):
+        """Returns the comment with the given URL."""
+
+        comment = Comment.objects.filter(external_url=url).first()
+        if comment is not None:
+            return Comment
+
+        if url[-1] == '/':
+            url = url[:-1]
+
+            comment = Comment.objects.filter(external_url=url).first()
+            if comment is not None:
+                return Comment
+
+
+        comment_id = url.split('/')[-1]
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except:
+            return None
+
+        if comment.post.author.host is None:
+            return comment
+
+        return None
+
     @property
     def context(self):
         """Returns the context for this post."""
