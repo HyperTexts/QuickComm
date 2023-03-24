@@ -33,6 +33,16 @@ class AuthorRouter(routers.SimpleRouter):
             detail=True,
             initkwargs={'suffix': 'Instance'}
         ),
+        # Inbox route.
+        Route(
+            url=r'^{prefix}/{lookup}/inbox{trailing_slash}$',
+            mapping={
+                'post': 'inbox',
+            },
+            name='{basename}-inbox',
+            detail=False,
+            initkwargs={'suffix': 'Inbox'}
+        ),
     ]
 
 class FollowersRouter(nested_routers.NestedSimpleRouter):
