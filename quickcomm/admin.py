@@ -3,8 +3,7 @@ from django.contrib import admin
 from django.http import HttpResponseRedirect
 from django.utils.html import format_html
 
-from quickcomm.external_host_deserializers import AuthorDeserializer, PostDeserializer, sync_authors, sync_comment_likes, sync_comments, sync_post_likes, sync_posts, sync_followers
-from quickcomm.external_host_requests import THTHQCRequest
+from quickcomm.external_host_deserializers import sync_authors, sync_comment_likes, sync_comments, sync_post_likes, sync_posts, sync_followers
 
 # Register your models here.
 
@@ -62,7 +61,7 @@ class CommentAdmin(admin.ModelAdmin):
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
     list_display = ('title', 'author', 'published', 'visibility', 'unlisted')
-    readonly_fields = ('external_url', 'source', 'origin', 'published')
+    readonly_fields = ('external_url',)
     actions_on_top = True
     actions = ['sync_comments', 'clear_comments', 'sync_likes', 'clear_likes']
     # inlines = [CommentInlineForPost]
@@ -71,7 +70,7 @@ class PostAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ('title', 'description', 'content_type', 'content', 'categories', 'published', 'visibility', 'unlisted'
+            'fields': ('title', 'description', 'author','content_type', 'content', 'categories', 'visibility', 'unlisted'
                        )
         }),
         ('HOST INFORMATION', {
