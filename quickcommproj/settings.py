@@ -167,7 +167,7 @@ SWAGGER_SETTINGS = {
     'SECURITY_REQUIREMENTS': [],
 
 
-    'DEFAULT_AUTO_SCHEMA_CLASS': 'quickcomm.swagger.CompoundTagsSchema',
+    'DEFAULT_AUTO_SCHEMA_CLASS': 'quickcomm.swagger.CustomSwaggerAutoSchema',
 
  }
 
