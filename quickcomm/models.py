@@ -8,7 +8,6 @@ from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 
 from quickcomm.signals import export_http_request_on_inbox_save
-# import requests from django library
 
 
 # TODO we have to delete external objects when they don't show up in the big list. However, we have to be careful not to delete posts if they are private
@@ -61,6 +60,21 @@ class HostAuthenticator(models.Model):
 
 class Host(models.Model):
     """A host is a remote server that hosts authors."""
+
+    class SerializerClass(models.TextChoices):
+        """The serializer class to use for the host. This is used to determine
+        which serializer to use when interacting with the host.
+
+        Each serializer class is a subset of BaseQCRequest. The serializer
+        classes house the information on:
+        - how to deserialize the remote host's API
+        - how to deserialize the remote host's requests to our inbox
+        - how to serialize the local host's requests to their inbox
+        """
+
+        THTH = "THTH", "Too Hot To Hindle (Group 2)"
+        INTERNAL = "INTERNAL", "Internal Default"
+
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
