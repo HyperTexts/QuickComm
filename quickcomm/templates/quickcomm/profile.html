@@ -22,13 +22,17 @@
                 Requests: <a href="{%  url 'view_requests' author.id %}">{{author.requests_count}}</a>
             </div>
             {% endif %}
-            {% if user.is_authenticated and user.id != author.user_id and not is_following %}
+            {% if user.is_authenticated and user.id != author.user_id and not is_following and not is_requested%}
                 <div class="col-md-2 align-self-center">
                     <a href="{% url 'send_follow_request' author.id %}" class="btn btn-outline-primary me-2">Follow</a>
                 </div>
-            {% elif user.is_authenticated and user.id != author.user_id %}
+            {% elif user.is_authenticated and user.id != author.user_id and not is_requested%}
                 <div class="col-md-2 align-self-center">
                     <a href="{% url 'unfriend' author.id %}" class="btn btn-outline-primary me-2">Unfollow</a>
+                </div>
+            {% elif user.is_authenticated and user.id != author.user_id and is_requested%}
+                <div class="col-md-2 align-self-center">
+                    <a class="btn btn-outline-primary me-2 disabled" aria-disabled="true">Request Pending</a>
                 </div>
             {% endif %}
          

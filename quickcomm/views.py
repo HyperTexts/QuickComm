@@ -263,11 +263,13 @@ def view_profile(request, author_id):
             form = EditProfileForm(initial=current_attributes)
     current_author = get_current_author(request)
     author = get_object_or_404(Author, pk=author_id)
+    
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
                     'current_author': current_author,
                     'form': form,
                     'is_following': current_author.is_following(author),
+                    'is_requested': FollowRequest.objects.filter(from_user=current_author, to_user=author).exists(),
                     })
     
 def view_followers(request, author_id):
@@ -278,6 +280,7 @@ def view_followers(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
+
 def view_following(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
@@ -286,6 +289,7 @@ def view_following(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
+
 def view_requests(request,author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
@@ -307,12 +311,13 @@ def send_follow_request(request,author_id):
         #     'current_user':from_user,
         #     'to_user':to_user,
         # })
-        return HttpResponse('Friend request sent')
+        return redirect("view_profile", author_id=author_id)
     elif to_user.is_followed_by(from_user):
-        return HttpResponse("Already following")
+        return redirect("view_profile", author_id=author_id)
     else:
-        return HttpResponse('Friend request was created already')
-@login_required
+        return redirect("view_profile", author_id=author_id)
+    
+@login_required    
 def accept_request(request,author_id):
     target=get_current_author(request)
     follower=get_object_or_404(Author,pk=author_id)
@@ -328,6 +333,7 @@ def accept_request(request,author_id):
                     'author':follower,
                     'current_author': target,
     })
+
 @login_required
 def unfriend(request,author_id):
     current_author=get_current_author(request)
@@ -339,6 +345,7 @@ def unfriend(request,author_id):
     #     'current_author':current_author,
     # })
     return HttpResponse('Unfollowed sucessfully')
+
 @login_required
 def decline_request(request,author_id):
     from_user=get_current_author(request)
