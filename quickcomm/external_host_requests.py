@@ -287,10 +287,8 @@ class BaseQCRequest:
         endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
-        print(data)
         res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
             )
-        # print string response
         try:
             res.raise_for_status()
         except Exception as e:
@@ -399,7 +397,6 @@ class BaseQCRequest:
             raise exceptions.ValidationError('Author was not valid')
 
         raw_object = map_inbound_object(data)
-        print(raw_object)
         obj = self._return_single_item(raw_object, map_object, deserializer, author=author, **kwargs)
         if obj is None:
             logging.info('Object was not valid')
