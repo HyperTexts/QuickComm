@@ -358,7 +358,7 @@ class Post(models.Model):
 
     def get_image_url(self, request):
         """Returns the absolute URL of the image associated with the post."""
-        return request.build_absolute_uri("/authors/"+self.author_id.__str__()+"/posts/"+self.id.__str__()+"/")
+        return request.build_absolute_uri("/api/authors/"+self.author_id.__str__()+"/posts/"+self.id.__str__()+"/image/")
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
 
@@ -444,6 +444,8 @@ class Inbox(models.Model):
     #     author=some_author,
     #     content_object=some_post,
     # )
+    @property
+    def format(self): return "inbox"
 
     class InboxType(models.TextChoices):
         POST = 'post'
@@ -469,18 +471,6 @@ class Inbox(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
-
-    def save(self, *args, **kwargs):
-        sel = super(Inbox, self).save(*args, **kwargs)
-        # skip inbox logic if we are updating the inbox
-        if self.id:
-            return sel
-
-        # call remote method:
-        export_http_request_on_inbox_save(self)
-
-        return sel
-
 
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"

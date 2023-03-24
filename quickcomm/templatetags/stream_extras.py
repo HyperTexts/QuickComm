@@ -1,4 +1,9 @@
 from django import template
+from datetime import datetime
+from dateutil import parser
+
+from quickcomm.external_requests import get_github_message, get_github_url
+
 
 register = template.Library()
 
@@ -25,6 +30,14 @@ def streamfollow(inbox_content):
     follow = inbox_content.content_object
     time = inbox_content.added
     return {'follow': follow, 'time': time}
+
+@register.inclusion_tag('streamgh.html')
+def streamgh(stream):
+    time = parser.parse(stream["created_at"])
+    message = get_github_message(stream)
+    url = get_github_url(stream)
+
+    return {'stream': stream, 'time': time, 'message': message, 'url': url}
 
 @register.inclusion_tag('minipost.html')
 def minipost(post):

@@ -20,11 +20,11 @@ class InternalInboxTests(TestCase):
         self.user3 = User.objects.create_user(username='user3', password='badpassword')
 
         # create sample authors
-        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='http://github.com/abramhindle', profile_image='https://url.com')
+        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='abramhindle', profile_image='https://url.com')
         self.author1.save()
-        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='My Real Cool Name 2', github='http://github.com/abramhindle', profile_image='https://url.com')
+        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='My Real Cool Name 2', github='abramhindle', profile_image='https://url.com')
         self.author2.save()
-        self.author3 = Author.objects.create(user=self.user3, host='http://127.0.0.1:8000', display_name='My Real Cool Name 3', github='http://github.com/abramhindle', profile_image='https://url.com')
+        self.author3 = Author.objects.create(user=self.user3, host='http://127.0.0.1:8000', display_name='My Real Cool Name 3', github='abramhindle', profile_image='https://url.com')
         self.author3.save()
 
     def test_get_inbox(self):

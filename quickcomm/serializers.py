@@ -21,7 +21,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     profileImage = serializers.URLField(source='profile_image', required=False)
     host = serializers.SerializerMethodField(method_name='get_host')
     displayName = serializers.CharField(source='display_name', required=False)
-    github = serializers.URLField(required=False)
+    github = serializers.CharField(required=False)
 
     # TODO keep GitHub as a URLField
 
