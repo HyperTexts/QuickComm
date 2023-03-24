@@ -9,7 +9,7 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox,Follow,follow_request
+from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox,Follow,FollowRequest
 from django.contrib.auth.forms import UserCreationForm
 
 from quickcomm.models import Author, Follow, Inbox
@@ -299,7 +299,7 @@ def send_follow_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
 
     
-    follow,create=follow_request.objects.get_or_create(from_user=from_user, to_user=to_user)
+    follow,create=FollowRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
     if create:
         follow.save()
         # return render(request,'quickcomm/requests.html',{
@@ -316,7 +316,7 @@ def accept_request(request,author_id):
     target=get_current_author(request)
     follower=get_object_or_404(Author,pk=author_id)
     
-    friend_request=follow_request.objects.get(from_user=follower, to_user=target)
+    friend_request=FollowRequest.objects.get(from_user=follower, to_user=target)
     new_follower=Follow.objects.create(follower=follower,following=target)
                 # if new_follower.is_bidirectional():
                     
