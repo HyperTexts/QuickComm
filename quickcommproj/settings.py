@@ -58,6 +58,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'quickcomm.middleware.no_csfr',
+    'quickcomm.request_exposer.RequestExposerMiddleware',
 ]
 
 ROOT_URLCONF = 'quickcommproj.urls'
