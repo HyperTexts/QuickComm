@@ -1,1 +1,1 @@
-web: gunicorn quickcommproj.wsgi
+web: gunicorn quickcommproj.wsgi --timeout 0
