@@ -455,7 +455,7 @@ class BaseQCRequest:
                 logging.info('Post was not valid')
                 raise exceptions.ValidationError('Post was not valid')
             return self.import_base(data, self.map_inbound_like_author, self.map_inbound_like_object, self.map_raw_post_like,
-            self.deserializers.post_like, post=post), Inbox.InboxType.POSTLIKE
+            self.deserializers.post_like, post=post), Inbox.InboxType.LIKE
 
         elif data['type'] == 'comment':
             logging.debug("Inbox item type is comment")
