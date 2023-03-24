@@ -153,7 +153,6 @@ def post_view(request, post_id, author_id):
         # like_key = "post_like_{post_id}"
         # is_liked = request.session.get(like_key, False)
         like = Like.objects.filter(post=post, author=current_author)
-        print(like)
         if like:
             is_liked = True
 
@@ -269,7 +268,6 @@ def view_profile(request, author_id):
             if form.is_valid():
                 form.save(current_author)
             else:
-                print(form.errors)
                 form = EditProfileForm(initial=current_attributes)
         else:
             form = EditProfileForm(initial=current_attributes)

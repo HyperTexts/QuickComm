@@ -9,8 +9,9 @@ def export_http_request_on_inbox_save(sender):
     # import here to avoid circular imports
     from quickcomm.external_host_deserializers import get_request_class_from_host
     from quickcomm.models import Inbox
+    import logging
 
-    print("Inbox item added, sending to external host...")
+    logging.info(f"Inbox item added {sender}, sending to external host")
 
     # skip if the author is not external
     if not sender.author.is_remote or not sender.author.host:
