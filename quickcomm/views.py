@@ -11,6 +11,7 @@ from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox,Follow,FollowRequest
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 
 from quickcomm.models import Author, Follow, Inbox
 from .external_requests import get_github_stream
@@ -255,6 +256,7 @@ def view_profile(request, author_id):
         if request.method == 'POST':
             form = EditProfileForm(request.POST, initial=current_attributes)
             if form.is_valid():
+                messages.success(request, "Profile successfully changed!")
                 form.save(current_author)
             else:
                 print(form.errors)
@@ -307,14 +309,13 @@ def send_follow_request(request,author_id):
     follow,create=FollowRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
     if create:
         follow.save()
-        # return render(request,'quickcomm/requests.html',{
-        #     'current_user':from_user,
-        #     'to_user':to_user,
-        # })
+        messages.success(request, "Request to "+to_user.display_name+" sent successfully!")
         return redirect("view_profile", author_id=author_id)
     elif to_user.is_followed_by(from_user):
+        messages.info(request, "Already following this author.")
         return redirect("view_profile", author_id=author_id)
     else:
+        messages.error(request, "Could not process request.")
         return redirect("view_profile", author_id=author_id)
     
 @login_required    
@@ -324,15 +325,10 @@ def accept_request(request,author_id):
     
     friend_request=FollowRequest.objects.get(from_user=follower, to_user=target)
     new_follower=Follow.objects.create(follower=follower,following=target)
-                # if new_follower.is_bidirectional():
-                    
-                #     pass
     new_follower.save()
     friend_request.delete()
-    return render(request, 'quickcomm/requests.html',{
-                    'author':follower,
-                    'current_author': target,
-    })
+    messages.success(request, "Request from "+follower.display_name+" accepted!")
+    return redirect("view_requests", author_id=author_id)
 
 @login_required
 def unfriend(request,author_id):
@@ -340,11 +336,9 @@ def unfriend(request,author_id):
     following=get_object_or_404(Author,pk=author_id)
     unfriended_person=Follow.objects.get(follower=current_author,following=following)
     unfriended_person.delete()
-    # return render(request,'quickcomm/profile.html',{
-    #     'author':following,
-    #     'current_author':current_author,
-    # })
-    return HttpResponse('Unfollowed sucessfully')
+
+    messages.success(request, "Unfollowed "+following.display_name)
+    return redirect("view_profile", author_id=author_id)
 
 @login_required
 def decline_request(request,author_id):
