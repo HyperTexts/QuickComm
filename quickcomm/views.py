@@ -1,4 +1,5 @@
 from dateutil import parser
+from django.db.models import Q
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
@@ -137,7 +138,12 @@ def login(request):
 def post_view(request, post_id, author_id):
     current_author = get_current_author(request)
     post = get_object_or_404(Post, pk=post_id)
-    post_comments = Comment.objects.filter(post=post).order_by("-published")
+    post_type = post.visibility
+    print(post_type)
+    if (post_type == 'FRIENDS'):
+        post_comments = Comment.objects.filter(Q(author = current_author) | Q(author = post.author),post=post).order_by("-published")
+    else:
+        post_comments = Comment.objects.filter(post=post).order_by("-published")
     is_liked = False
     if request.user.is_authenticated:
         like = Like.objects.filter(post=post, author=current_author)
