@@ -1,1 +1,1 @@
-web: quickcommproj mysite.wsgi
+web: gunicorn quickcommproj.wsgi
