@@ -1,0 +1,1 @@
+web: quickcommproj mysite.wsgi
