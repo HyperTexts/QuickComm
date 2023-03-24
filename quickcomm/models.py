@@ -6,6 +6,8 @@ from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
+
+from quickcomm.signals import export_http_request_on_inbox_save
 # import requests from django library
 
 
@@ -326,7 +328,7 @@ class Post(models.Model):
         followers = Follow.objects.filter(following=self.author)
 
         for follower in followers:
-            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.following).exists():
+            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
                 Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
 
 
@@ -374,6 +376,11 @@ class Post(models.Model):
     def likes(self):
         """Returns the likes for this post."""
         return Like.objects.filter(post=self)
+
+    @property
+    def context(self):
+        """Returns the context for this post."""
+        return 'https://www.w3.org/ns/activitystreams'
 
 
 class Comment(models.Model):
@@ -462,6 +469,17 @@ class Inbox(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    def save(self, *args, **kwargs):
+        sel = super(Inbox, self).save(*args, **kwargs)
+        # skip inbox logic if we are updating the inbox
+        if self.id:
+            return sel
+
+        # call remote method:
+        export_http_request_on_inbox_save(self)
+
+        return sel
 
 
     def __str__(self):
