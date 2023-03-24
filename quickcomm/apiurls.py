@@ -1,7 +1,7 @@
 
 from django.urls import path, include
 
-from quickcomm.routers import AuthorLikedRouter, AuthorRouter, CommentsRouter, InboxRouter, PostLikesRouter, PostRouter, FollowersRouter
+from quickcomm.routers import AuthorLikedRouter, AuthorRouter, CommentsRouter, PostLikesRouter, PostRouter, FollowersRouter
 from . import api
 
 
@@ -29,15 +29,11 @@ comment.register(r'comments', api.CommentViewSet)
 commentlikes = PostLikesRouter(comment, r'comments', lookup='comments')
 commentlikes.register(r'likes', api.CommentLikesViewSet, basename='likes')
 
-inbox = InboxRouter(author, r'authors', lookup='authors')
-inbox.register(r'inbox', api.InboxViewSet)
-
 urlpatterns = [
     path('', include(author.urls)),
     path('', include(post.urls)),
     path('', include(follower.urls)),
     path('', include(comment.urls)),
-    path('', include(inbox.urls)),
     path('', include(postlikes.urls)),
     path('', include(commentlikes.urls)),
     path('', include(liked.urls)),
