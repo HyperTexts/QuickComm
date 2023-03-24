@@ -418,7 +418,7 @@ class CommentViewSet(viewsets.ModelViewSet):
         self.paginator.upper_url = self.request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': self.kwargs['authors_pk'],
         'pk': self.kwargs['posts_pk']}))
         try:
-            return Comment.objects.filter(post=self.kwargs['posts_pk'], author=self.kwargs['authors_pk'])
+            return Comment.objects.filter(post=self.kwargs['posts_pk'], post__author=self.kwargs['authors_pk'])
         except:
             raise exceptions.NotFound('Post or author not found.')
 
