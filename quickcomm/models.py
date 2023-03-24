@@ -56,6 +56,7 @@ class Author(models.Model):
     
     def get_following(self):
         return Follow.objects.filter(follower=self)
+    
     def following_count(self):
         return Follow.objects.filter(follower=self).count()
     
