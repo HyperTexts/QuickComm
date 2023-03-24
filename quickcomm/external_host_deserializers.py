@@ -85,7 +85,8 @@ class AuthorDeserializer(serializers.ModelSerializer):
             author.display_name = self.validated_data['display_name']
             author.profile_image = self.validated_data['profile_image']
             author.github = self.validated_data['github']
-            author.external_url = self.validated_data['external_url']
+            if author.external_url is not None:
+                author.external_url = self.validated_data['external_url']
             author.save()
 
         return author
