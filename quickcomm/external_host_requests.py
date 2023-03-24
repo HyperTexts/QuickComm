@@ -647,7 +647,7 @@ class InternalQCRequest(BaseQCRequest):
     def map_raw_comment(self, raw_comment):
         return {
             'type': raw_comment['type'],
-            'external_url': raw_comment['id'],
+            'external_url': raw_comment.get('id', None),
             'comment': raw_comment['comment'],
             'content_type': raw_comment['contentType'],
             'published': raw_comment['published'],
