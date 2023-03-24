@@ -527,3 +527,20 @@ class RegistrationSettings(models.Model):
 
     def __str__(self):
         return f"{self.are_new_users_active.__str__()}"
+
+
+class RawInboxItem(models.Model):
+    """A raw inbox item is a straight JSON object that is either received from
+    a remote author or sent to a remote author."""
+
+    class RawInboxDirection(models.TextChoices):
+        IN = 'in'
+        OUT = 'out'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    endpoint = models.URLField()
+    direction = models.CharField(max_length=50, choices=RawInboxDirection.choices)
+    data = models.JSONField()
+
+    def __str__(self):
+        return f"Raw inbox item {self.direction} {self.endpoint}"
