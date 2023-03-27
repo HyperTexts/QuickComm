@@ -470,7 +470,7 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     comment = models.CharField(max_length=1000)
-    content_type = models.CharField(max_length=50, choices=CommentType.choices)
+    content_type = models.CharField(max_length=50, choices=CommentType.choices, default=CommentType.TEXT)
     published = models.DateTimeField(auto_now_add=True)
     external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
 
