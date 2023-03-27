@@ -301,8 +301,8 @@ class Follow(models.Model):
 
         # If both the follower and following are remote, we do not need to
         # create an inbox post.
-        if self.follower.is_remote and self.following.is_remote:
-            return saved
+        # if self.follower.is_remote and self.following.is_remote:
+        #     return saved
 
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
