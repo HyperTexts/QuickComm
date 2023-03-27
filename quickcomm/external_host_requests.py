@@ -57,111 +57,167 @@ class BaseQCRequest:
         self.serializers = serializers
 
     def map_list_authors(self ,data):
+        """Map the key of where the list of authors is in a response from the
+        remote server."""
         raise NotImplementedError
 
     def map_raw_author(self, raw_author):
+        """Map the fields of a raw author to the fields of a local deserialized
+        author."""
         raise NotImplementedError
 
     def map_raw_post(self, raw_post):
+        """Map the fields of a raw post to the fields of a local deserialized
+        post."""
         raise NotImplementedError
 
     def map_list_posts(self, data):
+        """Map the key of where the list of posts is in a response from the
+        remote server."""
         raise NotImplementedError
 
     def map_list_comments(self, data):
+        """Map the key of where the list of comments is in a response from the
+        remote server."""
         raise NotImplementedError
 
     def map_raw_comment(self, raw_comment):
+        """Map the fields of a raw comment to the fields of a local deserialized
+        comment."""
         raise NotImplementedError
 
     def map_list_post_likes(self, data):
+        """Map the key of where the list of post likes is in a response from the
+        remote server."""
         raise NotImplementedError
 
     def map_raw_post_like(self, raw_post_like):
+        """Map the fields of a raw post like to the fields of a local deserialized
+        post like."""
         raise NotImplementedError
 
     def map_list_comment_likes(self, data):
+        """Map the key of where the list of comment likes is in a response from the
+        remote server."""
         raise NotImplementedError
 
     def map_raw_comment_like(self, raw_comment_like):
+        """Map the fields of a raw comment like to the fields of a local deserialized
+        comment like."""
         raise NotImplementedError
 
     def map_list_followers(self, data):
+        """Map the key of where the list of followers is in a response from the
+        remote server."""
         raise NotImplementedError
 
     def map_raw_follower(self, raw_follower):
+        """Map the fields of a raw follower to the fields of a local deserialized
+        follower."""
         raise NotImplementedError
 
     def map_raw_author_singular(self, raw_author):
+        """Map the fields of a raw author where a single author is expected."""
         return self.map_raw_author(raw_author)
 
     def map_raw_post_singular(self, raw_post):
+        """Map the fields of a raw post where a single post is expected."""
         return self.map_raw_post(raw_post)
 
     def map_raw_comment_singular(self, raw_comment):
+        """Map the fields of a raw comment where a single comment is expected."""
         return self.map_raw_comment(raw_comment)
 
     def map_raw_post_like_singular(self, raw_post_like):
+        """Map the fields of a raw post like where a single post like is expected."""
         return self.map_raw_post_like(raw_post_like)
 
     def map_raw_comment_like_singular(self, raw_comment_like):
+        """Map the fields of a raw comment like where a single comment like is expected."""
         return self.map_raw_comment_like(raw_comment_like)
 
     def map_raw_follower_singular(self, raw_follower):
+        """Map the fields of a raw follower where a single follower is expected."""
         return self.map_raw_follower(raw_follower)
 
     # INBOUND INBOX ITEMS MAPS
 
     def map_inbound_post_object(self, raw_post):
+        """Map the key of where the post object is in a post from a remote server
+        to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_post_author(self, raw_post):
+        """Map the key of where the post author is in a post from a remote server
+        to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_like_object(self, raw_like):
+        """Map the key of where the like object is in a like from a remote server
+        to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_like_author(self, raw_like):
+        """Map the key of where the like author is in a like from a remote server
+        to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_like_object_url(self, raw_like):
+        """Map the key of where the url to a liked object is in a like from a
+        remote server to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_comment_object(self, raw_comment):
+        """Map the key of where the comment object is in a comment from a remote
+        server to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_comment_author(self, raw_comment):
+        """Map the key of where the comment author is in a comment from a remote
+        server to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_comment_object_url(self, raw_comment):
+        """Map the key of where the url to a commented object is in a comment from a
+        remote server to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_follow_object(self, raw_follow):
+        """Map the key of where the follow object is in a follow from a remote
+        server to a local inbox item."""
         raise NotImplementedError
 
     def map_inbound_follow_author(self, raw_follow):
+        """Map the key of where the follow author is in a follow from a remote
+        server to a local inbox item."""
         raise NotImplementedError
 
     # OUTBOUND INBOX ITEMS MAPS
 
     def map_outbound_post(self, activity_data):
+        """Map the fields of a local post to the fields of a raw post to be sent"""
         raise NotImplementedError
 
     def map_outbound_like(self, activity_data):
+        """Map the fields of a local like to the fields of a raw like to be sent"""
         raise NotImplementedError
 
     def map_outbound_comment(self, activity_data):
+        """Map the fields of a local comment to the fields of a raw comment to be sent"""
         raise NotImplementedError
 
     def map_outbound_follow(self, activity_data):
+        """Map the fields of a local follow to the fields of a raw follow to be sent"""
         raise NotImplementedError
 
     def _clean_url(self, url):
+        """Remove trailing slash from url if it exists."""
         if url[-1] == '/':
             return url[:-1]
         return url
 
     def _get_singular_response(self, deserializer, endpoint, map_func, ensure_success=True):
+        """Get a single response from the remote server."""
 
         logging.info(f'Getting {endpoint}.')
         try:
@@ -202,6 +258,7 @@ class BaseQCRequest:
             return
 
     def _get_list_response(self, deserializer, endpoint, map_func, list_base_func, check_author=[], paginated=True, **kwargs):
+        """Get a response from a remote server that is a list of items."""
 
         logging.info(f'Getting {endpoint} with pagination.')
 
@@ -283,6 +340,7 @@ class BaseQCRequest:
             page += 1
 
     def _send_to_inbox(self, author, item, serializer, map_func):
+        """Send an item to the inbox of an external author."""
         logging.info(f'Sending {item} to inbox of {author}.')
         endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}'
         serialized_item = serializer(item, context={'request': get_request()})
@@ -297,6 +355,7 @@ class BaseQCRequest:
         return True
 
     def _return_single_item(self, item, map_func, deserializer, **kwargs):
+        """Return a deserialized, saved, and properly mapped item in our database."""
         try:
             mapped_item = map_func(item)
         except Exception as e:
@@ -315,6 +374,7 @@ class BaseQCRequest:
             return None
 
     def update_authors(self):
+        """Update the authors from the remote server."""
         return self._get_list_response(self.deserializers.author,
             self._clean_url(self.host) + self.AUTHORS_ENDPOINT,
         self.map_raw_author, self.map_list_authors,
@@ -323,12 +383,14 @@ class BaseQCRequest:
         )
 
     def update_author(self, full_author_url):
+        """Update a single author from the remote server."""
         return self._get_singular_response(self.deserializers.author,
             full_author_url,
             self.map_raw_author_singular
             )
 
     def update_posts(self, author):
+        """Update the posts from the remote server for a given author."""
 
         # Update the author first from the data given in the post
         return self._get_list_response(self.deserializers.post,
@@ -339,6 +401,7 @@ class BaseQCRequest:
             )
 
     def update_comments(self, post):
+        """Update the comments from the remote server for a given post."""
         return self._get_list_response(self.deserializers.comment,
             self._clean_url(post.external_url) + self.COMMENTS_ENDPOINT,
             self.map_raw_comment, self.map_list_comments,
@@ -348,6 +411,7 @@ class BaseQCRequest:
             )
 
     def update_post_likes(self, post):
+        """Update the likes from the remote server for a given post."""
         return self._get_list_response(self.deserializers.post_like,
             self._clean_url(post.external_url) + self.POST_LIKES_ENDPOINT,
             self.map_raw_post_like, self.map_list_post_likes,
@@ -357,6 +421,7 @@ class BaseQCRequest:
             )
 
     def update_comment_likes(self, comment):
+        """Update the likes from the remote server for a given comment."""
         return self._get_list_response(self.deserializers.comment_like,
             self._clean_url(comment.external_url) + self.COMMENT_LIKES_ENDPOINT,
             self.map_raw_comment_like, self.map_list_comment_likes,
@@ -366,6 +431,7 @@ class BaseQCRequest:
             )
 
     def update_followers(self, author):
+        """Update the followers from the remote server for a given author."""
         return self._get_list_response(self.deserializers.follower,
             self._clean_url(author.external_url) + self.FOLLOWERS_ENDPOINT,
             self.map_raw_follower, self.map_list_followers,
@@ -375,21 +441,27 @@ class BaseQCRequest:
             )
 
     def send_post(self, post, author):
+        """Send a post to the inbox of an external author."""
         return self._send_to_inbox(author, post, self.serializers.post, self.map_outbound_post)
 
     def send_comment(self, comment, author):
+        """Send a comment to the inbox of an external author."""
         return self._send_to_inbox(author, comment, self.serializers.comment, self.map_outbound_comment)
 
     def send_post_like(self, post_like, author):
+        """Send a post like to the inbox of an external author."""
         return self._send_to_inbox(author, post_like, self.serializers.post_like, self.map_outbound_like)
 
     def send_comment_like(self, comment_like, author):
+        """Send a comment like to the inbox of an external author."""""
         return self._send_to_inbox(author, comment_like, self.serializers.comment_like, self.map_outbound_like)
 
     def send_follow(self, follow, author):
+        """Send a follow to the inbox of an external author."""
         return self._send_to_inbox(author, follow, self.serializers.follow, self.map_outbound_follow)
 
     def import_base(self, data, map_author, map_inbound_object, map_object, deserializer, **kwargs):
+        """Import an item from a remote server to our database."""
         raw_author = map_author(data)
         author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author)
         if author is None:
@@ -406,6 +478,7 @@ class BaseQCRequest:
 
 
     def import_follow(self, data):
+        """Import a follow from a remote server to our database. This is a special case because it is a two-way relationship."""
 
         raw_follower = self.map_inbound_follow_author(data)
         follower = self._return_single_item(raw_follower, self.map_raw_author, self.deserializers.author)
@@ -428,6 +501,7 @@ class BaseQCRequest:
 
 
     def import_inbox_item(self, data):
+        """Import an item from a remote server to our database."""
         # lowercase the type
         data['type'] = data['type'].lower()
 
@@ -473,7 +547,6 @@ class BaseQCRequest:
 
 
 class THTHQCRequest(BaseQCRequest):
-    # TODO for export, make it in
 
     paginate_posts = True
     paginate_followers = False

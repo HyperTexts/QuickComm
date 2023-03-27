@@ -35,38 +35,49 @@ def get_request_class_from_host(host: Host):
 
 
 def sync_authors(host: Host):
-    """Syncs the authors with the remote API."""
+    """Get all authors from the remote API."""
     get_request_class_from_host(host).update_authors()
 
 def sync_posts(author: Author):
+    """Get all posts from the remote API."""
     get_request_class_from_host(author.host).update_posts(
         author
     )
 
 def sync_comments(post: Post):
+    """Get all comments from the remote API."""
     get_request_class_from_host(post.author.host).update_comments(
         post
     )
 
 def sync_post_likes(post: Post):
+    """Get all likes from the remote API."""
     get_request_class_from_host(post.author.host).update_post_likes(
         post
     )
 
 def sync_comment_likes(comment: Comment):
+    """Get all likes from the remote API."""
     get_request_class_from_host(comment.post.author.host).update_comment_likes(
         comment
     )
 
 def sync_followers(author: Author):
+    """Get all followers from the remote API."""
     get_request_class_from_host(author.host).update_followers(
         author
     )
 
 def import_http_inbox_item(author: Author, item, host):
+    """On a post request to the inbox, import the item into our database."""
     return get_request_class_from_host(host).import_inbox_item(
         item
     )
+
+
+# The following classes are used to deserialize data from other servers. This
+# data may be passed through a separate map to ensure it is valid, but it is
+# not guaranteed to be valid. The data is then saved to the database.
 
 class AuthorDeserializer(serializers.ModelSerializer):
     external_url = serializers.URLField()
