@@ -278,7 +278,7 @@ class Author(models.Model):
     @staticmethod
     def safe_queryset():
         """Returns a safe queryset of authors that excludes all foreign authors"""
-        return Author.objects.filter(host=None)
+        return Author.objects.filter(host=None, external_url=None)
 
     def __str__(self):
         return f"{self.display_name}"
@@ -310,8 +310,8 @@ class Follow(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        super(Post, self).delete(*args, **kwargs)
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
@@ -383,8 +383,8 @@ class Post(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        super(Post, self).delete(*args, **kwargs)
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
 
 
     @property
@@ -489,8 +489,8 @@ class Comment(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        super(Post, self).delete(*args, **kwargs)
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
 
 
     @staticmethod
@@ -623,8 +623,8 @@ class Like(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        super(Post, self).delete(*args, **kwargs)
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
 
     @property
     def context(self):
@@ -654,8 +654,8 @@ class CommentLike(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        super(Post, self).delete(*args, **kwargs)
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
 
     @property
     def context(self):
