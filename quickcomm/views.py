@@ -6,6 +6,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
+from quickcomm.external_host_deserializers import sync_comments, sync_posts
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
@@ -147,6 +148,11 @@ def login(request):
 def post_view(request, post_id, author_id):
     current_author = request.author
     post = get_object_or_404(Post, pk=post_id)
+
+    if post.author.is_remote and not post.author.is_temporary:
+        sync_comments(post)
+
+
     post_comments = Comment.objects.filter(post=post).order_by("-published")
     is_liked = False
     if request.user.is_authenticated:
@@ -293,6 +299,9 @@ def view_followers(request, author_id):
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = request.author
+
+    if author.is_remote and not author.is_temporary:
+        sync_posts(author)
 
     posts = Post.objects.filter(author=author)
 
