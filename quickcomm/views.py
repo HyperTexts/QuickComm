@@ -9,8 +9,9 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
+from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox,Follow,FollowRequest
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib import messages
 
 from quickcomm.models import Author, Follow, Inbox
 from .external_requests import get_github_stream
@@ -255,6 +256,7 @@ def view_profile(request, author_id):
         if request.method == 'POST':
             form = EditProfileForm(request.POST, initial=current_attributes)
             if form.is_valid():
+                messages.success(request, "Profile successfully changed!")
                 form.save(current_author)
             else:
                 print(form.errors)
@@ -263,10 +265,13 @@ def view_profile(request, author_id):
             form = EditProfileForm(initial=current_attributes)
     current_author = get_current_author(request)
     author = get_object_or_404(Author, pk=author_id)
+    
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
                     'current_author': current_author,
                     'form': form,
+                    'is_following': current_author.is_following(author),
+                    'is_requested': FollowRequest.objects.filter(from_user=current_author, to_user=author).exists(),
                     })
     
 def view_followers(request, author_id):
@@ -277,6 +282,69 @@ def view_followers(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
+
+def view_following(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = get_current_author(request)
+    
+    return render(request, 'quickcomm/following.html', {
+                    'author': author,
+                    'current_author': current_author,
+                    })
+
+def view_requests(request,author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = get_current_author(request)
+    return render(request,'quickcomm/requests.html',{
+        'current_author': current_author,
+        'author':author
+    })
+
+@login_required
+def send_follow_request(request,author_id):
+    from_user=get_current_author(request)
+    to_user=get_object_or_404(Author,pk=author_id)
+
+    
+    follow,create=FollowRequest.objects.get_or_create(from_user=from_user, to_user=to_user)
+    if create:
+        follow.save()
+        messages.success(request, "Request to "+to_user.display_name+" sent successfully!")
+        return redirect("view_profile", author_id=author_id)
+    elif to_user.is_followed_by(from_user):
+        messages.info(request, "Already following this author.")
+        return redirect("view_profile", author_id=author_id)
+    else:
+        messages.error(request, "Could not process request.")
+        return redirect("view_profile", author_id=author_id)
+    
+@login_required    
+def accept_request(request,author_id):
+    target=get_current_author(request)
+    follower=get_object_or_404(Author,pk=author_id)
+    
+    friend_request=FollowRequest.objects.get(from_user=follower, to_user=target)
+    new_follower=Follow.objects.create(follower=follower,following=target)
+    new_follower.save()
+    friend_request.delete()
+    messages.success(request, "Request from "+follower.display_name+" accepted!")
+    return redirect("view_requests", author_id=author_id)
+
+@login_required
+def unfriend(request,author_id):
+    current_author=get_current_author(request)
+    following=get_object_or_404(Author,pk=author_id)
+    unfriended_person=Follow.objects.get(follower=current_author,following=following)
+    unfriended_person.delete()
+
+    messages.success(request, "Unfollowed "+following.display_name)
+    return redirect("view_profile", author_id=author_id)
+
+@login_required
+def decline_request(request,author_id):
+    from_user=get_current_author(request)
+    to_user=get_object_or_404(Author,pk=author_id)
+    pass
                     
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
@@ -298,4 +366,13 @@ def view_author_posts(request, author_id):
     }
     
     return render(request, 'quickcomm/posts.html', context)
+
+def share_post(request,author_id):
+    author=get_object_or_404(Author,pk=author_id)
+    current_author=get_current_author(request)
+
+    posts = Post.objects.filter(author=author)
+    
+    size=request.GET.get('size','10')
+    pass
 

@@ -42,8 +42,10 @@ INSTALLED_APPS = [
     'quickcomm',
     'django_bootstrap5',
     'martor',
+
     'rest_framework',
     'drf_yasg',
+
 
 
 ]
@@ -155,6 +157,7 @@ MARTOR_TOOLBAR_BUTTONS = [
 ]
 
 
+
 SWAGGER_SETTINGS = {
     'SECURITY_DEFINITIONS': {
         'BasicAuth': {
@@ -168,3 +171,4 @@ SWAGGER_SETTINGS = {
     'DEFAULT_AUTO_SCHEMA_CLASS': 'quickcomm.swagger.CompoundTagsSchema',
 
  }
+

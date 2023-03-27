@@ -53,6 +53,18 @@ class Author(models.Model):
     
     def get_followers(self):
         return Follow.objects.filter(following=self)
+    
+    def get_following(self):
+        return Follow.objects.filter(follower=self)
+    
+    def following_count(self):
+        return Follow.objects.filter(follower=self).count()
+    
+    def get_requests(self):
+        return FollowRequest.objects.filter(to_user=self)
+    def requests_count(self):
+        return FollowRequest.objects.filter(to_user=self).count()
+    
 
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
@@ -86,7 +98,15 @@ class Follow(models.Model):
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
 
         return saved
+    def delete(self, *args, **kwargs):
+        if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
+            print("Yes")
+            Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        deleted=super(Follow,self).delete(*args,**kwargs)
+        return deleted
 
+
+    
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
@@ -94,6 +114,11 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
+    
+class FollowRequest(models.Model):
+    """A request is a prompt for a user to accept a follower"""
+    from_user=models.ForeignKey(Author, on_delete=models.CASCADE,related_name='from_user')
+    to_user=models.ForeignKey(Author,on_delete=models.CASCADE,related_name='to_user')
 
 
 class Post(models.Model):
