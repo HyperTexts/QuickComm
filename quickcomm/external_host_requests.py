@@ -733,20 +733,20 @@ class InternalQCRequest(BaseQCRequest):
         return {
             'type': external_data['type'],
             'external_url': external_data['url'],
-            'display_name': external_data['displayName'],
-            'profile_image': external_data['profileImage'],
-            'github': external_data['github'],
-        }
+            'display_name': f"Undefined display name ({external_data['url']})" if external_data['displayName'] == '' else external_data['displayName'],
+            'profile_image': None if external_data['profileImage'] == '' else external_data['profileImage'],
+            'github': None if external_data['github'] == '' else external_data['github'],
+                }
 
     def map_raw_post(self, raw_post):
         return {
             'type': raw_post['type'],
-            'title': raw_post['title'],
+            'title': f"Undefined title ({raw_post['id']})" if raw_post['title'] == '' else raw_post['title'],
             'external_url': raw_post['id'],
-            'source': raw_post['source'],
-            'origin': raw_post['origin'],
-            'description': raw_post['description'],
-            'content': raw_post['content'],
+            'source': raw_post['id'] if raw_post['source'] == '' else raw_post['source'],
+            'origin': raw_post['id'] if raw_post['origin'] == '' else raw_post['origin'],
+            'description': f"Undefined description ({raw_post['id']})" if raw_post['description'] == '' else raw_post['description'],
+            'content': f"Undefined content ({raw_post['id']})" if raw_post['content'] == '' else raw_post['content'],
             'content_type': raw_post['contentType'],
             'published': raw_post['published'],
             'visibility': raw_post['visibility'],
@@ -757,7 +757,7 @@ class InternalQCRequest(BaseQCRequest):
         return {
             'type': raw_comment['type'],
             'external_url': raw_comment.get('id', None),
-            'comment': raw_comment['comment'],
+            'comment': raw_comment.get('comment', "<Empty comment>"),
             'content_type': raw_comment['contentType'],
             'published': raw_comment['published'],
         }
