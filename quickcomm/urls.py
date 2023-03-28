@@ -95,6 +95,7 @@ urlpatterns = [
     path('create/markdown', views.create_markdown, name='create_markdown'),
     path('authors/', views.view_authors, name='view_authors'),
     path('authors/<uuid:author_id>/', views.view_profile, name='view_profile'),
+    path('authors/<uuid:author_id>/follow', views.follow, name='follow_author'),
     path('authors/<uuid:author_id>/posts', views.view_author_posts, name='view_author_posts'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/', views.post_view, name='post_view'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_liked', views.post_like, name='post_like'),

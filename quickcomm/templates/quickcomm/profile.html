@@ -18,7 +18,11 @@
             </div>
             {% if user.is_authenticated and user.id != author.user_id%}
                 <div class="col-md-2 align-self-center">
-                    <a href="#" class="btn btn-outline-primary me-2">Follow</a>
+                    {% if is_following %}
+                        <a href="#" class="btn btn-outline-primary me-2" disabled>Following</a>
+                    {% else %}
+                        <a href={% url 'follow_author' author.id %} class="btn btn-outline-primary me-2">Follow</a>
+                    {% endif %}
                 </div>
             {% endif %}
             {% if user.is_authenticated and user.id == author.user_id %}

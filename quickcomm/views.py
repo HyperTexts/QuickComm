@@ -288,11 +288,25 @@ def view_profile(request, author_id):
             form = EditProfileForm(initial=current_attributes)
     current_author = request.author
     author = get_object_or_404(Author, pk=author_id)
+    is_following = Follow.objects.filter(follower=current_author, following=author).exists()
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
                     'current_author': current_author,
                     'form': form,
+                    'is_following': is_following,
                     })
+
+@author_required
+def follow(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = request.author
+
+    if author != current_author:
+        # create or update the follow
+        follow_obj, created_obj = Follow.objects.get_or_create(follower=current_author, following=author)
+
+
+    return redirect('view_profile', author_id=author_id)
 
 @author_required
 def view_followers(request, author_id):
