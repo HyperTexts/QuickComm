@@ -33,7 +33,7 @@ class AuthorSerializer(serializers.ModelSerializer):
         the author as the ID."""
         request = self.context.get('request')
         if obj.external_url is not None:
-            return obj.host.url
+            return obj.external_url.split("/authors/")[0]
         if obj.host is None:
             return request.build_absolute_uri("/api/")
         return obj.host.url
