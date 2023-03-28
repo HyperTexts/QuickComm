@@ -6,10 +6,11 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
-from quickcomm.external_host_deserializers import sync_comments, sync_posts, sync_authors
+from quickcomm.external_host_deserializers import sync_comments, sync_post_likes, sync_posts, sync_authors
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
+from django.db.models import Q
 
 from quickcomm.models import Author, Follow, Inbox
 from .external_requests import get_github_stream
@@ -151,9 +152,10 @@ def post_view(request, post_id, author_id):
 
     if post.author.is_remote and not post.author.is_temporary:
         sync_comments(post)
+        sync_post_likes(post)
 
 
-    post_comments = Comment.objects.filter(post=post).order_by("-published")
+    post_comments = Comment.objects.filter(Q(post=post)).order_by("-published")
     is_liked = False
     if request.user.is_authenticated:
         # like_key = "post_like_{post_id}"
@@ -162,7 +164,9 @@ def post_view(request, post_id, author_id):
         if like:
             is_liked = True
 
-    context = {"post": post, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author}
+    like_count = Like.objects.filter(post=post).count()
+
+    context = {"post": post, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author, "like_count": like_count}
 
     return render(request, "quickcomm/post.html", context)
 

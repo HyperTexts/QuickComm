@@ -32,6 +32,8 @@ class AuthorSerializer(serializers.ModelSerializer):
         """This method defines a custom getter that returns the absolute URL of
         the author as the ID."""
         request = self.context.get('request')
+        if obj.external_url is not None:
+            return obj.host.url
         if obj.host is None:
             return request.build_absolute_uri("/api/")
         return obj.host.url
@@ -40,6 +42,8 @@ class AuthorSerializer(serializers.ModelSerializer):
         """This method defines a custom getter that returns the absolute URL of
         the author as the ID."""
         request = self.context.get('request')
+        if obj.external_url is not None:
+            return obj.external_url
         if obj.host is None:
             return request.build_absolute_uri(reverse('author-detail', args=[obj.id]))
         else:

@@ -5,6 +5,7 @@
 # a dictionary format. This file also deals with the weirdness of pagination
 # and caching external requests.
 
+import json
 from rest_framework import exceptions
 import requests_cache
 import logging
@@ -13,7 +14,7 @@ from requests.adapters import HTTPAdapter
 
 from urllib3 import Retry
 
-from quickcomm.models import Comment, Inbox, Post
+from quickcomm.models import Author, Comment, Inbox, Post
 from .request_exposer import get_request
 
 # This caches the requests for 5 minutes, but this can be changed
@@ -353,6 +354,7 @@ class BaseQCRequest:
         endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
+        print(json.dumps(data))
         res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
             )
         try:
@@ -475,6 +477,9 @@ class BaseQCRequest:
     def import_base(self, data, map_author, map_inbound_object, map_object, deserializer, **kwargs):
         """Import an item from a remote server to our database."""
         raw_author = map_author(data)
+
+        # author = Author.get_from_url(raw_author['external_url'])
+        # if author is None:
         author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author)
         if author is None:
             logging.info('Author was not valid')
