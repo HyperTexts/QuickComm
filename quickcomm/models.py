@@ -563,7 +563,6 @@ class ImageFile(models.Model):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, primary_key=True)
     image = models.ImageField(upload_to='images/')
 
-
 class Inbox(models.Model):
     """The inbox is a relationship between an author and either a like, comment,
     post, or friend request.
