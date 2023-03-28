@@ -6,9 +6,9 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
-from quickcomm.external_host_deserializers import sync_comments, sync_posts
+from quickcomm.external_host_deserializers import sync_comments, sync_posts, sync_authors
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox
+from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 
 from quickcomm.models import Author, Follow, Inbox
@@ -239,9 +239,14 @@ def register(request):
 def view_authors(request):
     current_author = request.author
 
-    authors = Author.objects.all().order_by('display_name')
+    all_hosts = Host.objects.all()
+    for host in all_hosts:
+        # update the author list
+        sync_authors(host)
 
-    size = request.GET.get('size', '10')
+    authors = Author.frontend_queryset().order_by('display_name')
+
+    size = request.GET.get('size', '30')
     paginator = Paginator(authors, size)
 
     page_number = request.GET.get('page')

@@ -260,7 +260,7 @@ class BaseQCRequest:
     def _get_list_response(self, deserializer, endpoint, map_func, list_base_func, check_author=[], paginated=True, **kwargs):
         """Get a response from a remote server that is a list of items."""
 
-        logging.info(f'Getting {endpoint} with pagination.')
+        logging.info(f'Getting {endpoint}')
 
         empty = False
         page = 1
@@ -312,6 +312,8 @@ class BaseQCRequest:
                 empty = True
                 break
 
+            logging.info('Got ' + str(len(current_raw_items)) + ' items on page ' + str(page) + '.')
+
 
             for item in current_raw_items:
 
@@ -327,14 +329,20 @@ class BaseQCRequest:
                             continue
                         raw_author = item[author_item]
 
+                    logging.info('Checking author.')
+
                     author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author,
                          )
+
+                    logging.info('Got author.')
                     if author is None:
                         logging.info('Author was not valid. Skipping.')
                         continue
                     extra_kwargs[author_item] = author
 
                 self._return_single_item(item, map_func, deserializer, **extra_kwargs, **kwargs)
+
+                logging.info('Saved item from page ' + str(page) + '.')
 
 
             page += 1
@@ -356,18 +364,22 @@ class BaseQCRequest:
 
     def _return_single_item(self, item, map_func, deserializer, **kwargs):
         """Return a deserialized, saved, and properly mapped item in our database."""
+
+        logging.info('Mapping item: ' + str(item))
         try:
             mapped_item = map_func(item)
         except Exception as e:
             logging.error('Could not map author.', exc_info=True)
             return
         serialized_item = deserializer(data=mapped_item)
+
         try:
             serialized_item.is_valid(raise_exception=True)
         except Exception as e:
             logging.error('Could not validate author.', exc_info=True)
             return None
         try:
+            logging.info('Saving item.')
             return serialized_item.save(**kwargs)
         except Exception as e:
             logging.error('Could not save author.', exc_info=True)

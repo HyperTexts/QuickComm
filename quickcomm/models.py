@@ -7,6 +7,7 @@ from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
 from django.utils import timezone
 from django.contrib.auth.models import User
+from django.db.models import Q
 
 from quickcomm.signals import export_http_request_on_inbox_save
 
@@ -21,7 +22,7 @@ def try_all_external_urls(url, object):
     else:
         urls.append(url + '/')
 
-    for url_new in urls:
+    for url_new in urls.copy():
         if url_new[:5] == 'https':
             urls.append(url_new.replace('https', 'http'))
         else:
@@ -296,6 +297,11 @@ class Author(models.Model):
         """Returns a safe queryset of authors that excludes all foreign authors"""
         return Author.objects.filter(host=None, external_url=None)
 
+    @staticmethod
+    def frontend_queryset():
+        """Returns a queryset of authors that excludes all temporary authors"""
+        return Author.objects.exclude(Q(host=None), ~Q(external_url=None))
+
     def __str__(self):
         return f"{self.display_name}"
 
@@ -326,8 +332,9 @@ class Follow(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
+        print("deleting follow")
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
-        super(Post, self).delete(*args, **kwargs)
+        super(Follow, self).delete(*args, **kwargs)
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
@@ -506,7 +513,7 @@ class Comment(models.Model):
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
-        super(Post, self).delete(*args, **kwargs)
+        super(Comment, self).delete(*args, **kwargs)
 
 
     @staticmethod
@@ -640,7 +647,7 @@ class Like(models.Model):
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
-        super(Post, self).delete(*args, **kwargs)
+        super(Like, self).delete(*args, **kwargs)
 
     @property
     def context(self):
@@ -671,7 +678,7 @@ class CommentLike(models.Model):
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
-        super(Post, self).delete(*args, **kwargs)
+        super(CommentLike, self).delete(*args, **kwargs)
 
     @property
     def context(self):
