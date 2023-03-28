@@ -151,13 +151,15 @@ class AuthorViewSet(viewsets.ModelViewSet):
         #     raise exceptions.ParseError('Could not parse inbox item')
 
         # save item to inbox
-        inbox = Inbox.objects.create(
-            author=author,
-            content_object=item,
-            inbox_type=inbox_type
-        )
 
-        inbox.save()
+        if inbox_type != Inbox.InboxType.FOLLOW:
+            inbox = Inbox.objects.create(
+                author=author,
+                content_object=item,
+                inbox_type=inbox_type
+            )
+
+            inbox.save()
 
 
         return Response(status=200, data={'detail': 'Success.'})
