@@ -212,6 +212,14 @@ class CommentDeserializer(serializers.ModelSerializer):
         assert(post is not None)
         assert(author is not None)
 
+        # if we have a comment that already exists, but without an external url, then we will update it
+        # otherwise we will create a new comment
+        comment = Comment.objects.filter(post=post, author=author, external_url=None, comment=self.validated_data['comment'],  content_type=self.validated_data['content_type']).first()
+        if comment is not None:
+            comment.external_url = self.validated_data['external_url']
+            comment.save()
+            return comment
+
         comment = Comment.objects.filter(external_url=self.validated_data['external_url']).first()
         if comment is None or self.validated_data['external_url'] is None:
             comment = Comment.objects.create(**self.validated_data, post=post, author=author)
@@ -220,7 +228,7 @@ class CommentDeserializer(serializers.ModelSerializer):
             assert (comment.author == author)
             comment.comment = self.validated_data['comment']
             comment.published = self.validated_data['published']
-            comment.contentType = self.validated_data['contentType']
+            comment.content_type = self.validated_data['contentType']
             comment.external_url = self.validated_data['external_url']
             comment.save()
 

@@ -201,7 +201,12 @@ class Author(models.Model):
             return author
 
         try:
-            author_id = url.split('/')[-1]
+
+            author_id = url.split('/')
+            if author_id[-1] == '':
+                author_id = author_id[-2]
+            else:
+                author_id = author_id[-1]
             author = Author.objects.filter(id=author_id).first()
             if author is None:
                 return None
@@ -506,7 +511,8 @@ class Comment(models.Model):
         if self.author.is_remote:
             return saved
 
-        Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.COMMENT)
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.post.author).exists():
+            Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.COMMENT)
 
         return saved
 

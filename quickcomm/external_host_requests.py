@@ -331,14 +331,16 @@ class BaseQCRequest:
                         raw_author = item[author_item]
 
                     logging.info('Checking author.')
-
-                    author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author,
-                         )
-
-                    logging.info('Got author.')
-                    if author is None:
-                        logging.info('Author was not valid. Skipping.')
-                        continue
+                    # first get author via the url
+                    author = Author.get_from_url(raw_author['url'])
+                    # if the author is not local, get the author from the remote server
+                    if author is None or not author.is_local:
+                        author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author,
+                            )
+                        logging.info('Got author.')
+                        if author is None:
+                            logging.info('Author was not valid. Skipping.')
+                            continue
                     extra_kwargs[author_item] = author
 
                 self._return_single_item(item, map_func, deserializer, **extra_kwargs, **kwargs)
@@ -382,6 +384,7 @@ class BaseQCRequest:
             return None
         try:
             logging.info('Saving item.')
+            print(serialized_item.data)
             return serialized_item.save(**kwargs)
         except Exception as e:
             logging.error('Could not save author.', exc_info=True)
