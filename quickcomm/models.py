@@ -10,6 +10,32 @@ from django.contrib.auth.models import User
 
 from quickcomm.signals import export_http_request_on_inbox_save
 
+def try_all_external_urls(url, object):
+    """This method trys to get all objects with the given url with any combination
+    of insecure http/trailing slashes."""
+
+    # generate a list of the urls to try
+    urls = [url]
+    if url[-1] == '/':
+        urls.append(url[:-1])
+    else:
+        urls.append(url + '/')
+
+    for url_new in urls:
+        if url_new[:5] == 'https':
+            urls.append(url_new.replace('https', 'http'))
+        else:
+            urls.append(url_new.replace('http', 'https'))
+
+    # try to get the object with each url
+    for url_new in urls:
+        try:
+            return object.objects.filter(external_url=url_new).first()
+        except:
+            pass
+
+    return None
+
 
 # TODO we have to delete external objects when they don't show up in the big list. However, we have to be careful not to delete posts if they are private
 
@@ -163,25 +189,15 @@ class Author(models.Model):
 
     # TODO always use trailing slash
 
+
     @staticmethod
     def get_from_url(url):
         """Returns the author with the given URL."""
-        try:
-            author = Author.objects.filter(external_url=url).first()
-            if author is not None:
-                return author
-        except:
-            pass
 
-        if url[-1] == '/':
-            url = url[:-1]
-
-            try:
-                author = Author.objects.filter(external_url=url).first()
-                if author is not None:
-                    return author
-            except:
-                pass
+        # try to get the author from the database
+        author = try_all_external_urls(url, Author)
+        if author is not None:
+            return author
 
         try:
             author_id = url.split('/')[-1]
