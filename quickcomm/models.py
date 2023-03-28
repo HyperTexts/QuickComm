@@ -678,7 +678,8 @@ class CommentLike(models.Model):
         if self.author.is_remote:
             return saved
 
-        Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.comment.post.author).exists():
+            Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
 
         return saved
 
