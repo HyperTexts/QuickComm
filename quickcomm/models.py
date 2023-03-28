@@ -646,7 +646,8 @@ class Like(models.Model):
         if self.author.is_remote:
             return saved
 
-        Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.post.author).exists():
+            Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
 
         return saved
 
