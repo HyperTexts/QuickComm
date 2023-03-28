@@ -619,8 +619,8 @@ class Inbox(models.Model):
     def save(self, *args, **kwargs):
         sel = super(Inbox, self).save(*args, **kwargs)
         # skip inbox logic if we are updating the inbox
-        if self.id:
-            return sel
+        # if self.id:
+        #     return sel
 
         # call remote method:
         export_http_request_on_inbox_save(self)
