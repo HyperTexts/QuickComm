@@ -85,55 +85,11 @@ class CreateImageForm(forms.Form):
         return None
 
     def save(self, author):
-        post = Post(
-            title=self.cleaned_data['title'],
-            source=self.cleaned_data['source'],
-            origin=self.cleaned_data['origin'],
-            description=self.cleaned_data['description'],
-            content_type=self.get_content_type(),
-            content="",
-            categories=self.cleaned_data['categories'],
-            author=author,
-            visibility=self.cleaned_data['visibility'],
-            unlisted=self.cleaned_data['unlisted']
-        )
-        post.save()
-
-        # Save the image to the media folder
-        image = ImageFile(
-            post=post,
-            image=self.cleaned_data['content']
-        )
-        image.save()
-
-        return post
-        
-class CreateImageForm(forms.Form):
-    """A form for creating an image post."""
-
-    title = forms.CharField(max_length=100)
-    source = forms.URLField(validators=[URLValidator])
-    origin = forms.URLField(validators=[URLValidator])
-    description = forms.CharField(max_length=1000)
-    content = forms.ImageField(validators=[validate_image_upload_format])
-    categories = forms.CharField(max_length=1000)
-    visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
-    unlisted = forms.BooleanField(required=False)
-
-    def get_content_type(self):
-        ct_raw = self.cleaned_data['content'].content_type
-        if ct_raw == "image/jpeg" or ct_raw == "image/jpg":
-            return Post.PostType.JPG
-        elif ct_raw == "image/png":
-            return Post.PostType.PNG
-        return None
-
-    def save(self, author):
 
         # turn image to base64
         image_str = self.cleaned_data['content']
-        image_str = base64.b64encode(image.read())
-        image_str = image.decode('utf-8')
+        image_str = base64.b64encode(image_str.read())
+        image_str = image_str.decode('utf-8')
 
         post = Post(
             title=self.cleaned_data['title'],
@@ -157,7 +113,7 @@ class CreateImageForm(forms.Form):
         image.save()
 
         return post
-        
+
 class CreateLoginForm(forms.Form):
     """A form for logging in."""
 
