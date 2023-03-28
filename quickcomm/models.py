@@ -391,6 +391,11 @@ class Post(models.Model):
         if self.author.is_remote:
             return saved
 
+        # skip inbox if image with post is not saved yet
+        if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
+            if not ImageFile.objects.filter(post=self).exists():
+                return saved
+
         # When we save a post, we also need to create an inbox post for each
         # follower of the author.
 
@@ -562,6 +567,11 @@ class ImageFile(models.Model):
     representation is a file and not a base64 string."""
     post = models.OneToOneField(Post, on_delete=models.CASCADE, primary_key=True)
     image = models.ImageField(upload_to='images/')
+
+    def save(self, *args, **kwargs):
+        res = super(ImageFile, self).save(*args, **kwargs)
+        self.post.save()
+        return res
 
 class Inbox(models.Model):
     """The inbox is a relationship between an author and either a like, comment,

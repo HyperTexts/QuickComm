@@ -86,18 +86,13 @@ class CreateImageForm(forms.Form):
 
     def save(self, author):
 
-        # turn image to base64
-        image_str = self.cleaned_data['content']
-        image_str = base64.b64encode(image_str.read())
-        image_str = image_str.decode('utf-8')
-
         post = Post(
             title=self.cleaned_data['title'],
             source=self.cleaned_data['source'],
             origin=self.cleaned_data['origin'],
             description=self.cleaned_data['description'],
             content_type=self.get_content_type(),
-            content=image_str,
+            content="",
             categories=self.cleaned_data['categories'],
             author=author,
             visibility=self.cleaned_data['visibility'],
