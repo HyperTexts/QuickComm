@@ -1,8 +1,9 @@
+import base64
 from rest_framework import serializers
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework.reverse import reverse
 from django.urls import reverse as django_reverse
-from .models import Author, Post, Comment, Follow, Like
+from .models import Author, ImageFile, Post, Comment, Follow, Like
 from .pagination import CommentsPagination
 from django.core.paginator import Paginator
 
@@ -168,7 +169,7 @@ class PostSerializer(serializers.ModelSerializer):
     origin = serializers.URLField(required=False)
     description = serializers.CharField(required=False)
     contentType = serializers.CharField(required=False, source='content_type')
-    content = serializers.CharField(required=False)
+    content = serializers.SerializerMethodField()
     author = AuthorSerializer(read_only=True)
     categories = serializers.ListField(child=serializers.CharField(), required=False)
     published = serializers.DateTimeField(required=False)
@@ -179,6 +180,22 @@ class PostSerializer(serializers.ModelSerializer):
     commentsSrc = serializers.SerializerMethodField(method_name='get_comments_src')
     comments = serializers.SerializerMethodField(method_name='get_comments')
     count = serializers.IntegerField(required=False, read_only=True)
+
+    def get_content(self, obj):
+        if obj.content_type == Post.PostType.JPG or obj.content_type == Post.PostType.PNG:
+            # find the image in the media folder
+
+            try:
+                img = ImageFile.objects.get(post_id=obj.id)
+            except Exception as e:
+                return obj.content
+
+            # convert the image to base64
+            with open(img.image.path, "rb") as image_file:
+                encoded_string = base64.b64encode(image_file.read())
+                return encoded_string.decode('utf-8')
+
+        return obj.content
 
     def get_comments(self, obj):
         return self.context.get('request').build_absolute_uri(
