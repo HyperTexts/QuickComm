@@ -17,6 +17,7 @@ from urllib3 import Retry
 from quickcomm.models import Author, Comment, Inbox, Post
 from .request_exposer import get_request
 
+
 # This caches the requests for 5 minutes, but this can be changed
 session = requests_cache.CachedSession('external_cache', expire_after=1)
 retry = Retry(connect=3, backoff_factor=0.5)
@@ -37,12 +38,13 @@ class BaseQCRequest:
     POST_LIKES_ENDPOINT = '/likes'
     COMMENT_LIKES_ENDPOINT = '/likes'
     FOLLOWERS_ENDPOINT = '/followers'
-    INBOX_ENDPOINT = '/inbox/'
+    INBOX_ENDPOINT = '/inbox'
 
     paginate_posts = True
     paginate_followers = True
     paginate_post_likes = True
     paginate_comment_likes = True
+    inbox_trailing_slash = True
 
     def __init__(self, host, deserializers, serializers):
         """Initialize the request object. This will set the host and the
@@ -353,7 +355,8 @@ class BaseQCRequest:
     def _send_to_inbox(self, author, item, serializer, map_func):
         """Send an item to the inbox of an external author."""
         logging.info(f'Sending {item} to inbox of {author}.')
-        endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}'
+        trail = '/' if self.inbox_trailing_slash else ''
+        endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}{trail}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
         print(json.dumps(data))
@@ -572,6 +575,7 @@ class THTHQCRequest(BaseQCRequest):
     paginate_followers = False
     paginate_post_likes = False
     paginate_comment_likes = False
+    inbox_trailing_slash = False
 
     def set_null_to_empty_string(self, data):
         for key, value in data.items():
