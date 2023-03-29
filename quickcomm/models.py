@@ -168,7 +168,6 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
 
-
 class Comment(models.Model):
     """A comment is a comment made by an author on a post."""
 
@@ -182,8 +181,6 @@ class Comment(models.Model):
     comment = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=CommentType.choices)
     published = models.DateTimeField(auto_now_add=True)
-    likes = models.ManyToManyField(User, related_name='comment_likes')
-
 
     def save(self, *args, **kwargs):
         saved = super(Comment, self).save(*args, **kwargs)
@@ -196,6 +193,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
+    
 
 class ImageFile(models.Model):
     """An image file is a file that is an image. This is used so our internal
@@ -235,6 +233,7 @@ class Inbox(models.Model):
         COMMENT = 'comment'
         FOLLOW = 'follow'
         LIKE = 'like'
+        COMMENTLIKE= 'commentlike'
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # The author is the author who owns the inbox.
@@ -255,6 +254,34 @@ class Inbox(models.Model):
 
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"
+
+class CommentLike(models.Model):
+    """A comment like is a relationship between an author and a comment."""
+
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        saved = super(CommentLike, self).save(*args, **kwargs)
+        # When we save a comment like, we also need to create an inbox post for the
+        # author of the post.
+
+        # skip inbox logic for remote authors
+        #if self.author.is_remote:
+         #   return saved
+
+        Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
+
+        return saved
+
+
+    @property
+    def context(self):
+        return "https://www.w3.org/ns/activitystreams"
+
+    def __str__(self):
+        return f"{self.author.__str__()} likes {self.comment.__str__()}"
+    
 
 
 class Like(models.Model):

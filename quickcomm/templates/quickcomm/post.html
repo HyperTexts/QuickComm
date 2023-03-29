@@ -16,11 +16,11 @@
       <p class="card-text">{{ post.content }}</p>
       {% endif %}
       <p class="card-text">{{ post.description}}</p>
-      <p class="text-muted"> Likes : {{post.likes.count}} </p>
+      <p class="text-muted"> Likes : {{ post_dict|get_item:post.id }} </p>
 
       <div class="d-flex justify-content-between align-items-center">
         <div class="btn-group">
-          {% if is_post_liked %}
+          {% if current_author.id in post_author_dict|get_item:post.id %}
             <form action="{% url 'post_like' post.author.id post.id %}" method="post">
               {% csrf_token %}
               <button type="submit" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
@@ -60,7 +60,7 @@
               {{each_comment.comment}}
             </div>
             <div style="margin-left: auto;">
-              {% if request.user in each_comment.likes.all %}
+              {% if current_author.id in comment_author_dict|get_item:each_comment.id %}
               <form action="{% url 'like_comment' author_id=post.author.id post_id=post.id comment_id=each_comment.id %}" method="post">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
@@ -75,7 +75,8 @@
                 </button>
               </form>
             {% endif %}
-              <p class="text-muted"> Likes : {{each_comment.likes.count}} </p>
+              <p class="text-muted">Likes: {{ comment_dict|get_item:each_comment.id }}</p>
+
             </div>
           </div>
         {% endfor %}
