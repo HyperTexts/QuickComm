@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>{{ author.display_name }}'s Followers</h1>
+    <h1>{{ author.display_name }} is following</h1>
 
-        {% for follower in author.get_followers %}
+        {% for following in author.get_following %}
             <div class ="row">
-                {% if not follower.follower.profile_image %}
+                {% if not following.following.profile_image %}
 
                     <div class="col">
                         <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
@@ -13,13 +13,16 @@
                 {% else %}
                     <div class="col-1">
 
-                        <img src={{ follower.follower.profile_image }} width="32" height="32" class="rounded-circle">
+                        <img src={{ following.following.profile_image }} width="32" height="32" class="rounded-circle">
                     </div>
                 {% endif %}
                 <div class="col-1">
-                    <h3 class=""> {{ follower.follower.display_name }} </h3>
+                    <h3 class=""> {{ following.following.display_name }} </h3>
                 </div>
-                {% if follower.is_bidirectional %}
+                <div class="col-md-2 align-self-center">
+                    <a href="{% url 'unfriend' following.following.id %}" class="btn btn-outline-primary me-2">Unfollow</a>
+                </div>
+                {% if following.is_bidirectional %}
 
                     <div class="col">
                         <h3 class=""> ⭐ </h3>
