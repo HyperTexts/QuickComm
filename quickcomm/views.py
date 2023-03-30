@@ -14,6 +14,7 @@ from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainText
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
 from django.contrib.auth.forms import UserCreationForm
 from .external_requests import get_github_stream
+from django.contrib import messages
 
 # Create your views here.
 
