@@ -1,9 +1,7 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from quickcomm.models import Author, Post, Like, Comment
+from quickcomm.models import Author, Post, Like, RegistrationSettings, Comment
 from django.urls import reverse
-from quickcomm.models import RegistrationSettings
-
 
 class LoginViewTest(TestCase):
     def setUp(self):
@@ -14,7 +12,7 @@ class LoginViewTest(TestCase):
 
     def test_login(self):
         response = self.client.post('/login/', {
-            'display_name': 'user',
+            'username': 'user',
             'password': 'pass',
         })
 
@@ -78,7 +76,7 @@ class LogoutViewTest(TestCase):
 
     def test_logout(self):
         response = self.client.post('/login/', {
-            'display_name': 'user',
+            'username': 'user',
             'password': 'pass',
         })
 
@@ -86,7 +84,7 @@ class LogoutViewTest(TestCase):
         self.assertTrue(
             response.wsgi_request.user.is_authenticated)
 
-        response = self.client.post('/logout/', {})
+        response = self.client.get('/logout/', {})
         self.assertEqual(response.status_code, 302)
         self.assertFalse(response.wsgi_request.user.is_authenticated)
         
@@ -177,32 +175,58 @@ class EditProfileViewTest(TestCase):
         
         author = Author.objects.create(user=user, host='http://127.0.0.1:8000', display_name='First Name', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
         author.full_clean()
+        author.save()
         
         
     def test_edit_not_logged_in(self):
-        pass
+        c = Client()
+        author = Author.objects.all()[0]
+        response = c.post('/authors/'+str(author.id)+"/", {
+            'display_name': 'Second Name',
+            'github': 'http://github.com/please',
+            'profile_image': 'http://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg'
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(author.display_name, Author.objects.all()[0].display_name)
+        self.assertEqual(author.github, Author.objects.all()[0].github)
+        self.assertEqual(author.profile_image, Author.objects.all()[0].profile_image)
     
     
     def test_edit_name(self):
-        # c = Client()
-        # author = Author.objects.all()[0]
+        c = Client()
+        author = Author.objects.all()[0]
         
-        # c.post('/login/', {
-        #     'display_name': 'user',
-        #     'password': 'pass',
-        # })  
+        c.login(username='user', password='pass')
 
-        # response = c.post('/authors/'+str(author.id)+"/", {
-        #     'display_name': 'Second Name',
-        #     'github': 'http://github.com/please',
-        #     'profile_image': 'http://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg'
-        # })
+        response = c.post('/authors/'+str(author.id)+"/", {
+            'display_name': 'Second Name',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(author.display_name, Author.objects.all()[0].display_name)
+
+    def test_edit_github(self):
+        c = Client()
+        author = Author.objects.all()[0]
         
-        # c.get('/authors/'+str(author.id)+"/")
-        
-        # self.assertEqual(response.status_code, 200)
-        # self.assertNotEqual(author.display_name, "First Name")
-        pass
-        
-    
-        # self.assertEqual(response.status_code, 200)
+        c.login(username='user', password='pass')
+
+        response = c.post('/authors/'+str(author.id)+"/", {
+            'github': 'http://github.com/please',
+        })
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(author.github, Author.objects.all()[0].github)
+
+    def test_edit_profile_image(self):
+            c = Client()
+            author = Author.objects.all()[0]
+            
+            c.login(username='user', password='pass')
+
+            response = c.post('/authors/'+str(author.id)+"/", {
+                'profile_image': 'http://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg'
+            })
+
+            self.assertEqual(response.status_code, 200)
+            self.assertNotEqual(author.profile_image, Author.objects.all()[0].profile_image)

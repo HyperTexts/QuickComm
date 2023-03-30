@@ -124,7 +124,7 @@ def login(request):
         form = CreateLoginForm(request.POST)
         if form.is_valid():
             user = authenticate(
-                username=request.POST['display_name'], password=request.POST['password'])
+                username=request.POST['username'], password=request.POST['password'])
             if user is not None:
                 auth_login(request, user)
                 return redirect('/')
@@ -247,26 +247,19 @@ def logout(request):
 
 def register(request):
     if request.method == 'POST':
-            form = UserCreationForm(request.POST)
-            if form.is_valid():
-                user = form.save()
-                author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
-                author.save()
-                # either log the user in or set their account to inactve
-                admin_approved = RegistrationSettings.objects.first().are_new_users_active
-                if admin_approved:
-                    auth_login(request, user)
-                else:
-                    user.is_active = False
-                    user.save()
-                # either log the user in or set their account to inactve
-                admin_approved = RegistrationSettings.objects.first().are_new_users_active
-                if admin_approved:
-                    auth_login(request, user)
-                else:
-                    user.is_active = False
-                    user.save()
-                return redirect('/')
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
+            author.save()
+            # either log the user in or set their account to inactve
+            admin_approved = RegistrationSettings.objects.first().are_new_users_active
+            if admin_approved:
+                auth_login(request, user)
+            else:
+                user.is_active = False
+                user.save()
+            return redirect('/')
     else:
             form = UserCreationForm()
     context = {
