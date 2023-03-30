@@ -293,6 +293,12 @@ class Like(models.Model):
         Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
 
         return saved
+    def delete(self,*args,**kwargs):
+        if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
+            print("Yes")
+            Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        unlike=super(Like,self).delete(*args,**kwargs)
+        return unlike
 
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"

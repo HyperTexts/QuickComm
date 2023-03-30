@@ -342,9 +342,13 @@ def unfriend(request,author_id):
 
 @login_required
 def decline_request(request,author_id):
-    from_user=get_current_author(request)
-    to_user=get_object_or_404(Author,pk=author_id)
-    pass
+    target=get_current_author(request)
+    follower=get_object_or_404(Author,pk=author_id)
+    
+    friend_request=FollowRequest.objects.get(from_user=follower, to_user=target)
+    friend_request.delete()
+    messages.success(request,"Decline request from"+follower.display_name)
+    return redirect("view_requests", author_id=author_id)
                     
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
@@ -364,15 +368,53 @@ def view_author_posts(request, author_id):
         'size': size,
         'current_author': current_author,
     }
-    
+    print("IT WORKS")
     return render(request, 'quickcomm/posts.html', context)
 
-def share_post(request,author_id):
-    author=get_object_or_404(Author,pk=author_id)
+@login_required
+def share_public_post(request,author_id,post_id):
+    print("WORK DAMMIT")
+    objects = Post.objects.all()
+    post = objects.get(pk=post_id)
     current_author=get_current_author(request)
+    source_author=get_object_or_404(Author,pk=author_id)
 
-    posts = Post.objects.filter(author=author)
+    if post.visibility!='PUBLIC':
+        messages.success(request,"The author have set the post private")
+        return redirect('view_author_posts',author_id=author_id)
+    else:
+        new_post=Post.objects.create(
+        title=post.title,
+        source=post.source,
+        origin=post.origin,
+        description=post.description,
+        content_type=post.content_type,
+        content=post.content,
+        categories=post.categories,
+        author=current_author,
+        visibility=post.visibility,
+        unlisted=post.unlisted
+    )
     
-    size=request.GET.get('size','10')
-    pass
-
+        new_post.save()
+        return redirect("view_author_posts",author_id)
+    
+@login_required
+def share_to_friends(request,author_id,post_id):
+    objects = Post.objects.all()
+    post = objects.get(pk=post_id)
+    current_author=get_current_author(request)
+    new_post=Post.objects.create(
+        title=post.title,
+        source=post.source,
+        origin=post.origin,
+        description=post.description,
+        content_type=post.content_type,
+        content=post.content,
+        categories=post.categories,
+        author=current_author,
+        visibility='FRIENDS',
+        unlisted=post.unlisted
+    )
+    new_post.save()
+    return redirect("view_author_posts",author_id)
