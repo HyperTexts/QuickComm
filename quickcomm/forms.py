@@ -159,7 +159,7 @@ class CreateLoginForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput())
         
 class EditProfileForm(forms.Form):
-    display_name = forms.CharField(max_length=100, required=False)
+    username = forms.CharField(max_length=100, required=False)
     github = forms.CharField(required=False)
     profile_image = forms.URLField(validators=[URLValidator], required=False)
         

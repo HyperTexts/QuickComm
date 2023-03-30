@@ -124,7 +124,7 @@ def login(request):
         form = CreateLoginForm(request.POST)
         if form.is_valid():
             user = authenticate(
-                username=request.POST['display_name'], password=request.POST['password'])
+                username=request.POST['username'], password=request.POST['password'])
             if user is not None:
                 auth_login(request, user)
                 return redirect('/')
