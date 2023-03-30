@@ -2,7 +2,7 @@ from django.test import TestCase, Client
 from django.contrib.auth.models import User
 from quickcomm.models import Author, Post, Like, Comment
 from django.urls import reverse
-from ..models import RegistrationSettings
+from quickcomm.models import RegistrationSettings
 
 
 class LoginViewTest(TestCase):
@@ -148,7 +148,7 @@ class LikeCommentTestCase(TestCase):
         self.post.full_clean()
         self.post.save()
 
-        self.comment = Comment.objects.create(post=self.post,author=self.author1, comment='Comment trial', source='http://someurl.ca', origin='http://someotherurl.ca', content_type='text/plain')
+        self.comment = Comment.objects.create(post=self.post, author=self.author2, comment='Comment trial', content_type='text/plain')
         self.comment.full_clean()
         self.comment.save()
 
@@ -161,7 +161,7 @@ class LikeCommentTestCase(TestCase):
     def test_like(self):
         c = Client()
         c.login(username='user2', password='pass2')
-        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/"+"like_comment")
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/" + str(self.comment.id) +"/like_comment")
         self.assertEqual(response.status_code, 302)
 
 
