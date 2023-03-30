@@ -74,6 +74,9 @@ class Author(models.Model):
     def follow(self, author):
         """Follows the given author."""
         return Follow.objects.create(follower=self, following=author)
+    def request(self,author):
+        """Sends a follow request to the given author"""
+        return FollowRequest.objects.create(from_user=self, to_user=author)
 
 
     def __str__(self):
