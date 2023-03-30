@@ -2,7 +2,7 @@ from dateutil import parser
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
+from django.urls import reverse,resolve
 from django.http import HttpResponse, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
@@ -383,9 +383,11 @@ def share_public_post(request,author_id,post_id):
         messages.success(request,"The author have set the post private")
         return redirect('view_author_posts',author_id=author_id)
     else:
+        print(request.get_host()+"/authors/"+str(author_id)+"/posts/"+str(post_id))
+        print(post.source)
         new_post=Post.objects.create(
         title=post.title,
-        source=post.source,
+        source=request.get_host()+"/authors/"+str(author_id)+"/posts/"+str(post_id),
         origin=post.origin,
         description=post.description,
         content_type=post.content_type,
@@ -406,7 +408,7 @@ def share_to_friends(request,author_id,post_id):
     current_author=get_current_author(request)
     new_post=Post.objects.create(
         title=post.title,
-        source=post.source,
+        source=request.get_host()+"/authors/"+str(author_id)+"/posts/"+str(post_id),
         origin=post.origin,
         description=post.description,
         content_type=post.content_type,
