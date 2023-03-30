@@ -155,11 +155,11 @@ class CreateImageForm(forms.Form):
 class CreateLoginForm(forms.Form):
     """A form for logging in."""
 
-    display_name = forms.CharField(max_length=100)
+    username = forms.CharField(max_length=100)
     password = forms.CharField(widget=forms.PasswordInput())
         
 class EditProfileForm(forms.Form):
-    username = forms.CharField(max_length=100, required=False)
+    display_name = forms.CharField(max_length=100, required=False)
     github = forms.CharField(required=False)
     profile_image = forms.URLField(validators=[URLValidator], required=False)
         
