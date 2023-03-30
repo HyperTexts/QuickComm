@@ -1,4 +1,6 @@
 from dateutil import parser
+from django.db.models import Q, Count
+from django.template.defaulttags import register
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
@@ -9,12 +11,10 @@ from django.contrib.auth import authenticate, login as auth_login, logout as aut
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
-from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox,Follow,FollowRequest
+from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib import messages
-
-from quickcomm.models import Author, Follow, Inbox
 from .external_requests import get_github_stream
+from django.contrib import messages
 
 # Create your views here.
 
@@ -138,35 +138,89 @@ def login(request):
 def post_view(request, post_id, author_id):
     current_author = get_current_author(request)
     post = get_object_or_404(Post, pk=post_id)
-    post_comments = Comment.objects.filter(post=post).order_by("-published")
-    is_liked = False
-    if request.user.is_authenticated:
-        # like_key = "post_like_{post_id}"
-        # is_liked = request.session.get(like_key, False)
-        like = Like.objects.filter(post=post, author=current_author)
-        print(like)
-        if like:
-            is_liked = True
+    post_type = post.visibility
+    if (post_type == 'FRIENDS'):
+        post_comments = Comment.objects.filter(Q(author = current_author) | Q(author = post.author),post=post).order_by("-published")
+    else:
+        post_comments = Comment.objects.filter(post=post).order_by("-published")
+    
+    #dictionary with likes for each comment
+    result = CommentLike.objects.values('comment__id').annotate(num_authors=Count('author', distinct=True))
+    comment_dict = {}
+    for item in result:
+        comment_dict[item['comment__id']] = item['num_authors']
 
-    context = {"post": post, "is_post_liked": is_liked,"post_comments":post_comments, "current_author": current_author}
+    #dictionary with each comment and the authors who liked it
+    comment_like_list = CommentLike.objects.select_related('author').values('comment_id', 'author__id').annotate(count=Count('author'))
+    comment_author_dict = {}
+    for item in comment_like_list:
+        comment_id = item['comment_id']
+        author_id = item['author__id']
+        if comment_id not in comment_author_dict:
+            comment_author_dict[comment_id] = []
+        comment_author_dict[comment_id].append(author_id)
+
+    #dictionary with likes for each post
+    result = Like.objects.values('post_id').annotate(num_authors=Count('author', distinct=True))
+    post_dict = {}
+    for item in result:
+        post_dict[item['post_id']] = item['num_authors']
+
+    #dictionary with each post and the authors who liked it
+    post_like_list = Like.objects.select_related('author').values('post_id', 'author__id').annotate(count=Count('author'))
+    post_author_dict = {}
+    for item in post_like_list:
+        post_id = item['post_id']
+        author_id = item['author__id']
+        if post_id not in post_author_dict:
+            post_author_dict[post_id] = []
+        post_author_dict[post_id].append(author_id)
+
+
+    context = {"post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
 
     return render(request, "quickcomm/post.html", context)
+
+@register.filter
+def get_item(dictionary, key):
+    val = dictionary.get(key)
+    if val != None:
+        return val
+    else:
+        return 0
 
 @login_required
 def post_like(request, post_id, author_id):
     objects = Post.objects.all()
     post = objects.get(pk=post_id)
 
-    # post = get_object_or_404(Post, pk=post_id)
-
     if request.user.is_authenticated:
-        author = Author.objects.all().get(user=request.user)
-        like_obj, created_obj = Like.objects.get_or_create(post=post, author=author)
-        if not created_obj:
-            like_obj.delete()
-        like_key = f"post_like_{post_id}"
-        request.session[like_key] = not created_obj
+        if request.method == 'POST':
+            author = Author.objects.all().get(user=request.user)
+            if Like.objects.filter(post__id=post_id, author=author).exists():
+                postlike = Like.objects.filter(post__id=post_id, author=author)
+                postlike.delete()
+            else:
+                postlike = Like.objects.create(post=post, author=author)
+            like_key = f"post_like_{post_id}"
+            request.session[like_key] = author == post.author
+    return redirect("post_view", post_id=post_id, author_id=author_id)
 
+   
+@login_required
+def like_comment(request, post_id, author_id, comment_id):
+    if request.method == 'POST':
+        if request.user.is_authenticated:
+            author = Author.objects.all().get(user=request.user)
+            main_comment = get_object_or_404(Comment, id=comment_id)
+            if CommentLike.objects.filter(comment__id=comment_id, author=author).exists():
+                comment = CommentLike.objects.filter(comment__id=comment_id, author=author)
+                comment.delete()
+
+            else:
+                comment = CommentLike.objects.create(comment=main_comment, author=author)
+            comment_like_key = f"comment_like_{comment_id}"
+            request.session[comment_like_key] = author == main_comment.author
     return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @login_required
@@ -184,7 +238,6 @@ def post_comment(request, post_id, author_id):
             comment.save()
             return redirect('post_comment', post_id=post_id, author_id=author_id)
     return redirect("post_view", post_id=post_id, author_id=author_id)
-   
 
 @login_required
 def logout(request):

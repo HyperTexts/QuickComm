@@ -13,6 +13,12 @@ def streamlike(inbox_content):
     time = inbox_content.added
     return {'like': like, 'time': time}
 
+@register.inclusion_tag('streamcommentlike.html')
+def streamcommentlike(inbox_content):
+    like = inbox_content.content_object
+    time = inbox_content.added
+    return {'like': like, 'time': time}
+
 @register.inclusion_tag('streamcomment.html')
 def streamcomment(inbox_content):
     comment = inbox_content.content_object

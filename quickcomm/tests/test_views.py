@@ -1,8 +1,8 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from quickcomm.models import Author, Post, Like
+from quickcomm.models import Author, Post, Like, Comment
 from django.urls import reverse
-from ..models import RegistrationSettings
+from quickcomm.models import RegistrationSettings
 
 
 class LoginViewTest(TestCase):
@@ -125,6 +125,45 @@ class LikePostTestCase(TestCase):
         c.login(username='user2', password='pass2')
         response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/"+"post_liked")
         self.assertEqual(response.status_code, 302)
+
+class LikeCommentTestCase(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(
+            username='user1',
+            password='pass1'
+        )
+
+        self.user2 = User.objects.create_user(
+            username='user2',
+            password='pass2'
+        )
+
+        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='user1', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author1.save()
+
+        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='user2', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author2.save()
+
+        self.post = Post.objects.create(author=self.author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
+        self.post.full_clean()
+        self.post.save()
+
+        self.comment = Comment.objects.create(post=self.post, author=self.author2, comment='Comment trial', content_type='text/plain')
+        self.comment.full_clean()
+        self.comment.save()
+
+    def test_viewing_comment(self):
+        c = Client()
+        c.login(username='user1', password='pass1')
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/")
+        self.assertEqual(response.status_code, 200)
+
+    def test_like(self):
+        c = Client()
+        c.login(username='user2', password='pass2')
+        response = c.get('/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/" + str(self.comment.id) +"/like_comment")
+        self.assertEqual(response.status_code, 302)
+
 
 class EditProfileViewTest(TestCase):
     def setUp(self):
