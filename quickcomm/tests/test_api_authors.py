@@ -14,7 +14,7 @@ class PublicAuthorsTests(TestCase):
         # setup fake data
         self.user = User.objects.create_user(username='rajan', password='badpassword')
         self.user.save()
-        self.author = Author.objects.create(user=self.user, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='rajanmaghera', profile_image='https://url.com')
+        self.author = Author.objects.create(user=self.user, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='https://github.com/rajanmaghera', profile_image='https://url.com')
         self.author.save()
 
 

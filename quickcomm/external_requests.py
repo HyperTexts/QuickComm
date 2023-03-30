@@ -5,9 +5,11 @@ import requests_cache
 # This caches the requests for 5 minutes, so we don't blow up the GitHub API
 session = requests_cache.CachedSession('github_cache', expire_after=300)
 
-def get_github_stream(username):
+def get_github_stream(github):
     """Get the stream of a user from GitHub"""
-
+    # given the url, take the last section as the username
+    
+    username = github.split('/')[-1]
     url = f'https://api.github.com/users/{username}/events/public'
     response = session.get(url)
     return response.json()

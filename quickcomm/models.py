@@ -33,7 +33,7 @@ class Author(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     host = models.URLField(validators=[URLValidator])
     display_name = models.CharField(max_length=100)
-    github = models.CharField(max_length=50, blank=True, null=True)
+    github = models.URLField(max_length=50, blank=True, null=True)
     profile_image = models.URLField(blank=True, null=True, validators=[URLValidator])
 
     # TODO determine if admins are authors
