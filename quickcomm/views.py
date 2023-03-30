@@ -38,16 +38,20 @@ def index(request):
     following = [ follow.following for follow in Follow.objects.filter(follower=author) ]
     following.append(author)
     for follow in following:
-        github = get_github_stream(follow.github)
-        if 'message' in github:
-            if github['message'] == 'Not Found':
-                continue
-        github = [dict(item, **{
-            'format': 'github',
-            'localAuthor': Author.objects.all()[0],
-            'added': parser.parse(item["created_at"])
-                                }) for item in github]
-        inbox.extend(github)
+        try:
+            github = get_github_stream(follow.github)
+            if 'message' in github:
+                if github['message'] == 'Not Found':
+                    continue
+            github = [dict(item, **{
+                'format': 'github',
+                'localAuthor': Author.objects.all()[0],
+                'added': parser.parse(item["created_at"])
+                                    }) for item in github]
+            inbox.extend(github)
+        except:
+            continue
+
 
     def get_date(item):
         """Get the date of the item, regardless of whether it's a dict or an object."""
