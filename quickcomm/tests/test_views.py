@@ -136,10 +136,10 @@ class LikeCommentTestCase(TestCase):
             password='pass2'
         )
 
-        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='user1', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author1 = Author.objects.create(user=self.user1, host='http://127.0.0.1:8000', display_name='user1', github='https://github.com/test', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
         self.author1.save()
 
-        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='user2', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author2 = Author.objects.create(user=self.user2, host='http://127.0.0.1:8000', display_name='user2', github='https://github.com/test', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
         self.author2.save()
 
         self.post = Post.objects.create(author=self.author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
@@ -173,7 +173,7 @@ class EditProfileViewTest(TestCase):
         
         user.save()
         
-        author = Author.objects.create(user=user, host='http://127.0.0.1:8000', display_name='First Name', github='https://github.com/', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        author = Author.objects.create(user=user, host='http://127.0.0.1:8000', display_name='First Name', github='https://github.com/test', profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
         author.full_clean()
         author.save()
         
@@ -183,7 +183,7 @@ class EditProfileViewTest(TestCase):
         author = Author.objects.all()[0]
         response = c.post('/authors/'+str(author.id)+"/", {
             'display_name': 'Second Name',
-            'github': 'http://github.com/please',
+            'github': 'https://github.com/test',
             'profile_image': 'http://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg'
         })
         self.assertEqual(response.status_code, 200)
@@ -212,7 +212,7 @@ class EditProfileViewTest(TestCase):
         c.login(username='user', password='pass')
 
         response = c.post('/authors/'+str(author.id)+"/", {
-            'github': 'http://github.com/please',
+            'github': 'https://github.com/newTest',
         })
 
         self.assertEqual(response.status_code, 200)

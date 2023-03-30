@@ -160,7 +160,7 @@ class CreateLoginForm(forms.Form):
         
 class EditProfileForm(forms.Form):
     display_name = forms.CharField(max_length=100, required=False)
-    github = forms.CharField(required=False)
+    github = forms.URLField(required=False)
     profile_image = forms.URLField(validators=[URLValidator], required=False)
         
     def save(self, author):
