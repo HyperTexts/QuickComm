@@ -21,5 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('martor/', include('martor.urls')),
     path('', include('quickcomm.urls')),
-    path('api/', include('quickcomm.apiurls')),
+    path('api/', include('quickcomm.apiurls'), name='api'),
 ]
