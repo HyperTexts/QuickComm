@@ -7,7 +7,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.response import Response
 
-from .models import Author, Post, Comment, Follow, Like, ImageFile
+from .models import Author, Post, Comment, Follow, Like, ImageFile, CommentLike
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer
 from .models import Author, Post, Comment, Follow, Like
 from .serializers import AuthorSerializer, AuthorsSerializer, PostSerializer, CommentSerializer, FollowSerializer, LikeSerializer, PostsSerializer

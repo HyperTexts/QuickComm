@@ -99,6 +99,7 @@ urlpatterns = [
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/', views.post_view, name='post_view'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_liked', views.post_like, name='post_like'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_comment', views.post_comment, name='post_comment'),
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/<uuid:comment_id>/like_comment', views.like_comment, name='like_comment'),
     path('authors/<uuid:author_id>/followers/', views.view_followers, name='view_followers'),
     path('create/image', views.create_image, name='create_image'),
     re_path(r'^openapi(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
