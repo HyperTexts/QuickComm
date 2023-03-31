@@ -43,8 +43,10 @@ INSTALLED_APPS = [
     'quickcomm',
     'django_bootstrap5',
     'martor',
+
     'rest_framework',
     'drf_yasg',
+
 
 
 ]
@@ -155,6 +157,7 @@ MARTOR_TOOLBAR_BUTTONS = [
     'blockquote', 'unordered-list', 'ordered-list',
     'link', 'image-link'
 ]
+
 
 
 SWAGGER_SETTINGS = {

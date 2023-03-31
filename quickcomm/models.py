@@ -282,6 +282,18 @@ class Author(models.Model):
     
     def get_followers(self):
         return Follow.objects.filter(following=self)
+    
+    def get_following(self):
+        return Follow.objects.filter(follower=self)
+    
+    def following_count(self):
+        return Follow.objects.filter(follower=self).count()
+    
+    def get_requests(self):
+        return FollowRequest.objects.filter(to_user=self)
+    def requests_count(self):
+        return FollowRequest.objects.filter(to_user=self).count()
+    
 
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
@@ -334,12 +346,20 @@ class Follow(models.Model):
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
         return saved
+    def delete(self, *args, **kwargs):
+        if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
+            print("Yes")
+            Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        deleted=super(Follow,self).delete(*args,**kwargs)
+        return deleted
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
         print("deleting follow")
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
         super(Follow, self).delete(*args, **kwargs)
+
+    
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
@@ -351,6 +371,11 @@ class Follow(models.Model):
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
+    
+class FollowRequest(models.Model):
+    """A request is a prompt for a user to accept a follower"""
+    from_user=models.ForeignKey(Author, on_delete=models.CASCADE,related_name='from_user')
+    to_user=models.ForeignKey(Author,on_delete=models.CASCADE,related_name='to_user')
 
 class Post(models.Model):
     """A post is a post made by an author."""
@@ -381,6 +406,7 @@ class Post(models.Model):
         max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
     external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
+    likes = models.ManyToManyField(User, related_name='post_likes')
 
     def save(self, *args, **kwargs):
         saved = super(Post, self).save(*args, **kwargs)
@@ -561,6 +587,7 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
+    
 
 class ImageFile(models.Model):
     """An image file is a file that is an image. This is used so our internal
@@ -639,13 +666,41 @@ class Inbox(models.Model):
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"
 
+class CommentLike(models.Model):
+    """A comment like is a relationship between an author and a comment."""
+
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        saved = super(CommentLike, self).save(*args, **kwargs)
+        # When we save a comment like, we also need to create an inbox post for the
+        # author of the post.
+
+        # skip inbox logic for remote authors
+        #if self.author.is_remote:
+         #   return saved
+
+        Inbox.objects.create(content_object=self, author=self.comment.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
+
+        return saved
+
+
+    @property
+    def context(self):
+        return "https://www.w3.org/ns/activitystreams"
+
+    def __str__(self):
+        return f"{self.author.__str__()} likes {self.comment.__str__()}"
+    
+
 
 class Like(models.Model):
     """A like is a relationship between an author and a post."""
 
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
-
+    
     def save(self, *args, **kwargs):
         saved = super(Like, self).save(*args, **kwargs)
         # When we save a like, we also need to create an inbox post for the

@@ -10,6 +10,8 @@
         {% if item.format == 'inbox' %}
             {% if item.inbox_type == item.InboxType.LIKE %}
                 {% streamlike item %}
+            {% elif item.inbox_type == item.InboxType.COMMENTLIKE %}
+                {% streamcommentlike item %}
             {% elif item.inbox_type == item.InboxType.COMMENT %}
                 {% streamcomment item %}
             {% elif item.inbox_type == item.InboxType.POST %}
@@ -21,4 +23,5 @@
             {% streamgh item %}
         {% endif %}
     {% endfor %}
+
 {% endblock %}

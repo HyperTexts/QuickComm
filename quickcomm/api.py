@@ -18,7 +18,7 @@ from quickcomm.external_host_deserializers import import_http_inbox_item
 from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, CommentLikesPagination, CommentsPagination, FollowersPagination, PostLikesPagination, PostsPagination
 
 from .models import Author, CommentLike, Host, Inbox, Post, Comment, Like, ImageFile
-from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, FollowersSerializer, get_paginated_serializer
+from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, get_paginated_serializer
 from .models import Author, Post, Comment, Like
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer
 

@@ -24,7 +24,7 @@ class AuthorSerializer(serializers.ModelSerializer):
     profileImage = serializers.URLField(source='profile_image', required=False)
     host = serializers.SerializerMethodField(method_name='get_host')
     displayName = serializers.CharField(source='display_name', required=False)
-    github = serializers.CharField(required=False)
+    github = serializers.URLField(required=False)
 
     # TODO keep GitHub as a URLField
 
@@ -59,7 +59,7 @@ class AuthorSerializer(serializers.ModelSerializer):
             "url": "http://localhost:8000/api/authors/de574df8-6543-4566-b1cb-8cb74c70e8be/",
             "host": "http://localhost:8000/",
             "displayName":"Greg Johnson",
-            "github": "gjohnson",
+            "github": "https://github.com/gjohnson",
             "profileImage": "https://i.imgur.com/k7XVwpB.jpeg"
         }
         return examples

@@ -1,6 +1,7 @@
 {% load stream_extras %}
 {% load humanize %}
 
+{% if like.author.user.username %}
 <div class="card mb-3">
     <div class="card-header">
     <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a href={% url "view_profile" author_id=like.author.id %}>@{{ like.author.display_name }}</a> liked your post.</p>
@@ -9,3 +10,4 @@
         {% minipost like.post %}
     </div>
 </div>
+{% endif %}

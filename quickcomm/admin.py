@@ -8,6 +8,7 @@ from quickcomm.external_host_deserializers import sync_authors, sync_comment_lik
 # Register your models here.
 
 from .models import Author, CommentLike, Host, HostAuthenticator, ImageFile, Post, Comment, Follow, Like, RegistrationSettings, Inbox
+from .models import Author, Post, Comment, Follow, Like, RegistrationSettings, Inbox,FollowRequest
 
 admin.site.register(Follow)
 admin.site.register(Like)
@@ -15,6 +16,7 @@ admin.site.register(Inbox)
 admin.site.register(RegistrationSettings)
 admin.site.register(CommentLike)
 admin.site.register(ImageFile)
+admin.site.register(FollowRequest)
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
