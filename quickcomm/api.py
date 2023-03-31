@@ -20,7 +20,7 @@ from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, Comme
 from .models import Author, CommentLike, Host, Inbox, Post, Comment, Like, ImageFile
 from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, FollowersSerializer, get_paginated_serializer
 from .models import Author, Post, Comment, Like
-from .serializers import AuthorSerializer, PostSerializer, CommentSerializer, PostsSerializer
+from .serializers import AuthorSerializer, PostSerializer, CommentSerializer
 
 from drf_yasg.utils import swagger_auto_schema
 
@@ -32,7 +32,6 @@ from drf_yasg.utils import swagger_auto_schema
 
 # TODO what kind of response should we return for successful requests?
 # TODO turn these into mixins
-# TODO pagination
 
 
 # create a decorator that checks if the user is authenticated using API authentication
