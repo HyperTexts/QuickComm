@@ -35,6 +35,20 @@ class CreatePlainTextForm(forms.Form):
         )
         post.save()
         return post
+    def update_info(self,author,post_id):
+        post = Post(
+        title=self.cleaned_data['title'],
+        source=self.cleaned_data['source'],
+        origin=self.cleaned_data['origin'],
+        description=self.cleaned_data['description'],
+        content_type="text/plain",
+        content=self.cleaned_data['content'],
+        categories=self.cleaned_data['categories'],
+        author=author,
+        visibility=self.cleaned_data['visibility'],
+        unlisted=self.cleaned_data['unlisted'])
+        post.update_info(post,post_id)
+        return post
 
 class CreateMarkdownForm(forms.Form):
     """A form for creating a markdown post."""

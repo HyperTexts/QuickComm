@@ -1,6 +1,7 @@
 {% load stream_extras %}
 {% load humanize %}
 
+{% if post.author.user %}
 <div class="card mb-3">
     <div class="card-header">
     <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a href={% url "view_profile" author_id=post.author.id %}>@{{ post.author.user.username }}</a> created a post.</p>
@@ -8,4 +9,4 @@
     <div class="card-body">
         {% minipost post %}
     </div>
-</div>
+{% endif %}

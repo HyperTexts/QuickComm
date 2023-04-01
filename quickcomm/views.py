@@ -38,20 +38,16 @@ def index(request):
     following = [ follow.following for follow in Follow.objects.filter(follower=author) ]
     following.append(author)
     for follow in following:
-        try:
-            github = get_github_stream(follow.github)
-            if 'message' in github:
-                if github['message'] == 'Not Found':
-                    continue
-            github = [dict(item, **{
-                'format': 'github',
-                'localAuthor': Author.objects.all()[0],
-                'added': parser.parse(item["created_at"])
-                                    }) for item in github]
-            inbox.extend(github)
-        except:
-            continue
-
+        github = get_github_stream(follow.github)
+        if 'message' in github:
+            if github['message'] == 'Not Found':
+                continue
+        github = [dict(item, **{
+            'format': 'github',
+            'localAuthor': Author.objects.all()[0],
+            'added': parser.parse(item["created_at"])
+                                }) for item in github]
+        inbox.extend(github)
 
     def get_date(item):
         """Get the date of the item, regardless of whether it's a dict or an object."""
@@ -128,7 +124,7 @@ def login(request):
         form = CreateLoginForm(request.POST)
         if form.is_valid():
             user = authenticate(
-                username=request.POST['username'], password=request.POST['password'])
+                username=request.POST['display_name'], password=request.POST['password'])
             if user is not None:
                 auth_login(request, user)
                 return redirect('/')
@@ -137,6 +133,16 @@ def login(request):
     else:
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
+
+@login_required
+def delete_post(request, author_id, post_id):
+    if request.method == 'POST':
+        post = Post.objects.filter(id=post_id).get()
+        if request.user == post.author.user:
+            post.delete()
+            messages.success(request, "Post successfully deleted!")
+
+    return redirect("/")
 
 @login_required
 def post_view(request, post_id, author_id):
@@ -180,9 +186,33 @@ def post_view(request, post_id, author_id):
             post_author_dict[post_id] = []
         post_author_dict[post_id].append(author_id)
 
+    form = CreatePlainTextForm()
+    current_attributes = {
+            "title":post.title,
+            "source":post.source,
+            "origin":post.origin,
+            "description":post.description,
+            "content_type":"text/plain",
+            "content":post.content,
+            "categories":post.categories,
+            "author":post.author,
+            "visibility":post.visibility,
+            "unlisted":post.unlisted}
+    if current_author.user == post.author.user:
+        if request.method == 'POST':
+            form = CreatePlainTextForm(request.POST, initial=current_attributes)
+            if form.is_valid():
+                form.update_info(current_author,post.id)
+                messages.success(request, "Post successfully changed!")
 
-    context = {"post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
-
+            else:
+                print(form.errors)
+                form = CreatePlainTextForm(initial=current_attributes)
+        else:
+            form = CreatePlainTextForm(initial=current_attributes)
+    #getting updated post
+    post = get_object_or_404(Post, pk=post_id)
+    context = {"form":form, "post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
     return render(request, "quickcomm/post.html", context)
 
 @register.filter
@@ -251,19 +281,26 @@ def logout(request):
 
 def register(request):
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
-        if form.is_valid():
-            user = form.save()
-            author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
-            author.save()
-            # either log the user in or set their account to inactve
-            admin_approved = RegistrationSettings.objects.first().are_new_users_active
-            if admin_approved:
-                auth_login(request, user)
-            else:
-                user.is_active = False
-                user.save()
-            return redirect('/')
+            form = UserCreationForm(request.POST)
+            if form.is_valid():
+                user = form.save()
+                author = Author(user=user, host='http://127.0.0.1:8000', display_name=user, github='https://github.com/', profile_image='https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png')
+                author.save()
+                # either log the user in or set their account to inactve
+                admin_approved = RegistrationSettings.objects.first().are_new_users_active
+                if admin_approved:
+                    auth_login(request, user)
+                else:
+                    user.is_active = False
+                    user.save()
+                # either log the user in or set their account to inactve
+                admin_approved = RegistrationSettings.objects.first().are_new_users_active
+                if admin_approved:
+                    auth_login(request, user)
+                else:
+                    user.is_active = False
+                    user.save()
+                return redirect('/')
     else:
             form = UserCreationForm()
     context = {
