@@ -458,6 +458,12 @@ class Post(models.Model):
         super(Post, self).delete(*args, **kwargs)
 
 
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
+
+
     @property
     def content_formatted(self):
         """Returns the content of the post as either base64 or plain text."""
