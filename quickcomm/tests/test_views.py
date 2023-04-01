@@ -1,7 +1,6 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User
-from quickcomm.models import Author, Post, Like, RegistrationSettings, Comment
-from django.urls import reverse
+from quickcomm.models import Author, Post, RegistrationSettings, Comment
 
 class LoginViewTest(TestCase):
     def setUp(self):

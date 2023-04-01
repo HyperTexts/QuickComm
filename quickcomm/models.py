@@ -1,11 +1,44 @@
 import base64
+import os
 import uuid
 from django.db import models
-from django.contrib.auth.models import User
 from django.core.validators import URLValidator
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.utils import timezone
+from django.contrib.auth.models import User
+from django.db.models import Q
 
+from quickcomm.signals import export_http_request_on_inbox_save
+
+def try_all_external_urls(url, object):
+    """This method trys to get all objects with the given url with any combination
+    of insecure http/trailing slashes."""
+
+    # generate a list of the urls to try
+    urls = [url]
+    if url[-1] == '/':
+        urls.append(url[:-1])
+    else:
+        urls.append(url + '/')
+
+    for url_new in urls.copy():
+        if url_new[:5] == 'https':
+            urls.append(url_new.replace('https', 'http'))
+        else:
+            urls.append(url_new.replace('http', 'https'))
+
+    # try to get the object with each url
+    for url_new in urls:
+        try:
+            return object.objects.filter(external_url=url_new).first()
+        except:
+            pass
+
+    return None
+
+
+# TODO we have to delete external objects when they don't show up in the big list. However, we have to be careful not to delete posts if they are private
 
 # NOTE: The models in this file do not take into account how the site will
 # interact with other APIs. Ideally, we should be able to reuse the model
@@ -17,7 +50,118 @@ from django.contrib.contenttypes.models import ContentType
 
 # We used UUIDs for pkeys to be more secure.
 # TODO what are the constraints on fields being null?
+# TODO make all char sizes huge
+class HostAuthenticator(models.Model):
+    """A host authenticator is a username and password that can be used to
+    authenticate to a host."""
 
+    # Note: passwords are stored in plain-text. They are API keys, so they are
+    # not sensitive. If we want to store them in a more secure way, we can
+    # hash them, but for now, we will leave them as is.
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    username = models.CharField(max_length=100, help_text="The username to use to authenticate to the host.", verbose_name="Username")
+    password = models.CharField(max_length=100, help_text="The password to use to authenticate to the host.", verbose_name="Password")
+    nickname = models.CharField(max_length=100, help_text="The nickname of the host authenticator. This is only used for display purposes.", verbose_name="Nickname", null=True, blank=True)
+
+
+    @property
+    def nickname_or_username(self):
+        if self.nickname:
+            return self.nickname
+        return self.username
+
+    @property
+    def base64string(self):
+        return base64.b64encode(f"{self.username}:{self.password}".encode('ascii')).decode('ascii')
+
+    def check_password(self, password):
+        return self.password == password
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    def __str__(self):
+        return f"{self.username}"
+
+class Host(models.Model):
+    """A host is a remote server that hosts authors."""
+
+    class SerializerClass(models.TextChoices):
+        """The serializer class to use for the host. This is used to determine
+        which serializer to use when interacting with the host.
+
+        Each serializer class is a subset of BaseQCRequest. The serializer
+        classes house the information on:
+        - how to deserialize the remote host's API
+        - how to deserialize the remote host's requests to our inbox
+        - how to serialize the local host's requests to their inbox
+        """
+
+        THTH = "THTH", "Too Hot To Hindle (Group 2)"
+        INTERNAL = "INTERNAL", "Internal Default"
+
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
+    url = models.URLField(validators=[URLValidator], help_text="The URL of the host API. This must be in proper form (e.g. https://example.com/).", verbose_name="Host URL")
+    serializer_class = models.CharField(max_length=100, choices=SerializerClass.choices, default=SerializerClass.INTERNAL, help_text="The serializer class to use for the host. This is used to determine which serializer to use when interacting with the host.", verbose_name="Serializer Class")
+
+    username_password_base64 = models.CharField(max_length=100, help_text="The username and password to use to authenticate to the host. This is a base64 encoded string of the form 'username:password'.", verbose_name="Username and Password", null=True, blank=True)
+
+    last_successful_ping = models.DateTimeField(null=True, blank=True)
+    last_ping = models.DateTimeField(null=True, blank=True)
+    last_ping_result = models.BooleanField(null=True, blank=True)
+
+    nickname = models.CharField(max_length=100, help_text="The nickname of the host. This is only used for display purposes.", verbose_name="Nickname", null=True, blank=True)
+
+    @property
+    def nickname_or_url(self):
+        if self.nickname:
+            return self.nickname
+        return self.url
+
+        # TODO delete authors that are no longer on the remote host
+        # TODO don't delete posts that were private by accident
+
+
+    def ping(self):
+        """Pings the host to see if it is online. Return True if online, False
+        otherwise. This method uses the os.system() method to ping the host."""
+
+        # FIXME ping is not the best way to check if a host is online. We
+        # should use a more reliable method.
+
+        # strip the protocol from the url
+        clean_url = self.url.split('/')[2]
+
+        # strip the port from the url
+        clean_url = clean_url.split(':')[0]
+
+        # ping the host
+        req = os.system(f"ping -c 1 {clean_url}")
+        success = req == 0
+
+        # last ping is now, set the last ping result
+        self.last_ping = timezone.now()
+        self.last_ping_result = success
+        if success:
+            self.last_successful_ping = self.last_ping
+
+        return success
+
+    # TODO move to the receiver mixins
+    def save(self, *args, **kwargs):
+        """Override save to ping the host before saving."""
+        # self.ping()
+        super(Host, self).save(*args, **kwargs)
+
+    def __str__(self):
+        if self.nickname:
+            return f"{self.nickname} ({self.url})"
+        return f"{self.url}"
 
 class Author(models.Model):
     """An author is a person associated with a user account via a one-to-one
@@ -30,17 +174,102 @@ class Author(models.Model):
     # Taken on: Feb 6, 2023
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    host = models.URLField(validators=[URLValidator])
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, help_text="The user associated with this author. This is only used for internal authors. Remote authors will have this field set to null. This field should NOT be set manually.", verbose_name="User")
+    # FIXME the user is only null if the author is remote. This should be
+    # enforced in the model.
+    host = models.ForeignKey(Host, on_delete=models.CASCADE, null=True, blank=True,help_text="The host that this author is associated with. This is only used for remote authors. Internal authors will have this field set to null. This field should NOT be set manually.")
+    external_url = models.CharField(max_length=100, blank=True, null=True, help_text="The external URL of the author. This is only used for remote authors. Internal authors will have this field set to null. This field should NOT be set manually.", verbose_name="External URL")
     display_name = models.CharField(max_length=100)
-    github = models.URLField(max_length=50, blank=True, null=True)
-    profile_image = models.URLField(blank=True, null=True, validators=[URLValidator])
+    github = models.URLField(blank=True, null=True, validators=[URLValidator], help_text="The URL of the author's GitHub profile. This must be in proper form (e.g. https://github.com/abramhindle).", verbose_name="GitHub URL")
+    profile_image = models.URLField(
+        blank=True, null=True, validators=[URLValidator], help_text="The URL of the author's profile image. This must be in proper form (e.g. https://example.com/image.png).", verbose_name="Profile Image URL")
 
     # TODO determine if admins are authors
     is_admin = models.BooleanField(default=False)
 
+
+    # TODO always use trailing slash
+
+
+    @staticmethod
+    def get_from_url(url):
+        """Returns the author with the given URL."""
+
+        # try to get the author from the database
+        author = try_all_external_urls(url, Author)
+        if author is not None:
+            return author
+
+        try:
+
+            author_id = url.split('/')
+            if author_id[-1] == '':
+                author_id = author_id[-2]
+            else:
+                author_id = author_id[-1]
+            author = Author.objects.filter(id=author_id).first()
+            if author is None:
+                return None
+        except:
+            return None
+
+        if author.host is None:
+            return author
+
+        return None
+
+
+    # This section defines the types of authors that can exist on our server.
+    # Since we have to "cache" all author objects to get them to display in
+    # the frontend, we will have 3 types of authors:
+    #
+    # 1. local authors on our own server
+    # 2. remote authors on connected servers
+    # 3. temporary authors that are on a server that is not connected
+    #
+    # An example of where a temporary author is used is when looking at the
+    # comments of a remote post. To display the comment, we will create a new
+    # author object with the information from the comment. This author object
+    # will be temporary and for the time being be saved to the database. We can
+    # then decide to remove it later if we want to.
+    #
+    # We will only update these authors based on the information from the remote
+    # we are connected to. We will never connect to the temporary server as we
+    # do not have access to it.
+    #
+    # An edge case is when the server that we are connected to has a new user
+    # we do not know about. In this case, we will create a temporary author
+    # object. When we visit an author page that is temporary, we will run a full
+    # scan of all host authors. If then it does not show up, we will display a
+    # message saying that the author information is not available.
+
+    @property
+    def is_local(self):
+        """Returns true if the author is local."""
+        return self.external_url is None
+
+    @property
+    def is_remote(self):
+        """Returns true if the author is remote."""
+        return self.external_url is not None
+
+    @property
+    def is_temporary(self):
+        """Returns true if the author is temporary."""
+        return self.host is None
+
+    @property
+    def location(self):
+        """Returns External or Internal"""
+        if self.is_local:
+            return "Internal"
+        elif self.is_temporary:
+            return "External (temporary)"
+        return "External"
+
     def is_following(self, author):
         """Returns true if this author (self) follows the given author."""
+
         return Follow.objects.filter(follower=self, following=author).exists()
 
     def is_followed_by(self, author):
@@ -75,10 +304,23 @@ class Author(models.Model):
         """Follows the given author."""
         return Follow.objects.create(follower=self, following=author)
 
+    @property
+    def followers(self):
+        """Returns a queryset of all followers of this author."""
+        return Author.objects.filter(following=self)
+
+    @staticmethod
+    def safe_queryset():
+        """Returns a safe queryset of authors that excludes all foreign authors"""
+        return Author.objects.filter(host=None, external_url=None)
+
+    @staticmethod
+    def frontend_queryset():
+        """Returns a queryset of authors that excludes all temporary authors"""
+        return Author.objects.exclude(Q(host=None), ~Q(external_url=None))
 
     def __str__(self):
-        return f"{self.display_name} ({self.user.username})"
-
+        return f"{self.display_name}"
 
 class Follow(models.Model):
     """A follow is is a many-to-many relationship between authors representing a
@@ -94,9 +336,15 @@ class Follow(models.Model):
         # When we save a follow, we also need to create an inbox post for the
         # author being followed.
 
+        # TODO follow is still having some issues on when to run
+
+        # If both the follower and following are remote, we do not need to
+        # create an inbox post.
+        # if self.follower.is_remote and self.following.is_remote:
+        #     return saved
+
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
-
         return saved
     def delete(self, *args, **kwargs):
         if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
@@ -104,12 +352,21 @@ class Follow(models.Model):
         deleted=super(Follow,self).delete(*args,**kwargs)
         return deleted
 
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        print("deleting follow")
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Follow, self).delete(*args, **kwargs)
 
     
 
     def is_bidirectional(self):
         """Returns true if the follow is bidirectional."""
         return self.following.is_following(self.follower)
+
+    @property
+    def context(self):
+        return 'https://www.w3.org/ns/activitystreams'
 
     def __str__(self):
         return f"{self.follower.__str__()} follows {self.following.__str__()}"
@@ -118,7 +375,6 @@ class FollowRequest(models.Model):
     """A request is a prompt for a user to accept a follower"""
     from_user=models.ForeignKey(Author, on_delete=models.CASCADE,related_name='from_user')
     to_user=models.ForeignKey(Author,on_delete=models.CASCADE,related_name='to_user')
-
 
 class Post(models.Model):
     """A post is a post made by an author."""
@@ -148,16 +404,30 @@ class Post(models.Model):
     visibility = models.CharField(
         max_length=50, choices=PostVisibility.choices)
     unlisted = models.BooleanField(default=False)
+    external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
     likes = models.ManyToManyField(User, related_name='post_likes')
 
     def save(self, *args, **kwargs):
         saved = super(Post, self).save(*args, **kwargs)
+
+        # FIXME move saving image logic here?
+
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
+
+        # skip inbox if image with post is not saved yet
+        if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
+            if not ImageFile.objects.filter(post=self).exists():
+                return saved
+
         # When we save a post, we also need to create an inbox post for each
         # follower of the author.
 
         followers = Follow.objects.filter(following=self.author)
         for follower in followers:
-            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.following).exists():
+            print(follower.follower)
+            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
                 Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
 
 
@@ -182,6 +452,12 @@ class Post(models.Model):
         unlisted=self.unlisted)
         return post
 
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
+
+
     @property
     def content_formatted(self):
         """Returns the content of the post as either base64 or plain text."""
@@ -205,6 +481,55 @@ class Post(models.Model):
     def __str__(self):
         return f"{self.title} by {self.author.__str__()}"
 
+    @property
+    def comments(self):
+        """Returns the comments for this post."""
+        return Comment.objects.filter(post=self)
+
+    @property
+    def count(self):
+        """Returns the number of comments for this post."""
+        return self.comments.count()
+
+    @property
+    def likes(self):
+        """Returns the likes for this post."""
+        return Like.objects.filter(post=self)
+
+    @property
+    def context(self):
+        """Returns the context for this post."""
+        return 'https://www.w3.org/ns/activitystreams'
+
+    # TODO use request here to get the url
+    @staticmethod
+    def get_from_url(url):
+        """Returns the post with the given URL."""
+
+        post = Post.objects.filter(external_url=url).first()
+        if post is not None:
+            return Post
+
+        if url[-1] == '/':
+            url = url[:-1]
+
+            post = Post.objects.filter(external_url=url).first()
+            if post is not None:
+                return Post
+
+
+        post_id= url.split('/')[-1]
+        try:
+            post = Post.objects.get(id=post_id)
+        except:
+            return None
+
+        if post.author.host is None:
+            return post
+
+        return None
+
+
 class Comment(models.Model):
     """A comment is a comment made by an author on a post."""
 
@@ -216,17 +541,61 @@ class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE)
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     comment = models.CharField(max_length=1000)
-    content_type = models.CharField(max_length=50, choices=CommentType.choices)
+    content_type = models.CharField(max_length=50, choices=CommentType.choices, default=CommentType.TEXT)
     published = models.DateTimeField(auto_now_add=True)
+    external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
 
     def save(self, *args, **kwargs):
         saved = super(Comment, self).save(*args, **kwargs)
         # When we save a comment, we also need to create an inbox post for the
         # author of the post.
 
-        Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.COMMENT)
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
+
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.post.author).exists():
+            Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.COMMENT)
 
         return saved
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Comment, self).delete(*args, **kwargs)
+
+
+    @staticmethod
+    def get_from_url(url):
+        """Returns the comment with the given URL."""
+
+        comment = Comment.objects.filter(external_url=url).first()
+        if comment is not None:
+            return Comment
+
+        if url[-1] == '/':
+            url = url[:-1]
+
+            comment = Comment.objects.filter(external_url=url).first()
+            if comment is not None:
+                return Comment
+
+
+        comment_id = url.split('/')[-1]
+        try:
+            comment = Comment.objects.get(id=comment_id)
+        except:
+            return None
+
+        if comment.post.author.host is None:
+            return comment
+
+        return None
+
+    @property
+    def context(self):
+        """Returns the context for this post."""
+        return 'https://www.w3.org/ns/activitystreams'
 
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
@@ -238,6 +607,10 @@ class ImageFile(models.Model):
     post = models.OneToOneField(Post, on_delete=models.CASCADE, primary_key=True)
     image = models.ImageField(upload_to='images/')
 
+    def save(self, *args, **kwargs):
+        res = super(ImageFile, self).save(*args, **kwargs)
+        self.post.save()
+        return res
 
 class Inbox(models.Model):
     """The inbox is a relationship between an author and either a like, comment,
@@ -262,6 +635,7 @@ class Inbox(models.Model):
     #     author=some_author,
     #     content_object=some_post,
     # )
+
     @property
     def format(self): return "inbox"
 
@@ -270,7 +644,8 @@ class Inbox(models.Model):
         COMMENT = 'comment'
         FOLLOW = 'follow'
         LIKE = 'like'
-        COMMENTLIKE= 'commentlike'
+        COMMENTLIKE = 'commentlike'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 
     # The author is the author who owns the inbox.
@@ -288,6 +663,17 @@ class Inbox(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.UUIDField()
     content_object = GenericForeignKey('content_type', 'object_id')
+
+    def save(self, *args, **kwargs):
+        sel = super(Inbox, self).save(*args, **kwargs)
+        # skip inbox logic if we are updating the inbox
+        # if self.id:
+        #     return sel
+
+        # call remote method:
+        export_http_request_on_inbox_save(self)
+
+        return sel
 
     def __str__(self):
         return f"{self.author.__str__()}'s inbox contains {self.content_object.__str__()}"
@@ -332,12 +718,58 @@ class Like(models.Model):
         # When we save a like, we also need to create an inbox post for the
         # author of the post.
 
-        Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
+
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.post.author).exists():
+            Inbox.objects.create(content_object=self, author=self.post.author, inbox_type=Inbox.InboxType.LIKE)
 
         return saved
 
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Like, self).delete(*args, **kwargs)
+
+    @property
+    def context(self):
+        return "https://www.w3.org/ns/activitystreams"
+
     def __str__(self):
         return f"{self.author.__str__()} likes {self.post.__str__()}"
+
+class CommentLike(models.Model):
+    """A comment like is a relationship between an author and a comment."""
+
+    author = models.ForeignKey(Author, on_delete=models.CASCADE)
+    comment = models.ForeignKey(Comment, on_delete=models.CASCADE)
+
+    def save(self, *args, **kwargs):
+        saved = super(CommentLike, self).save(*args, **kwargs)
+        # When we save a comment like, we also need to create an inbox post for the
+        # author of the post.
+
+        # skip inbox logic for remote authors
+        if self.author.is_remote:
+            return saved
+
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.comment.post.author).exists():
+            Inbox.objects.create(content_object=self, author=self.comment.post.author, inbox_type=Inbox.InboxType.COMMENTLIKE)
+
+        return saved
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(CommentLike, self).delete(*args, **kwargs)
+
+    @property
+    def context(self):
+        return "https://www.w3.org/ns/activitystreams"
+
+    def __str__(self):
+        return f"{self.author.__str__()} likes {self.comment.__str__()}"
 
 class RegistrationSettings(models.Model):
     """A flag for admin users to determine if new users are active or not by default.
@@ -346,3 +778,20 @@ class RegistrationSettings(models.Model):
 
     def __str__(self):
         return f"{self.are_new_users_active.__str__()}"
+
+
+class RawInboxItem(models.Model):
+    """A raw inbox item is a straight JSON object that is either received from
+    a remote author or sent to a remote author."""
+
+    class RawInboxDirection(models.TextChoices):
+        IN = 'in'
+        OUT = 'out'
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    endpoint = models.URLField()
+    direction = models.CharField(max_length=50, choices=RawInboxDirection.choices)
+    data = models.JSONField()
+
+    def __str__(self):
+        return f"Raw inbox item {self.direction} {self.endpoint}"

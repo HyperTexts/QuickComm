@@ -1,0 +1,222 @@
+{
+	"info": {
+		"_postman_id": "a440f1ab-abee-41de-b6d0-a228942ae067",
+		"name": "QuickComm Test Suite",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "25373722"
+	},
+	"item": [
+		{
+			"name": "Get all author details",
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{url}}/authors",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"authors"
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Default",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/authors?page=1&size=5",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"authors\",\n    \"items\": [\n        {\n            \"type\":\"author\",\n            \"id\":\"{{url}}/authors/1d698d25ff008f7538453c120f581471\",\n            \"url\":\"{{url}}/authors/1d698d25ff008f7538453c120f581471\",\n            \"host\":\"{{url}}/\",\n            \"displayName\":\"Greg Johnson\",\n            \"github\": \"http://github.com/gjohnson\",\n            \"profileImage\": \"https://i.imgur.com/k7XVwpB.jpeg\"\n        },\n        {\n            \"type\":\"author\",\n            \"id\":\"{{url}}/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e\",\n            \"host\":\"{{url}}/\",\n            \"displayName\":\"Lara Croft\",\n            \"url\":\"{{url}}/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e\",\n            \"github\": \"http://github.com/laracroft\",\n            \"profileImage\": \"https://i.imgur.com/k7XVwpB.jpeg\"\n        }\n    ]\n}"
+				},
+				{
+					"name": "Page 2",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "{{url}}/authors?page=2&size=5",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "2"
+								},
+								{
+									"key": "size",
+									"value": "5"
+								}
+							]
+						}
+					},
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"authors\",\n    \"items\": []\n}"
+				}
+			]
+		},
+		{
+			"name": "Get details on a single author",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{url}}/authors/:id",
+					"host": [
+						"{{url}}"
+					],
+					"path": [
+						"authors",
+						":id"
+					],
+					"variable": [
+						{
+							"key": "id",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": [
+				{
+					"name": "Greg example",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/:id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1d698d25ff008f7538453c120f581471"
+								}
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"author\",\n    \"id\": \"{{url}}/authors/1d698d25ff008f7538453c120f581471\",\n    \"url\": \"{{url}}/authors/1d698d25ff008f7538453c120f581471\",\n    \"host\": \"{{url}}/\",\n    \"displayName\": \"Greg Johnson\",\n    \"github\": \"http://github.com/gjohnson\",\n    \"profileImage\": \"https://i.imgur.com/k7XVwpB.jpeg\"\n}"
+				},
+				{
+					"name": "Lara example",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/authors/:id",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"authors",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "9de17f29c12e8f97bcbbd34cc908f1baba40658e"
+								}
+							]
+						}
+					},
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Content-Type",
+							"value": "application/json",
+							"name": "Content-Type",
+							"description": "",
+							"type": "text"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"type\": \"author\",\n    \"id\": \"{{url}}/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e\",\n    \"host\": \"{{url}}/\",\n    \"displayName\": \"Lara Croft\",\n    \"url\": \"{{url}}/authors/9de17f29c12e8f97bcbbd34cc908f1baba40658e\",\n    \"github\": \"http://github.com/laracroft\",\n    \"profileImage\": \"https://i.imgur.com/k7XVwpB.jpeg\"\n}"
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "url",
+			"value": "https://703de14d-213e-421c-aab7-ab4b26b92412.mock.pstmn.io"
+		}
+	]
+}
