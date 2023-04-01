@@ -102,6 +102,7 @@ class Host(models.Model):
 
         THTH = "THTH", "Too Hot To Hindle (Group 2)"
         INTERNAL = "INTERNAL", "Internal Default"
+        GROUP1 = "GROUP1", "Group 1"
 
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
