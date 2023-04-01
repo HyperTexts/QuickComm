@@ -48,6 +48,26 @@ def author_required(func):
             return redirect('login')
     return wrapper
 
+# This is a decorator that will check for a logged in user and approve access to the
+# desired page depending on if they are required to be a true friend.
+def friend_required(func):
+    def wrapper(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            try:
+                author = Author.objects.get(user=request.user)
+                post = Post.objects.get(id=kwargs['post_id'])
+                if post.visibility != 'PUBLIC' and not author.is_bidirectional(post.author):
+                    return render(request, 'quickcomm/notallowed.html')
+            except Author.DoesNotExist:
+                return render(request, 'quickcomm/noauthorerror.html')
+            request.author = author
+
+            print(kwargs)
+            return func(request, *args, **kwargs)
+        else:
+            return redirect('login')
+    return wrapper
+
 @author_required
 def index(request):
 
@@ -156,7 +176,8 @@ def login(request):
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
 
-@author_required
+# @author_required
+@friend_required
 def post_view(request, post_id, author_id):
     current_author = request.author
     post = get_object_or_404(Post, pk=post_id)
