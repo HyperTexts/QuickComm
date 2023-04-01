@@ -14,7 +14,7 @@ import uuid
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 from quickcomm.external_host_requests import Group1QCRequest, InternalQCRequest, THTHQCRequest
-from quickcomm.models import Author, Comment, CommentLike, Follow, Host, ImageFile, Like, Post
+from quickcomm.models import Author, Comment, CommentLike, Follow, FollowRequest, Host, ImageFile, Like, Post
 import base64
 
 from quickcomm.serializers import CommentActivitySerializer, CommentLikeActivitySerializer, FollowActivitySerializer, LikeActivitySerializer, PostActivitySerializer
@@ -92,6 +92,7 @@ class AuthorDeserializer(serializers.ModelSerializer):
     # TODO move all of this to use get_from_url and discern between types of authors
     def save(self, host=None):
         author = Author.get_from_url(self.validated_data['external_url'])
+        print("author", author)
         if author is None:
             author = Author.objects.create(**self.validated_data, host=host)
         else:
@@ -216,8 +217,10 @@ class CommentDeserializer(serializers.ModelSerializer):
 
         # if we have a comment that already exists, but without an external url, then we will update it
         # otherwise we will create a new comment
+        print("TRYING TO SAVE COMMENT WITH EXTERNAL URL", self.validated_data.get('external_url', None))
         comment = Comment.objects.filter(post=post, author=author, external_url=None, comment=self.validated_data['comment'],  content_type=self.validated_data['content_type']).first()
         if comment is not None:
+            print("WE ARE HERE")
             comment.external_url = self.validated_data['external_url']
             comment.save()
             return comment
@@ -301,8 +304,24 @@ class FollowerDeserializer(serializers.ModelSerializer):
 
         return item
 
+class FollowRequestDeserializer(serializers.ModelSerializer):
+
+    def save(self, author=None, following=None, request=False):
+        assert(author is not None)
+        assert(following is not None)
+        item = FollowRequest.objects.filter(
+            from_author=author,
+            to_author=following
+        ).first()
+        if item is None:
+            item = FollowRequest.objects.create(**self.validated_data, from_author=author, to_author=following)
+        else:
+            assert(item.from_author == author)
+            assert (item.to_author == following)
+
+        return item
     class Meta:
-        model = Follow
+        model = FollowRequest
         fields = []
 
 class Deserializers:
@@ -312,6 +331,7 @@ class Deserializers:
     post_like = PostLikeDeserializer
     comment_like = CommentLikeDeserializer
     follower = FollowerDeserializer
+    follow_request = FollowRequestDeserializer
 
 
 class InboxSerializers:

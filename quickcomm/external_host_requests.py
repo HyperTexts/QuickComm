@@ -517,7 +517,7 @@ class BaseQCRequest:
             logging.info('Following was not valid')
             raise exceptions.ValidationError('Following was not valid')
 
-        follower = self._return_single_item({}, self.map_raw_follower, self.deserializers.follower, author=follower, following=following, request=True)
+        follower = self._return_single_item({}, self.map_raw_follower, self.deserializers.follow_request, author=follower, following=following, request=True)
         if follower is None:
             logging.info('Follower was not valid')
             raise exceptions.ValidationError('Follower was not valid')
