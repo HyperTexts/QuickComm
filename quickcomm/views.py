@@ -435,7 +435,7 @@ def decline_request(request,author_id):
                     
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
-    current_author = request.author
+    current_author = get_current_author(request)
 
     if author.is_remote and not author.is_temporary:
         sync_posts(author)
