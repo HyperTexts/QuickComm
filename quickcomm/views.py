@@ -152,7 +152,7 @@ def login(request):
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
 
-@login_required
+@author_required
 def delete_post(request, author_id, post_id):
     if request.method == 'POST':
         post = Post.objects.filter(id=post_id).get()
