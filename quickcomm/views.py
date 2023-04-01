@@ -1,10 +1,11 @@
+import json
 from dateutil import parser
 from django.db.models import Q, Count
 from django.template.defaulttags import register
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
@@ -13,6 +14,7 @@ from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainText
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
+from django.template.loader import render_to_string
 
 from quickcomm.models import Author, Follow, Inbox
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
@@ -222,11 +224,17 @@ def post_like(request, post_id, author_id):
             if Like.objects.filter(post__id=post_id, author=author).exists():
                 postlike = Like.objects.filter(post__id=post_id, author=author)
                 postlike.delete()
+                is_liked = False
             else:
                 postlike = Like.objects.create(post=post, author=author)
+                is_liked = True
             like_key = f"post_like_{post_id}"
             request.session[like_key] = author == post.author
-    return redirect("post_view", post_id=post_id, author_id=author_id)
+
+    like_count = Like.objects.filter(post__id=post_id).count()
+    button = render_to_string("quickcomm/likebutton.html", {"is_liked": is_liked, "like_count": like_count }, request=request)
+    return JsonResponse({"is_liked": button}) 
+    # return redirect("post_view", post_id=post_id, author_id=author_id)
 
    
 @login_required
@@ -248,17 +256,21 @@ def like_comment(request, post_id, author_id, comment_id):
 @author_required
 def post_comment(request, post_id, author_id):
     post = Post.objects.get(pk=post_id)
-
     if request.method == 'POST':
-        form = CreateCommentForm(request.POST)
-        if form.is_valid():
+        
+        text = json.loads(request.body)["comment"]
+        if text:
             author = request.author
             comment = Comment()
             comment.post = post
             comment.author = author
-            comment.comment = form.cleaned_data['comment']
+            comment.comment = text
             comment.save()
-            return redirect('post_comment', post_id=post_id, author_id=author_id)
+            
+            new_comment = render_to_string("quickcomm/comments.html", { "comment": comment }, request=request)
+            return JsonResponse({"comments": new_comment}) 
+        # return redirect('post_comment', post_id=post_id, author_id=author_id)
+
     return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @login_required
