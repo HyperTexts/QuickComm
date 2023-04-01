@@ -26,24 +26,11 @@
       <p class="text-muted"> Likes : {{ post_dict|get_item:post.id }} </p>
 
       <div class="d-flex justify-content-between align-items-center">
-        <div class="btn-group">
-          {% if current_author.id in post_author_dict|get_item:post.id %}
-            <form action="{% url 'post_like' post.author.id post.id %}" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
-                <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/></svg>
-                {{ like_count }}
-              </button>
-            </form>
-          {% else %}
-            <form action="{% url 'post_like' post.author.id post.id %}" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-secondary">Like <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/></svg>
-                {{ like_count }}
-              </button>
-            </form>
-          {% endif %}
+        <div class="btn-group">         
+          <button type="submit" id="like" onclick="like_post()" class="btn btn-sm btn-outline-secondary">Like <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="16" height="16" class="bi bi-heart" viewBox="0 0 16 16">
+            <path id="like_path" d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/></svg>
+            {{ like_count }}
+          </button>
           <button type="button" class="btn btn-sm btn-outline-secondary">Share <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
             <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/></svg>
           </button>
@@ -93,3 +80,27 @@
     </div>
   </div>
 {% endblock %}
+
+<script>
+let data = {
+  "file": file,
+  "file_name": file_name,
+};
+
+function like_post() {
+  var url = "{%  url 'like_post' post.author.id post.id %}";
+  fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { "X-CSRFToken": '{{csrftoken}}' },
+  }).then( response => {
+    resposne.json();
+  });
+  document.getElementById.("like").textContent="Liked ";
+  document.getElementById.("like").setAttribute("class", "bi bi-heart-fill");
+  document.getElementById.("like").setAttribute("fill", "red");
+  document.getElementById.("like_path").setAttribute("d", "M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"); 
+  document.getElementById.("like_path").setAttribute("fill-rule", "evenodd"); 
+
+};
+</script> 
