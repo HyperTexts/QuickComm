@@ -314,7 +314,7 @@ class FollowRequestDeserializer(serializers.ModelSerializer):
             to_user=following
         ).first()
         if item is None:
-            item = FollowRequest.objects.create(**self.validated_data, from_userr=author, to_user=following)
+            item = FollowRequest.objects.create(**self.validated_data, from_user=author, to_user=following)
         else:
             assert(item.from_user == author)
             assert (item.to_user == following)
