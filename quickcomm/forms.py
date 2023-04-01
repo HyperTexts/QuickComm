@@ -47,6 +47,7 @@ class CreateMarkdownForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    friends_only=forms.BooleanField(required=False)
 
     def save(self, author):
         post = Post(
@@ -75,6 +76,7 @@ class CreateImageForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    friends_only=forms.BooleanField(required=False)
 
     def get_content_type(self):
         ct_raw = self.cleaned_data['content'].content_type
