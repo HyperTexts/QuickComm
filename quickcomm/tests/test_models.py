@@ -15,7 +15,7 @@ class AuthorModelTest(TestCase):
         user.save()
 
         # Create an author
-        author = Author.objects.create(user=user, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='https://github.com/rajanmaghera', profile_image='https://avatars.githubusercontent.com/u/16507599?v=4')
+        author = Author.objects.create(user=user, display_name='My Real Cool Name', github='https://github.com/rajanmaghera', profile_image='https://avatars.githubusercontent.com/u/16507599?v=4')
         author.full_clean()
 
 
@@ -49,7 +49,6 @@ class AuthorModelTest(TestCase):
         """The fields of the Author model are correct"""
 
         author = Author.objects.all()[0]
-        self.assertEquals(author.host, 'http://127.0.0.1:8000')
         self.assertEquals(author.display_name, 'My Real Cool Name')
         self.assertEquals(author.github, 'https://github.com/rajanmaghera')
         self.assertEquals(author.profile_image, 'https://avatars.githubusercontent.com/u/16507599?v=4')
@@ -82,10 +81,9 @@ class AuthorModelTest(TestCase):
         user = User.objects.create_user(username='rajan3', password='badpassword')
         user.full_clean()
 
-        author = Author.objects.create(user=user, host='not a url', display_name='My Real Cool Name', github='not a url', profile_image='https://avatars.githubusercontent.com/u/16507599?v=4')
+        author = Author.objects.create(user=user, display_name='My Real Cool Name', github='not a url', profile_image='https://avatars.githubusercontent.com/u/16507599?v=4')
         self.assertRaises(ValidationError, author.full_clean)
 
-        author.host = 'https://realurl.com/along'
         author.github = 'https://github.com/realURL'
         author.full_clean()
 
@@ -101,7 +99,7 @@ class PostModelTest(TestCase):
         user.save()
 
         # Create an author
-        author = Author.objects.create(user=user, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='https://github.com/rajanmaghera', profile_image='https://avatars.githubusercontent.com/u/16507599?v=4')
+        author = Author.objects.create(user=user, display_name='My Real Cool Name', github='https://github.com/rajanmaghera', profile_image='https://avatars.githubusercontent.com/u/16507599?v=4')
         author.full_clean()
 
         # Create a post
