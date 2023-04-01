@@ -310,14 +310,14 @@ class FollowRequestDeserializer(serializers.ModelSerializer):
         assert(author is not None)
         assert(following is not None)
         item = FollowRequest.objects.filter(
-            from_author=author,
-            to_author=following
+            from_user=author,
+            to_user=following
         ).first()
         if item is None:
-            item = FollowRequest.objects.create(**self.validated_data, from_author=author, to_author=following)
+            item = FollowRequest.objects.create(**self.validated_data, from_userr=author, to_user=following)
         else:
-            assert(item.from_author == author)
-            assert (item.to_author == following)
+            assert(item.from_user == author)
+            assert (item.to_user == following)
 
         return item
     class Meta:
