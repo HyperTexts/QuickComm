@@ -69,7 +69,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
     queryset = Author.safe_queryset()
     serializer_class = AuthorSerializer
     pagination_class = AuthorsPagination
-    http_method_names = ['get', 'post']
+    http_method_names = ['get', 'post', 'options',]
     authentication_classes = [APIBasicAuthentication, SessionAuthentication]
 
     def get_queryset(self):
