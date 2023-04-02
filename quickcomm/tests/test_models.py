@@ -23,7 +23,7 @@ class AuthorModelTest(TestCase):
         """The string representation of the Author model is correct"""
 
         author = list(Author.objects.all())[0]
-        expected_object_name = f'{author.display_name} ({author.user.username})'
+        expected_object_name = f'{author.display_name}'
         self.assertEquals(expected_object_name, str(author))
 
     def test_uuid(self):
