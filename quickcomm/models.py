@@ -154,6 +154,14 @@ class Post(models.Model):
     unlisted = models.BooleanField(default=False)
     likes = models.ManyToManyField(User, related_name='post_likes')
 
+    def is_friend_post(self):
+        if self.visibility=="FRIENDS":
+            print("Yes")
+            return True
+        else:
+            print("No")
+            return False
+        
     def save(self, *args, **kwargs):
         saved = super(Post, self).save(*args, **kwargs)
         # When we save a post, we also need to create an inbox post for each

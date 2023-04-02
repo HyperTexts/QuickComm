@@ -5,8 +5,9 @@
 {% block content %}
     <h1>{{author.display_name}}'s Posts</h1>
         {% for post in page_obj %}
+        {%if not post.is_friend_post or author.user_id == user.id or author.is_bidirectional%}
             {% minipost post %}
-
+        {%endif%}
         {% endfor %}
 
     <nav aria-label="post list pages">

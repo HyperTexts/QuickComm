@@ -407,7 +407,8 @@ def view_author_posts(request, author_id):
 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-
+    print(author.display_name)
+    print(current_author.display_name)
     context = {
         'author': author,
         'page_obj': page_obj,
