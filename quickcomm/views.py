@@ -133,7 +133,7 @@ def share_post(request, post_id, author_id):
         new_post.source = source
         new_post.save()
         messages.success(request, "Post shared successfully!")
-    return redirect("post_view", post_id=post_id, author_id=author_id)
+    return redirect("post_view", post_id=new_post.id, author_id=current_author.id)
 
 r = template.Library()
 @r.filter(name='get_image')
@@ -149,10 +149,10 @@ def create_markdown(request):
         form = CreateMarkdownForm(request.POST)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request=request)
             return HttpResponseRedirect('/')
         else:
-            form = CreateMarkdownForm()
+            form = CreateMarkdownForm(request.POST)
     else:
         form = CreateMarkdownForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'CommonMark Markdown', 'current_author': current_author,})

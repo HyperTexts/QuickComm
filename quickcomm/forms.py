@@ -36,14 +36,11 @@ class CreatePlainTextForm(forms.Form):
         )
         post.save()
         try:
-            print("Trying here")
             uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
-            print("Trying here")
             post.source = uri
             post.origin = uri
             post.save()
         except Exception as e:
-            print(e)
             pass
         
         return post
@@ -60,7 +57,7 @@ class CreateMarkdownForm(forms.Form):
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
 
-    def save(self, author):
+    def save(self, author, request=None):
         post = Post(
             title=self.cleaned_data['title'],
             # source=self.cleaned_data['source'],
@@ -74,6 +71,14 @@ class CreateMarkdownForm(forms.Form):
             unlisted=self.cleaned_data['unlisted']
         )
         post.save()
+        try:
+            uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
+            post.source = uri
+            post.origin = uri
+            post.save()
+        except Exception as e:
+            pass
+        
         return post
 
 class CreateImageForm(forms.Form):
