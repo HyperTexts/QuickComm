@@ -243,15 +243,22 @@ def like_comment(request, post_id, author_id, comment_id):
         if request.user.is_authenticated:
             author = Author.objects.all().get(user=request.user)
             main_comment = get_object_or_404(Comment, id=comment_id)
+            print("\n\n\n\n"+main_comment.comment)
             if CommentLike.objects.filter(comment__id=comment_id, author=author).exists():
                 comment = CommentLike.objects.filter(comment__id=comment_id, author=author)
                 comment.delete()
-
+                is_liked = False
             else:
                 comment = CommentLike.objects.create(comment=main_comment, author=author)
+                is_liked = True
+                
             comment_like_key = f"comment_like_{comment_id}"
             request.session[comment_like_key] = author == main_comment.author
-    return redirect("post_view", post_id=post_id, author_id=author_id)
+
+    like_count = CommentLike.objects.filter(comment__id=comment_id).count()
+    button = render_to_string("quickcomm/likebutton.html", {"is_liked": is_liked, "like_count": like_count }, request=request)
+    return JsonResponse({"is_liked": button })
+    # return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @author_required
 def post_comment(request, post_id, author_id):
