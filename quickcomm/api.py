@@ -2,6 +2,7 @@
 # This file houses the API views.
 
 
+import base64
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
@@ -12,6 +13,8 @@ from rest_framework import exceptions
 from django.contrib.auth.models import User
 import urllib.parse
 import logging
+import tempfile
+
 
 from quickcomm.authenticators import APIBasicAuthentication
 from quickcomm.external_host_deserializers import import_http_inbox_item
@@ -328,8 +331,31 @@ class PostViewSet(viewsets.ModelViewSet):
         post = get_object_or_404(Post, pk=pk)
         if post.content_type != Post.PostType.PNG and post.content_type != Post.PostType.JPG:
             return Response(status=404)
-        image = get_object_or_404(ImageFile, post=post)
-        return FileResponse(image.image)
+
+        def map_content_type_to_image_type(content_type):
+            if content_type == Post.PostType.PNG:
+                return 'image/png'
+            if content_type == Post.PostType.JPG:
+                return 'image/jpeg'
+            return None
+
+
+        # get content
+        image_str = post.content
+
+        # decode content
+        image_bytes = base64.b64decode(image_str)
+        # save to NamedTemporaryFile
+        image = tempfile.NamedTemporaryFile(delete=False, suffix='.png')
+        name = image.name
+        image.write(image_bytes)
+        image.close()
+
+
+        # open the image
+        image = open(name, 'rb')
+            # return image
+        return FileResponse(image, content_type=map_content_type_to_image_type(post.content_type))
 
     @swagger_auto_schema(
             operation_summary="Replace the contents of a post.",

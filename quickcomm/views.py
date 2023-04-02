@@ -433,7 +433,7 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
-@author_required 
+@author_required
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = request.author
