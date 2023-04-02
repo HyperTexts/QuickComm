@@ -20,7 +20,7 @@ from quickcomm.authenticators import APIBasicAuthentication
 from quickcomm.external_host_deserializers import import_http_inbox_item
 from quickcomm.pagination import AuthorLikedPagination, AuthorsPagination, CommentLikesPagination, CommentsPagination, FollowersPagination, PostLikesPagination, PostsPagination
 
-from .models import Author, CommentLike, Host, Inbox, Post, Comment, Like, ImageFile
+from .models import Author, CommentLike, Host, Inbox, Post, Comment, Like, ImageFile, RegistrationSettings
 from .serializers import AuthorSerializer, CommentLikeActivitySerializer, LikeActivitySerializer, PostSerializer, CommentSerializer, get_paginated_serializer
 from .models import Author, Post, Comment, Like
 from .serializers import AuthorSerializer, PostSerializer, CommentSerializer
@@ -40,6 +40,13 @@ from drf_yasg.utils import swagger_auto_schema
 # create a decorator that checks if the user is authenticated using API authentication
 def authAPI(view):
     def wrapper(self, request, *args, **kwargs):
+        # get the settings object
+        settings, _ = RegistrationSettings.objects.get_or_create()
+        # check if api authentication is required
+        if settings.allow_api_access_without_login:
+            # if it's not required, then just call the view
+            return view(self, request, *args, **kwargs)
+
         # if the user is authenticated, via either API or session authentication, then
         # call the view
         if request.user.is_authenticated:
