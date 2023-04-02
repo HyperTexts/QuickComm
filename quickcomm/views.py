@@ -16,6 +16,7 @@ from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSett
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
 from django.template.loader import render_to_string
+from django.forms import Form
 
 from quickcomm.models import Author, Follow, Inbox
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
@@ -225,6 +226,7 @@ def post_view(request, post_id, author_id):
     current_author = request.author
     post = get_object_or_404(Post, pk=post_id)
     post_type = post.visibility
+    form = Form()
     if (post_type == 'FRIENDS'):
         post_comments = Comment.objects.filter(Q(author = current_author) | Q(author = post.author),post=post).order_by("-published")
     else:
