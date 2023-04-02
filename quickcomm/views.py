@@ -100,10 +100,10 @@ def create_post(request):
         form = CreatePlainTextForm(request.POST)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request=request)
             return HttpResponseRedirect('/')
         else:
-            form = CreatePlainTextForm()
+            form = CreatePlainTextForm(request.POST)
     else:
         form = CreatePlainTextForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'plain text', 'current_author': current_author,})
