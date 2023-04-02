@@ -936,7 +936,7 @@ class InternalQCRequest(BaseQCRequest):
             'external_url': raw_comment.get('id', None),
             'comment': raw_comment.get('comment', "<Empty comment>"),
             'content_type': raw_comment['contentType'],
-            'published': raw_comment['published'],
+            'published': get_attr(raw_comment, 'published', datetime.datetime.now()),
         }
 
     def map_raw_post_like(self, raw_post_like):
