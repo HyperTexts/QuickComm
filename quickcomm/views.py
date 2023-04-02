@@ -141,10 +141,10 @@ def create_markdown(request):
         form = CreateMarkdownForm(request.POST)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request=request)
             return HttpResponseRedirect('/')
         else:
-            form = CreateMarkdownForm()
+            form = CreateMarkdownForm(request.POST)
     else:
         form = CreateMarkdownForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'CommonMark Markdown', 'current_author': current_author,})
@@ -156,7 +156,7 @@ def create_image(request):
         form = CreateImageForm(request.POST, request.FILES)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request)
             return HttpResponseRedirect('/')
     else:
         form = CreateImageForm()
@@ -230,13 +230,17 @@ def post_view(request, post_id, author_id):
             post_author_dict[post_id] = []
         post_author_dict[post_id].append(author_id)
 
-    form = CreatePlainTextForm()
+    if post.content_type == Post.PostType.TEXT:
+        form = CreatePlainTextForm()
+    elif post.content_type == Post.PostType.MD:
+        form = CreateMarkdownForm()
+        
     current_attributes = {
             "title":post.title,
             "source":post.source,
             "origin":post.origin,
             "description":post.description,
-            "content_type":"text/plain",
+            "content_type":post.content_type,
             "content":post.content,
             "categories":post.categories,
             "author":post.author,
@@ -245,16 +249,27 @@ def post_view(request, post_id, author_id):
     
     if current_author.user == post.author.user:
         if request.method == 'POST':
-            form = CreatePlainTextForm(request.POST, initial=current_attributes)
+            if post.content_type == Post.PostType.TEXT:
+                form = CreatePlainTextForm(request.POST, initial=current_attributes)
+            elif post.content_type == Post.PostType.MD:
+                form = CreateMarkdownForm(request.POST, initial=current_attributes)
+                
             if form.is_valid():
                 form.update_info(current_author,post.id)
                 messages.success(request, "Post successfully changed!")
 
             else:
                 print(form.errors)
-                form = CreatePlainTextForm(initial=current_attributes)
+                if post.content_type == Post.PostType.TEXT:
+                    form = CreatePlainTextForm(request.POST, initial=current_attributes)
+                elif post.content_type == Post.PostType.MD:
+                    form = CreateMarkdownForm(request.POST, initial=current_attributes)
         else:
-            form = CreatePlainTextForm(initial=current_attributes)
+            if post.content_type == Post.PostType.TEXT:
+                form = CreatePlainTextForm(initial=current_attributes)
+            elif post.content_type == Post.PostType.MD:
+                form = CreateMarkdownForm(initial=current_attributes)
+                
     #getting updated post
     post = get_object_or_404(Post, pk=post_id)
     context = {"form":form, "post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
@@ -289,7 +304,6 @@ def post_like(request, post_id, author_id):
     like_count = Like.objects.filter(post__id=post_id).count()
     button = render_to_string("quickcomm/likebutton.html", {"is_liked": is_liked, "like_count": like_count }, request=request)
     return JsonResponse({"is_liked": button}) 
-    # return redirect("post_view", post_id=post_id, author_id=author_id)
 
    
 @login_required
@@ -313,7 +327,6 @@ def like_comment(request, post_id, author_id, comment_id):
     like_count = CommentLike.objects.filter(comment__id=comment_id).count()
     button = render_to_string("quickcomm/likebutton.html", {"is_liked": is_liked, "like_count": like_count }, request=request)
     return JsonResponse({"is_liked": button })
-    # return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @author_required
 def post_comment(request, post_id, author_id):

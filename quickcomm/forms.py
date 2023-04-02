@@ -18,6 +18,8 @@ class CreatePlainTextForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    source = forms.URLField(widget=forms.HiddenInput, required=False)
+    origin = forms.URLField(widget=forms.HiddenInput, required=False)
 
     def save(self, author, request=None):
         post = Post(
@@ -66,6 +68,8 @@ class CreateMarkdownForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    source = forms.URLField(widget=forms.HiddenInput, required=False)
+    origin = forms.URLField(widget=forms.HiddenInput, required=False)
 
     def save(self, author, request):
         post = Post(
@@ -89,6 +93,20 @@ class CreateMarkdownForm(forms.Form):
             pass
         
         return post
+    
+    def update_info(self,author,post_id):
+        post = Post(
+        title=self.cleaned_data['title'],
+        source=self.cleaned_data['source'],
+        origin=self.cleaned_data['origin'],
+        description=self.cleaned_data['description'],
+        content_type="text/markdown",
+        content=self.cleaned_data['content'],
+        categories=self.cleaned_data['categories'],
+        author=author,
+        visibility=self.cleaned_data['visibility'],
+        unlisted=self.cleaned_data['unlisted'])
+        post.update_info(post,post_id)
         return post
 
 class CreateImageForm(forms.Form):
@@ -100,6 +118,8 @@ class CreateImageForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    source = forms.URLField(widget=forms.HiddenInput, required=False)
+    origin = forms.URLField(widget=forms.HiddenInput, required=False)    
 
     def get_content_type(self):
         ct_raw = self.cleaned_data['content'].content_type
