@@ -422,6 +422,10 @@ class Post(models.Model):
             if not ImageFile.objects.filter(post=self).exists():
                 return saved
             
+        # skip inbox if post is unlisted
+        elif self.unlisted:
+            return saved
+            
         else:
             # When we save a post, we also need to create an inbox post for each
             # follower of the author.
