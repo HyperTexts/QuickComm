@@ -1,18 +1,21 @@
+import json
 from dateutil import parser
 from django.db.models import Q, Count
 from django.template.defaulttags import register
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
+from django.urls import reverse
 from quickcomm.external_host_deserializers import sync_comments, sync_post_likes, sync_posts, sync_authors
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
+from django.template.loader import render_to_string
 
 from quickcomm.models import Author, Follow, Inbox
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
@@ -97,7 +100,6 @@ def index(request):
         except:
             continue
 
-
     def get_date(item):
         """Get the date of the item, regardless of whether it's a dict or an object."""
         if isinstance(item, dict):
@@ -123,13 +125,39 @@ def create_post(request):
         form = CreatePlainTextForm(request.POST)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request=request)
             return HttpResponseRedirect('/')
         else:
-            form = CreatePlainTextForm()
+            form = CreatePlainTextForm(request.POST)
     else:
         form = CreatePlainTextForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'plain text', 'current_author': current_author,})
+
+
+@author_required
+def share_post(request, post_id, author_id):
+    current_author = request.author
+    post = Post.objects.filter(id=post_id).get()
+    
+    current_attributes = {
+        "title": post.title,
+        "description": post.description,
+        "content": post.content,
+        "visibility": post.visibility,
+        "unlisted": post.unlisted,
+        "origin": post.origin,
+        "content_type": post.content_type,
+        "author": current_author,
+        "categories": post.categories
+    }
+    if request.method == 'POST':
+        new_post = Post.objects.create(**current_attributes)
+        new_post.save()
+        source = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': current_author.id, 'pk': new_post.id}))
+        new_post.source = source
+        new_post.save()
+        messages.success(request, "Post shared successfully!")
+    return redirect("post_view", post_id=new_post.id, author_id=current_author.id)
 
 r = template.Library()
 @r.filter(name='get_image')
@@ -145,10 +173,10 @@ def create_markdown(request):
         form = CreateMarkdownForm(request.POST)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request=request)
             return HttpResponseRedirect('/')
         else:
-            form = CreateMarkdownForm()
+            form = CreateMarkdownForm(request.POST)
     else:
         form = CreateMarkdownForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'CommonMark Markdown', 'current_author': current_author,})
@@ -160,7 +188,7 @@ def create_image(request):
         form = CreateImageForm(request.POST, request.FILES)
         if form.is_valid():
             author = Author.objects.get(user=request.user)
-            form.save(author)
+            form.save(author, request)
             return HttpResponseRedirect('/')
     else:
         form = CreateImageForm()
@@ -181,7 +209,17 @@ def login(request):
         form = CreateLoginForm()
     return render(request, 'quickcomm/login.html', {'form': form})
 
-# @author_required
+
+@author_required
+def delete_post(request, author_id, post_id):
+    if request.method == 'POST':
+        post = Post.objects.filter(id=post_id).get()
+        if request.user == post.author.user:
+            post.delete()
+            messages.success(request, "Post successfully deleted!")
+
+    return redirect("/")
+
 @friend_required
 def post_view(request, post_id, author_id):
     current_author = request.author
@@ -224,9 +262,49 @@ def post_view(request, post_id, author_id):
             post_author_dict[post_id] = []
         post_author_dict[post_id].append(author_id)
 
+    if post.content_type == Post.PostType.TEXT:
+        form = CreatePlainTextForm()
+    elif post.content_type == Post.PostType.MD:
+        form = CreateMarkdownForm()
+        
+    current_attributes = {
+            "title":post.title,
+            "source":post.source,
+            "origin":post.origin,
+            "description":post.description,
+            "content_type":post.content_type,
+            "content":post.content,
+            "categories":post.categories,
+            "author":post.author,
+            "visibility":post.visibility,
+            "unlisted":post.unlisted}
+    
+    if current_author.user == post.author.user:
+        if request.method == 'POST':
+            if post.content_type == Post.PostType.TEXT:
+                form = CreatePlainTextForm(request.POST, initial=current_attributes)
+            elif post.content_type == Post.PostType.MD:
+                form = CreateMarkdownForm(request.POST, initial=current_attributes)
+                
+            if form.is_valid():
+                form.update_info(current_author,post.id)
+                messages.success(request, "Post successfully changed!")
 
-    context = {"post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
-
+            else:
+                print(form.errors)
+                if post.content_type == Post.PostType.TEXT:
+                    form = CreatePlainTextForm(request.POST, initial=current_attributes)
+                elif post.content_type == Post.PostType.MD:
+                    form = CreateMarkdownForm(request.POST, initial=current_attributes)
+        else:
+            if post.content_type == Post.PostType.TEXT:
+                form = CreatePlainTextForm(initial=current_attributes)
+            elif post.content_type == Post.PostType.MD:
+                form = CreateMarkdownForm(initial=current_attributes)
+                
+    #getting updated post
+    post = get_object_or_404(Post, pk=post_id)
+    context = {"form":form, "post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
     return render(request, "quickcomm/post.html", context)
 
 @register.filter
@@ -248,11 +326,16 @@ def post_like(request, post_id, author_id):
             if Like.objects.filter(post__id=post_id, author=author).exists():
                 postlike = Like.objects.filter(post__id=post_id, author=author)
                 postlike.delete()
+                is_liked = False
             else:
                 postlike = Like.objects.create(post=post, author=author)
+                is_liked = True
             like_key = f"post_like_{post_id}"
             request.session[like_key] = author == post.author
-    return redirect("post_view", post_id=post_id, author_id=author_id)
+
+    like_count = Like.objects.filter(post__id=post_id).count()
+    button = render_to_string("quickcomm/likebutton.html", {"is_liked": is_liked, "like_count": like_count }, request=request)
+    return JsonResponse({"is_liked": button}) 
 
    
 @login_required
@@ -261,30 +344,40 @@ def like_comment(request, post_id, author_id, comment_id):
         if request.user.is_authenticated:
             author = Author.objects.all().get(user=request.user)
             main_comment = get_object_or_404(Comment, id=comment_id)
+            print("\n\n\n\n"+main_comment.comment)
             if CommentLike.objects.filter(comment__id=comment_id, author=author).exists():
                 comment = CommentLike.objects.filter(comment__id=comment_id, author=author)
                 comment.delete()
-
+                is_liked = False
             else:
                 comment = CommentLike.objects.create(comment=main_comment, author=author)
+                is_liked = True
+                
             comment_like_key = f"comment_like_{comment_id}"
             request.session[comment_like_key] = author == main_comment.author
-    return redirect("post_view", post_id=post_id, author_id=author_id)
+
+    like_count = CommentLike.objects.filter(comment__id=comment_id).count()
+    button = render_to_string("quickcomm/likebutton.html", {"is_liked": is_liked, "like_count": like_count }, request=request)
+    return JsonResponse({"is_liked": button })
 
 @author_required
 def post_comment(request, post_id, author_id):
     post = Post.objects.get(pk=post_id)
-
     if request.method == 'POST':
-        form = CreateCommentForm(request.POST)
-        if form.is_valid():
+        
+        text = json.loads(request.body)["comment"]
+        if text:
             author = request.author
             comment = Comment()
             comment.post = post
             comment.author = author
-            comment.comment = form.cleaned_data['comment']
+            comment.comment = text
             comment.save()
-            return redirect('post_comment', post_id=post_id, author_id=author_id)
+            
+            new_comment = render_to_string("quickcomm/comments.html", { "comment": comment }, request=request)
+            return JsonResponse({"comments": new_comment}) 
+        # return redirect('post_comment', post_id=post_id, author_id=author_id)
+
     return redirect("post_view", post_id=post_id, author_id=author_id)
 
 @login_required
@@ -404,7 +497,7 @@ def view_following(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
-
+@author_required
 def view_requests(request,author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
@@ -413,7 +506,7 @@ def view_requests(request,author_id):
         'author':author
     })
 
-@login_required
+@author_required
 def send_follow_request(request,author_id):
     from_user=get_current_author(request)
     to_user=get_object_or_404(Author,pk=author_id)
@@ -431,7 +524,7 @@ def send_follow_request(request,author_id):
         messages.error(request, "Could not process request.")
         return redirect("view_profile", author_id=author_id)
     
-@login_required    
+@author_required    
 def accept_request(request,author_id):
     target=get_current_author(request)
     follower=get_object_or_404(Author,pk=author_id)
@@ -443,7 +536,7 @@ def accept_request(request,author_id):
     messages.success(request, "Request from "+follower.display_name+" accepted!")
     return redirect("view_requests", author_id=author_id)
 
-@login_required
+@author_required
 def unfriend(request,author_id):
     current_author=get_current_author(request)
     following=get_object_or_404(Author,pk=author_id)
@@ -453,20 +546,21 @@ def unfriend(request,author_id):
     messages.success(request, "Unfollowed "+following.display_name)
     return redirect("view_profile", author_id=author_id)
 
-@login_required
+@author_required
 def decline_request(request,author_id):
     from_user=get_current_author(request)
     to_user=get_object_or_404(Author,pk=author_id)
     pass
-                    
+
+@author_required        
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
-    current_author = get_current_author(request)
+    current_author = request.author
 
     if author.is_remote and not author.is_temporary:
         sync_posts(author)
 
-    posts = Post.objects.filter(author=author)
+    posts = Post.objects.filter(author=author, visibility=Post.PostVisibility.PUBLIC)
 
     size = request.GET.get('size', '10')
     paginator = Paginator(posts, size)
@@ -482,13 +576,4 @@ def view_author_posts(request, author_id):
     }
 
     return render(request, 'quickcomm/posts.html', context)
-
-def share_post(request,author_id):
-    author=get_object_or_404(Author,pk=author_id)
-    current_author=get_current_author(request)
-
-    posts = Post.objects.filter(author=author)
-    
-    size=request.GET.get('size','10')
-    pass
 

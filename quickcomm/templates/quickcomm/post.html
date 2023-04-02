@@ -1,95 +1,228 @@
 {% extends 'base.html' %}
 {% load image_extras %}
 {% load external_extras %}
+{% load martortags %}
+{% load django_bootstrap5 %}
+
 {% block content %}
   <div class="card mb-3">
     <div class="card-body">
       <div style="display:flex;">
-        <img src="{{ post.author.profile_image }}" width="75" height="75" class="rounded-circle">
-        <h5 class="card-title align-self-center">{{ post.author }} </h5>
+        <div style="display:flex;">
+          <img src="{{ post.author.profile_image }}" width="75" height="75" class="rounded-circle">
+          <h5 class="card-title align-self-center">{{ post.author }} </h5>
         {% if post.author.host %}
           <div style="margin-left: 10px; margin-top: 10px;">
-          {% externalbadge post.author.host %}
+            {% externalbadge post.author.host %}
           </div>
         {% endif %}
-      </div>
+        </div>
       <h6 class="card-subtitle mb-2 text-muted">{{ post.title }}</h6>
       <p class="card-text"><i>{{ post.description}}</i></p>
-      <!-- <img src="image_url" class="card-img-top" alt="Image"> -->
+        {% if user.is_authenticated and user.id == post.author.user_id %}
+        <div style="margin-left: auto;">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div style="padding-left: 5px;">
+          <form method="post" action="{% url 'delete_post' author_id=post.author.id post_id=post.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+              <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+              <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+        {% endif %}
+      </div>
       {% if post.content_type == post.PostType.PNG %}
         {% image post %}
       {% elif post.content_type == post.PostType.JPG %}
         {% image post %}
-        {% else %}
-      <p class="card-text">{{ post.content }}</p>
+      {% elif post.content_type == post.PostType.MD %}
+        <p class="card-text">{{ post.content|safe_markdown }}</p>
+      {% else %}
+        <p class="card-text">{{ post.content }}</p>
       {% endif %}
-      <p class="text-muted"> Likes : {{ post_dict|get_item:post.id }} </p>
 
       <div class="d-flex justify-content-between align-items-center">
-        <div class="btn-group">
-          {% if current_author.id in post_author_dict|get_item:post.id %}
-            <form action="{% url 'post_like' post.author.id post.id %}" method="post">
-              {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
+        <div class="btn-group">  
+          {% with like_count=post_dict|get_item:post.id %}       
+            {% if current_author.id in post_author_dict|get_item:post.id %}
+              <button type="submit" id="like" onclick="likePost(this)" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
                 <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/></svg>
-                {{ like_count }}
-              </button>
-            </form>
-          {% else %}
-            <form action="{% url 'post_like' post.author.id post.id %}" method="post">
+                  {{ like_count }}
+            {% else %}
+                <button type="submit" id="like" onclick="likePost(this)" class="btn btn-sm btn-outline-secondary">Like <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" width="16" height="16" class="bi bi-heart" viewBox="0 0 16 16">
+                  <path id="like_path" d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/></svg>
+                    {{ like_count }}
+            {% endif %}
+          {% endwith %}
+          {% if not current_author.id == post.author.id %}
+            <form action="{% url 'share_post' post_id=post.id author_id=post.author.id %}" method="post">
               {% csrf_token %}
-              <button type="submit" class="btn btn-sm btn-outline-secondary">Like <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/></svg>
-                {{ like_count }}
+              <button type="submit" class="btn btn-sm btn-outline-secondary">Share <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
+                <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/></svg>
               </button>
-            </form>
+            </form>            
           {% endif %}
-          <button type="button" class="btn btn-sm btn-outline-secondary">Share <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send" viewBox="0 0 16 16">
-            <path d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576 6.636 10.07Zm6.787-8.201L1.591 6.602l4.339 2.76 7.494-7.493Z"/></svg>
-          </button>
         </div>
       </div>
     </div>
     <div class="card-footer">
-      <form action="{% url 'post_comment' post.author.id post.id %}" method="post">
-        {% csrf_token %}
-        <div class="input-group">
-          <input type="text" class="form-control" placeholder="Add a comment..." name="comment">
-          <div class="input-group-append">
-            <button type="submit" class="btn btn-outline-secondary">Comment</button>
-          </div>
+      <div class="input-group">
+        <input type="text" class="form-control" placeholder="Add a comment..." name="comment" id="comment_text">
+        <div class="input-group-append">
+          <button type="submit" onclick="commentPost(this)" class="btn btn-outline-secondary">Comment</button>
         </div>
-      </form>
+      </div>
       <div class="mt-2">
         {% for each_comment in post_comments %}
           <div class="media mt-2" style="display: flex;">
-            <img src="{{each_comment.author.profile_image}}" class="rounded-circle" width="50px" alt="user profile image">
-            <div class="media-body">
-              <h6 class="mt-0"> {{each_comment.author.display_name}}</h6>
-              {{each_comment.comment}}
+            <div id="comments">
+              <img src="{{each_comment.author.profile_image}}" class="rounded-circle" width="50px" alt="user profile image">
+              <div class="media-body">
+                <h6 class="mt-0"> {{each_comment.author.display_name}}</h6>
+                {{each_comment.comment}}
+              </div>
             </div>
             <div style="margin-left: auto;">
               {% if current_author.id in comment_author_dict|get_item:each_comment.id %}
-              <form action="{% url 'like_comment' author_id=post.author.id post_id=post.id comment_id=each_comment.id %}" method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
-                  <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/></svg>
-                </button>
-              </form>
-            {% else %}
-            <form action="{% url 'like_comment' author_id=post.author.id post_id=post.id comment_id=each_comment.id %}" method="post">
-              {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-outline-secondary">Like <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
-                  <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/></svg>
-                </button>
-              </form>
-            {% endif %}
-              <p class="text-muted">Likes: {{ comment_dict|get_item:each_comment.id }}</p>
-
+                  <button type="submit" onclick="likeComment(this.id, '{% url 'like_comment' author_id=post.author.id post_id=post.id comment_id=each_comment.id %}')" id="cl_{{forloop.counter}}" class="btn btn-sm btn-outline-secondary">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                    <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/></svg>
+                    {{ comment_dict|get_item:each_comment.id }}
+                  </button>
+              {% else %}
+                  <button type="submit" onclick="likeComment(this.id, '{% url 'like_comment' author_id=post.author.id post_id=post.id comment_id=each_comment.id %}')" id="cl_{{forloop.counter}}" class="btn btn-sm btn-outline-secondary">Like <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-heart" viewBox="0 0 16 16">
+                    <path d="m8 2.748-.717-.737C5.6.281 2.514.878 1.4 3.053c-.523 1.023-.641 2.5.314 4.385.92 1.815 2.834 3.989 6.286 6.357 3.452-2.368 5.365-4.542 6.286-6.357.955-1.886.838-3.362.314-4.385C13.486.878 10.4.28 8.717 2.01L8 2.748zM8 15C-7.333 4.868 3.279-3.04 7.824 1.143c.06.055.119.112.176.171a3.12 3.12 0 0 1 .176-.17C12.72-3.042 23.333 4.867 8 15z"/></svg>
+                    {{ comment_dict|get_item:each_comment.id }}
+                  </button>
+              {% endif %}
             </div>
           </div>
         {% endfor %}
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Editing Post</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="post">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                {% bootstrap_button button_type="submit" content="Save" %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Delete Post</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="post">
+                {% csrf_token %}
+                <p> Are you sure you want to delete this post?</p>
+                {% bootstrap_button button_type="submit" content="Yes, I'm sure" %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">No, cancel</button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>  
+  // The following function are copying from 
+  // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+  }
+
+  function likePost() {
+    var url = "{%  url 'post_like' author_id=post.author.id post_id=post.id %}";
+    const csrfCookie = getCookie("csrftoken")
+    const sessionCookie = getCookie("sessionid")
+
+    fetch(url, {
+        method: 'POST',
+        body: JSON.stringify({}),        
+        headers: { "X-CSRFToken": csrfCookie}
+    }).then( response => {
+      res = response.json();
+      return res;
+    })
+    .then(data => {
+      console.log(data.is_liked)
+      document.getElementById("like").innerHTML = data.is_liked;
+    });
+
+  };
+
+  function commentPost() {
+    var url = "{%  url 'post_comment' author_id=post.author.id post_id=post.id %}";
+    const csrfCookie = getCookie("csrftoken");
+    const val = document.getElementById("comment_text").value;
+
+    fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        comment: val
+      }),        
+      headers: { "X-CSRFToken": csrfCookie}
+    }).then( response => {
+      res = response.json();
+      return res;
+    })
+    .then(data => {
+      document.getElementById('comments').insertAdjacentHTML('afterBegin', data.comments);
+    });
+  }
+
+
+  function likeComment(html_id, url) {
+    const csrfCookie = getCookie("csrftoken");
+    fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({}),        
+      headers: { "X-CSRFToken": csrfCookie}
+    }).then( response => {
+      res = response.json();
+      return res;
+    })
+    .then(data => {
+      document.getElementById(html_id).innerHTML = data.is_liked;
+    });
+  }
+  </script> 
+
 {% endblock %}
+

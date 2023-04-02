@@ -4,6 +4,7 @@ from quickcomm.validators import validate_image_upload_format
 from .models import ImageFile, Post, Author, Comment
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
+from django.urls import reverse
 
 # This file contains all the form resposes that the API wil uses.
 
@@ -17,13 +18,15 @@ class CreatePlainTextForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    source = forms.URLField(widget=forms.HiddenInput, required=False)
+    origin = forms.URLField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, **kwargs):
         super(CreatePlainTextForm, self).__init__(*args, **kwargs)
         choices = list(Author.objects.values_list('id', 'display_name'))
         self.fields['visibility'].choices = list(self.fields['visibility'].choices) + choices
 
-    def save(self, author):
+    def save(self, author, request=None):
         recipient = None
         visibility = self.cleaned_data['visibility']
         if visibility != 'PUBLIC' and visibility != 'FRIENDS':
@@ -32,8 +35,6 @@ class CreatePlainTextForm(forms.Form):
 
         post = Post(
             title=self.cleaned_data['title'],
-            source='http://localhost:8000',
-            origin='http://localhost:8000',
             description=self.cleaned_data['description'],
             content_type="text/plain",
             content=self.cleaned_data['content'],
@@ -44,6 +45,29 @@ class CreatePlainTextForm(forms.Form):
             recipient=recipient
         )
         post.save()
+        try:
+            uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
+            post.source = uri
+            post.origin = uri
+            post.save()
+        except Exception as e:
+            pass
+        
+        return post
+    
+    def update_info(self,author,post_id):
+        post = Post(
+        title=self.cleaned_data['title'],
+        source=self.cleaned_data['source'],
+        origin=self.cleaned_data['origin'],
+        description=self.cleaned_data['description'],
+        content_type="text/plain",
+        content=self.cleaned_data['content'],
+        categories=self.cleaned_data['categories'],
+        author=author,
+        visibility=self.cleaned_data['visibility'],
+        unlisted=self.cleaned_data['unlisted'])
+        post.update_info(post,post_id)
         return post
 
 class CreateMarkdownForm(forms.Form):
@@ -56,22 +80,25 @@ class CreateMarkdownForm(forms.Form):
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
 
+
+    source = forms.URLField(widget=forms.HiddenInput, required=False)
+    origin = forms.URLField(widget=forms.HiddenInput, required=False)
+
     def __init__(self, *args, **kwargs):
         super(CreateMarkdownForm, self).__init__(*args, **kwargs)
         choices = list(Author.objects.values_list('id', 'display_name'))
         self.fields['visibility'].choices = list(self.fields['visibility'].choices) + choices
 
-    def save(self, author):
+
+    def save(self, author, request=None):
         recipient = None
         visibility = self.cleaned_data['visibility']
         if visibility != 'PUBLIC' and visibility != 'FRIENDS':
             visibility = 'PRIVATE'
             recipient = self.cleaned_data['visibility']
-            
+
         post = Post(
             title=self.cleaned_data['title'],
-            source='http://localhost:8000',
-            origin='http://localhost:8000',
             description=self.cleaned_data['description'],
             content_type="text/markdown",
             content=self.cleaned_data['content'],
@@ -82,6 +109,29 @@ class CreateMarkdownForm(forms.Form):
             recipient=recipient
         )
         post.save()
+        try:
+            uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
+            post.source = uri
+            post.origin = uri
+            post.save()
+        except Exception as e:
+            pass
+        
+        return post
+    
+    def update_info(self,author,post_id):
+        post = Post(
+        title=self.cleaned_data['title'],
+        source=self.cleaned_data['source'],
+        origin=self.cleaned_data['origin'],
+        description=self.cleaned_data['description'],
+        content_type="text/markdown",
+        content=self.cleaned_data['content'],
+        categories=self.cleaned_data['categories'],
+        author=author,
+        visibility=self.cleaned_data['visibility'],
+        unlisted=self.cleaned_data['unlisted'])
+        post.update_info(post,post_id)
         return post
 
 class CreateImageForm(forms.Form):
@@ -93,6 +143,8 @@ class CreateImageForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+    source = forms.URLField(widget=forms.HiddenInput, required=False)
+    origin = forms.URLField(widget=forms.HiddenInput, required=False)    
 
     def __init__(self, *args, **kwargs):
         super(CreateImageForm, self).__init__(*args, **kwargs)
@@ -107,7 +159,7 @@ class CreateImageForm(forms.Form):
             return Post.PostType.PNG
         return None
 
-    def save(self, author):
+    def save(self, author, request=None):
         recipient = None
         visibility = self.cleaned_data['visibility']
         if visibility != 'PUBLIC' and visibility != 'FRIENDS':
@@ -116,8 +168,6 @@ class CreateImageForm(forms.Form):
 
         post = Post(
             title=self.cleaned_data['title'],
-            source='http://localhost:8000',
-            origin='http://localhost:8000',
             description=self.cleaned_data['description'],
             content_type=self.get_content_type(),
             content="",
@@ -128,6 +178,14 @@ class CreateImageForm(forms.Form):
             recipient=recipient
         )
         post.save()
+        try:
+            uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
+            post.source = uri
+            post.origin = uri
+            post.save()
+        except Exception as e:
+            print(e)
+            pass
 
         # Save the image to the media folder
         image = ImageFile(
