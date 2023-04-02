@@ -294,10 +294,13 @@ class Author(models.Model):
         return Post.objects.filter(author=self).count()
 
     def get_requests(self):
-        return FollowRequest.objects.filter(to_user=self)
+        requests =  FollowRequest.objects.filter(to_user=self)
+        followers = self.get_followers().values('follower')
+        return requests.exclude(from_user__in=followers)
     def requests_count(self):
-        return FollowRequest.objects.filter(to_user=self).count()
-    
+        """return number of follow requests for author (self) that do not exist in the follow table"""
+        return self.get_requests().count()
+
 
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
@@ -439,12 +442,6 @@ class Post(models.Model):
         if self.author.is_remote:
             return saved
 
-        # skip inbox if image with post is not saved yet
-        if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
-            if not ImageFile.objects.filter(post=self).exists():
-                print('no image saved')
-                return saved
-            
         # skip inbox if post is unlisted
         if self.unlisted:
             print('unlisted')

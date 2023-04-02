@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
 from django.urls import reverse
-from quickcomm.external_host_deserializers import sync_comments, sync_post_likes, sync_posts, sync_authors
+from quickcomm.external_host_deserializers import sync_comments, sync_followers, sync_post_likes, sync_posts, sync_authors
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
@@ -243,10 +243,10 @@ def post_view(request, post_id, author_id):
     comment_author_dict = {}
     for item in comment_like_list:
         comment_id = item['comment_id']
-        author_id = item['author__id']
+        author_id_t = item['author__id']
         if comment_id not in comment_author_dict:
             comment_author_dict[comment_id] = []
-        comment_author_dict[comment_id].append(author_id)
+        comment_author_dict[comment_id].append(author_id_t)
 
     #dictionary with likes for each post
     result = Like.objects.values('post_id').annotate(num_authors=Count('author', distinct=True))
@@ -258,11 +258,11 @@ def post_view(request, post_id, author_id):
     post_like_list = Like.objects.select_related('author').values('post_id', 'author__id').annotate(count=Count('author'))
     post_author_dict = {}
     for item in post_like_list:
-        post_id = item['post_id']
-        author_id = item['author__id']
-        if post_id not in post_author_dict:
-            post_author_dict[post_id] = []
-        post_author_dict[post_id].append(author_id)
+        post_id_t = item['post_id']
+        author_id_t = item['author__id']
+        if post_id_t not in post_author_dict:
+            post_author_dict[post_id_t] = []
+        post_author_dict[post_id_t].append(author_id_t)
 
     if post.content_type == Post.PostType.TEXT:
         form = CreatePlainTextForm()
@@ -303,7 +303,7 @@ def post_view(request, post_id, author_id):
                 form = CreatePlainTextForm(initial=current_attributes)
             elif post.content_type == Post.PostType.MD:
                 form = CreateMarkdownForm(initial=current_attributes)
-                
+
     #getting updated post
     post = get_object_or_404(Post, pk=post_id)
     context = {"form":form, "post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
@@ -364,6 +364,7 @@ def like_comment(request, post_id, author_id, comment_id):
 
 @author_required
 def post_comment(request, post_id, author_id):
+    current_author = request.author
     post = Post.objects.get(pk=post_id)
     if request.method == 'POST':
         
@@ -375,9 +376,9 @@ def post_comment(request, post_id, author_id):
             comment.author = author
             comment.comment = text
             comment.save()
-            
-            new_comment = render_to_string("quickcomm/comments.html", { "comment": comment }, request=request)
-            return JsonResponse({"comments": new_comment}) 
+
+            new_comment = render_to_string("minicomment.html", { "comment": comment, "current_author": current_author }, request=request)
+            return JsonResponse({"comments": new_comment + "<hr>"})
         # return redirect('post_comment', post_id=post_id, author_id=author_id)
 
     return redirect("post_view", post_id=post_id, author_id=author_id)
@@ -441,6 +442,10 @@ def view_profile(request, author_id):
     current_author = request.author
     form = EditProfileForm()
 
+    if author.is_remote and not author.is_temporary:
+        sync_posts(author)
+        sync_followers(author)
+
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
     if current_author.user == author.user:
         if request.method == 'POST':
@@ -490,14 +495,13 @@ def remove_follower(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = request.author
 
-    if author != current_author:
-        # delete the follow
-        follow_obj = Follow.objects.filter(follower=author, following=current_author)
-        follow_obj.delete()
+    # delete the follow
+    follow_obj = Follow.objects.filter(follower=author, following=current_author)
+    follow_obj.delete()
 
-        # delete the follow request
-        follow_request = FollowRequest.objects.filter(from_user=author, to_user=current_author)
-        follow_request.delete()
+    # delete the follow request
+    follow_request = FollowRequest.objects.filter(from_user=author, to_user=current_author)
+    follow_request.delete()
 
     # redirect to next param
     next = request.GET.get('next', None)
@@ -615,7 +619,7 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
-@author_required        
+@author_required
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = request.author
