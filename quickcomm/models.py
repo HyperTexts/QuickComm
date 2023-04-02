@@ -289,7 +289,10 @@ class Author(models.Model):
     
     def following_count(self):
         return Follow.objects.filter(follower=self).count()
-    
+
+    def posts_count(self):
+        return Post.objects.filter(author=self).count()
+
     def get_requests(self):
         return FollowRequest.objects.filter(to_user=self)
     def requests_count(self):
@@ -595,6 +598,14 @@ class Comment(models.Model):
     def context(self):
         """Returns the context for this post."""
         return 'https://www.w3.org/ns/activitystreams'
+
+    def like_count(self):
+        """Returns the number of likes for this comment."""
+        return CommentLike.objects.filter(comment=self).count()
+
+    def like_ids(self):
+        """Returns the ids of authors who have liked this comment."""
+        return [like.author.id for like in CommentLike.objects.filter(comment=self)]
 
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
