@@ -2,6 +2,8 @@
 {% load image_extras %}
 {% load external_extras %}
 {% load post_extras %}
+{% load martortags %}
+
 {% block content %}
   <div class="card mb-3">
     <div class="card-body">
@@ -21,7 +23,9 @@
         {% image post %}
       {% elif post.content_type == post.PostType.JPG %}
         {% image post %}
-        {% else %}
+      {% elif post.content_type == post.PostType.MD %}
+      <p class="card-text">{{ post.content|safe_markdown }}</p>
+      {% else %}
       <p class="card-text">{{ post.content }}</p>
       {% endif %}
 
