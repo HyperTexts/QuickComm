@@ -302,7 +302,7 @@ class Author(models.Model):
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
         given author. In other words, a true friend."""
-        return self.is_following(author) and self.is_followed_by(author)
+        return (self.is_following(author) and self.is_followed_by(author)) or self == author
 
     def follow(self, author):
         """Follows the given author."""
@@ -352,7 +352,6 @@ class Follow(models.Model):
 
     def delete(self, *args, **kwargs):
         if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
-            print("Yes")
             Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
         deleted=super(Follow,self).delete(*args,**kwargs)
         return deleted
@@ -424,12 +423,14 @@ class Post(models.Model):
     categories = models.CharField(max_length=1000)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(
-        max_length=50, choices=PostVisibility.choices)
+        max_length=50)
     unlisted = models.BooleanField(default=False)
     external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
     likes = models.ManyToManyField(User, related_name='post_likes')
+    recipient = models.UUIDField(editable=False, null=True)
 
     def save(self, *args, **kwargs):
+        print('starting post save')
         saved = super(Post, self).save(*args, **kwargs)
 
         # FIXME move saving image logic here?
@@ -441,25 +442,71 @@ class Post(models.Model):
         # skip inbox if image with post is not saved yet
         if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
             if not ImageFile.objects.filter(post=self).exists():
+                print('no image saved')
                 return saved
+            
+        # skip inbox if post is unlisted
+        if self.unlisted:
+            print('unlisted')
+            return saved
+        
+        # if visibility is private, we only send to the inbox of the recipient and the author of the post
+        elif self.visibility == 'PRIVATE':
+            try:
+                print('private')
+                print(self.author.id, self.recipient)
+                author = Author.objects.get(id=self.recipient)
+                if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=author).exists():
+                    Inbox.objects.create(content_object=self, author=author, inbox_type=Inbox.InboxType.POST)
 
-        # When we save a post, we also need to create an inbox post for each
-        # follower of the author.
+                # We also include the author as a follower of themselves to simplify
+                # the inbox logic.
+                if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
+                    Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
+            except:
+                print(f'Failed to find author with id {self.recipient}')
 
-        followers = Follow.objects.filter(following=self.author)
+            return saved
+            
+        else:
+            print('public or follower')
+            # When we save a post, we also need to create an inbox post for each
+            # follower of the author.
 
-        for follower in followers:
-            print(follower.follower)
-            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
-                Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
+            followers = Follow.objects.filter(following=self.author)
 
+            for follower in followers:
+                # If this is a friend post, only create the post for true friends
+                if (self.visibility == 'FRIENDS' and follower.is_bidirectional()) or self.visibility == 'PUBLIC':
+                    if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
+                        Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
 
-        # We also include the author as a follower of themselves to simplify
-        # the inbox logic.
-        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
-            Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
+            # We also include the author as a follower of themselves to simplify
+            # the inbox logic.
+            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
+                Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
 
         return saved
+    
+    def update_info(self,post_info,post_id):
+        post = Post.objects.filter(id=post_id, author=self.author)
+        post.update(title=self.title,
+        source=self.source,
+        origin=self.origin,
+        description=self.description,
+        content_type=self.content_type,
+        content=self.content,
+        categories=self.categories,
+        author=self.author,
+        visibility=self.visibility,
+        unlisted=self.unlisted)
+        return post
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
+
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
@@ -619,7 +666,9 @@ class ImageFile(models.Model):
 
     def save(self, *args, **kwargs):
         res = super(ImageFile, self).save(*args, **kwargs)
+        print('image should be saved')
         self.post.save()
+        print('second post save should have started')
         return res
 
 class Inbox(models.Model):

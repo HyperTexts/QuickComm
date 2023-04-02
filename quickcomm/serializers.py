@@ -46,7 +46,7 @@ class AuthorSerializer(serializers.ModelSerializer):
         if obj.external_url is not None:
             return obj.external_url
         if obj.host is None:
-            return request.build_absolute_uri(reverse('author-detail', args=[obj.id]))
+            return request.build_absolute_uri(reverse('api:author-detail', args=[obj.id]))
         else:
             return obj.external_url
 
@@ -95,7 +95,7 @@ class CommentSerializer(serializers.ModelSerializer):
         """This method defines a custom getter that returns the absolute URL of
         the post as the ID."""
         request = self.context.get('request')
-        return request.build_absolute_uri(reverse('comment-detail', kwargs={'pk': obj.id.__str__(), 'posts_pk': obj.post_id.__str__(), 'authors_pk': obj.post.author_id.__str__()}))
+        return request.build_absolute_uri(reverse('api:comment-detail', kwargs={'pk': obj.id.__str__(), 'posts_pk': obj.post_id.__str__(), 'authors_pk': obj.post.author_id.__str__()}))
 
     @staticmethod
     def get_examples():
@@ -165,8 +165,8 @@ class PostSerializer(serializers.ModelSerializer):
     id = serializers.SerializerMethodField()
     url = serializers.SerializerMethodField(method_name='get_id')
     title = serializers.CharField(required=False)
-    source = serializers.URLField(required=False)
-    origin = serializers.URLField(required=False)
+    source = serializers.SerializerMethodField(method_name='get_source')
+    origin = serializers.SerializerMethodField(method_name='get_origin')
     description = serializers.CharField(required=False)
     contentType = serializers.CharField(required=False, source='content_type')
     content = serializers.SerializerMethodField()
@@ -196,10 +196,26 @@ class PostSerializer(serializers.ModelSerializer):
                 return encoded_string.decode('utf-8')
 
         return obj.content
+    
+    def get_source(self,obj):
+        request = self.context.get('request')
+        if not obj.source:
+            return request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'pk': obj.id.__str__()}))
+        else:
+            return obj.source
+        
+    def get_origin(self, obj):
+        request = self.context.get('request')
+        if not obj.origin:
+            return request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'pk': obj.id.__str__()}))
+        else:
+            return obj.origin
+
+    
 
     def get_comments(self, obj):
         return self.context.get('request').build_absolute_uri(
-        reverse('comment-list', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.id.__str__()}))
+        reverse('api:comment-list', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.id.__str__()}))
 
     def get_comments_src(self, obj):
         page = 1,
@@ -215,8 +231,8 @@ class PostSerializer(serializers.ModelSerializer):
             "type": "comments",
             "page": page,
             "size": size,
-            "post": request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'pk': obj.id.__str__()})),
-            "id": request.build_absolute_uri(reverse('comment-list', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.id.__str__()
+            "post": request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'pk': obj.id.__str__()})),
+            "id": request.build_absolute_uri(reverse('api:comment-list', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.id.__str__()
                                                                              })),
             "comments": serializer.data,
         }
@@ -293,7 +309,7 @@ class PostSerializer(serializers.ModelSerializer):
         """This method defines a custom getter that returns the absolute URL of
         the post as the ID."""
         request = self.context.get('request')
-        return request.build_absolute_uri(reverse('post-detail', kwargs={'pk': obj.id.__str__(), 'authors_pk': obj.author_id.__str__()}))
+        return request.build_absolute_uri(reverse('api:post-detail', kwargs={'pk': obj.id.__str__(), 'authors_pk': obj.author_id.__str__()}))
 
     class Meta:
         model = Post
@@ -359,7 +375,7 @@ class CommentActivitySerializer(serializers.ModelSerializer):
             if obj.post.external_url:
                 return obj.post.external_url
             request = self.context.get('request')
-            return request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.post_id.__str__()}))
+            return request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.post_id.__str__()}))
 
         def get_summary(self, obj):
             return obj.author.display_name.__str__() + " commented on your post"
@@ -384,7 +400,7 @@ class LikeActivitySerializer(serializers.ModelSerializer):
         if obj.post.external_url:
             return obj.post.external_url
         request = self.context.get('request')
-        return request.build_absolute_uri(reverse('post-detail', kwargs={'pk': obj.post_id.__str__(), 'authors_pk': obj.author_id.__str__()}))
+        return request.build_absolute_uri(reverse('api:post-detail', kwargs={'pk': obj.post_id.__str__(), 'authors_pk': obj.author_id.__str__()}))
 
     def get_summary(self, obj):
         return obj.author.display_name.__str__() + " Likes your post"
@@ -428,7 +444,7 @@ class CommentLikeActivitySerializer(serializers.ModelSerializer):
         if obj.comment.external_url:
             return obj.comment.external_url
         request = self.context.get('request')
-        return request.build_absolute_uri(reverse('comment-detail', kwargs={'pk': obj.comment_id.__str__(), 'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.comment.post_id.__str__()}))
+        return request.build_absolute_uri(reverse('api:comment-detail', kwargs={'pk': obj.comment_id.__str__(), 'authors_pk': obj.author_id.__str__(), 'posts_pk': obj.comment.post_id.__str__()}))
 
     def get_summary(self, obj):
         return obj.author.display_name.__str__() + " Likes your comment"
