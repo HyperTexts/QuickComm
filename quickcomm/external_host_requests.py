@@ -874,7 +874,7 @@ class Group1QCRequest(BaseQCRequest):
         # # can't have null values in the json post
         self.set_null_to_empty_string(activity_data)
 
-        return activity_data
+        return activity_data['object']
 
     def map_outbound_comment(self, activity_data):
 
@@ -884,7 +884,7 @@ class Group1QCRequest(BaseQCRequest):
             # can't have null values in the json post
             self.set_null_to_empty_string(activity_data)
 
-            return activity_data
+            return activity_data['comment']
 
     def map_outbound_like(self, activity_data):
             activity_data['type'] = activity_data['type'].lower()
