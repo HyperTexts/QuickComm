@@ -492,7 +492,7 @@ def view_following(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
-
+@author_required
 def view_requests(request,author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
