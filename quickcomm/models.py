@@ -348,7 +348,6 @@ class Follow(models.Model):
         return saved
     def delete(self, *args, **kwargs):
         if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
-            print("Yes")
             Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
         deleted=super(Follow,self).delete(*args,**kwargs)
         return deleted
@@ -426,7 +425,6 @@ class Post(models.Model):
         # follower of the author.
 
         followers = Follow.objects.filter(following=self.author)
-
         for follower in followers:
             print(follower.follower)
             if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
@@ -439,6 +437,26 @@ class Post(models.Model):
             Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
 
         return saved
+    
+    def update_info(self,post_info,post_id):
+        post = Post.objects.filter(id=post_id, author=self.author)
+        post.update(title=self.title,
+        source=self.source,
+        origin=self.origin,
+        description=self.description,
+        content_type=self.content_type,
+        content=self.content,
+        categories=self.categories,
+        author=self.author,
+        visibility=self.visibility,
+        unlisted=self.unlisted)
+        return post
+
+    def delete(self, *args, **kwargs):
+        # cascade delete inbox items
+        Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
+        super(Post, self).delete(*args, **kwargs)
+
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items

@@ -72,7 +72,6 @@ def index(request):
         except:
             continue
 
-
     def get_date(item):
         """Get the date of the item, regardless of whether it's a dict or an object."""
         if isinstance(item, dict):
@@ -157,6 +156,16 @@ def login(request):
     return render(request, 'quickcomm/login.html', {'form': form})
 
 @author_required
+def delete_post(request, author_id, post_id):
+    if request.method == 'POST':
+        post = Post.objects.filter(id=post_id).get()
+        if request.user == post.author.user:
+            post.delete()
+            messages.success(request, "Post successfully deleted!")
+
+    return redirect("/")
+
+@author_required
 def post_view(request, post_id, author_id):
     current_author = request.author
     post = get_object_or_404(Post, pk=post_id)
@@ -198,9 +207,34 @@ def post_view(request, post_id, author_id):
             post_author_dict[post_id] = []
         post_author_dict[post_id].append(author_id)
 
+    form = CreatePlainTextForm()
+    current_attributes = {
+            "title":post.title,
+            "source":post.source,
+            "origin":post.origin,
+            "description":post.description,
+            "content_type":"text/plain",
+            "content":post.content,
+            "categories":post.categories,
+            "author":post.author,
+            "visibility":post.visibility,
+            "unlisted":post.unlisted}
+    
+    if current_author.user == post.author.user:
+        if request.method == 'POST':
+            form = CreatePlainTextForm(request.POST, initial=current_attributes)
+            if form.is_valid():
+                form.update_info(current_author,post.id)
+                messages.success(request, "Post successfully changed!")
 
-    context = {"post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
-
+            else:
+                print(form.errors)
+                form = CreatePlainTextForm(initial=current_attributes)
+        else:
+            form = CreatePlainTextForm(initial=current_attributes)
+    #getting updated post
+    post = get_object_or_404(Post, pk=post_id)
+    context = {"form":form, "post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
     return render(request, "quickcomm/post.html", context)
 
 @register.filter
