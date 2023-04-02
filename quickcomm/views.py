@@ -408,7 +408,7 @@ def view_requests(request,author_id):
         'author':author
     })
 
-@login_required
+@author_required
 def send_follow_request(request,author_id):
     from_user=get_current_author(request)
     to_user=get_object_or_404(Author,pk=author_id)
@@ -426,7 +426,7 @@ def send_follow_request(request,author_id):
         messages.error(request, "Could not process request.")
         return redirect("view_profile", author_id=author_id)
     
-@login_required    
+@author_required    
 def accept_request(request,author_id):
     target=get_current_author(request)
     follower=get_object_or_404(Author,pk=author_id)
@@ -438,7 +438,7 @@ def accept_request(request,author_id):
     messages.success(request, "Request from "+follower.display_name+" accepted!")
     return redirect("view_requests", author_id=author_id)
 
-@login_required
+@author_required
 def unfriend(request,author_id):
     current_author=get_current_author(request)
     following=get_object_or_404(Author,pk=author_id)
@@ -448,20 +448,21 @@ def unfriend(request,author_id):
     messages.success(request, "Unfollowed "+following.display_name)
     return redirect("view_profile", author_id=author_id)
 
-@login_required
+@author_required
 def decline_request(request,author_id):
     from_user=get_current_author(request)
     to_user=get_object_or_404(Author,pk=author_id)
     pass
-                    
+            
+@author_required        
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
-    current_author = get_current_author(request)
+    current_author = request.author
 
     if author.is_remote and not author.is_temporary:
         sync_posts(author)
 
-    posts = Post.objects.filter(author=author)
+    posts = Post.objects.filter(author=author, visibility=Post.PostVisibility.PUBLIC)
 
     size = request.GET.get('size', '10')
     paginator = Paginator(posts, size)
