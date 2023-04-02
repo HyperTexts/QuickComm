@@ -111,4 +111,5 @@ urlpatterns = [
     path('authors/<uuid:author_id>/requests/', views.view_requests, name='view_requests'),
     path('unfriend/<uuid:author_id>/',views.unfriend,name='unfriend'),
     path('authors/<uuid:author_id>/following',views.view_following,name='view_following'),
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),
 ]
