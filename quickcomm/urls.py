@@ -95,9 +95,11 @@ urlpatterns = [
     path('create/markdown', views.create_markdown, name='create_markdown'),
     path('authors/', views.view_authors, name='view_authors'),
     path('authors/<uuid:author_id>/', views.view_profile, name='view_profile'),
+    path('authors/<uuid:author_id>/follow', views.follow, name='follow_author'),
     path('authors/<uuid:author_id>/posts', views.view_author_posts, name='view_author_posts'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/', views.post_view, name='post_view'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_liked', views.post_like, name='post_like'),
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/share_post', views.share_post, name='share_post'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/post_comment', views.post_comment, name='post_comment'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/<uuid:comment_id>/like_comment', views.like_comment, name='like_comment'),
     path('authors/<uuid:author_id>/followers/', views.view_followers, name='view_followers'),
@@ -111,4 +113,5 @@ urlpatterns = [
     path('authors/<uuid:author_id>/following',views.view_following,name='view_following'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/share_post',views.share_public_post, name='share_public_post'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/share_to_friends',views.share_to_friends, name='share_to_friends')
+    path('authors/<uuid:author_id>/posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),
 ]

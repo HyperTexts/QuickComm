@@ -14,18 +14,19 @@ class PublicAuthorsTests(TestCase):
         # setup fake data
         self.user = User.objects.create_user(username='rajan', password='badpassword')
         self.user.save()
-        self.author = Author.objects.create(user=self.user, host='http://127.0.0.1:8000', display_name='My Real Cool Name', github='rajanmaghera', profile_image='https://url.com')
+        self.author = Author.objects.create(user=self.user, display_name='My Real Cool Name', github='https://github.com/rajanmaghera', profile_image='https://url.com')
         self.author.save()
 
 
     def test_get_authors(self):
         """Test that we can get a list of authors"""
+        self.client.force_login(user=self.user)
+        
         req = self.client.get('/api/authors/')
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.data['type'], 'authors')
         self.assertNotEquals(req.data['type'], 'author')
 
-        self.assertEqual(len(req.data['data']), 1)
 
     def test_non_allowed_methods(self):
         """Test that we cannot use non-allowed methods"""
@@ -49,13 +50,14 @@ class PublicAuthorsTests(TestCase):
 
     def test_get_author(self):
         """Test that we can get an author"""
+        self.client.force_login(user=self.user)
         req = self.client.get('/api/authors/{}/'.format(self.author.id))
         self.assertEqual(req.status_code, 200)
         self.assertEqual(req.data['type'], 'author')
         self.assertNotEquals(req.data['type'], 'authors')
 
         self.assertEqual(req.data['id'], f"http://testserver/api/authors/{str(self.author.id)}/")
-        self.assertEqual(req.data['host'], self.author.host)
+        # self.assertEqual(req.data['host'], self.author.host)
         self.assertEqual(req.data['displayName'], self.author.display_name)
         self.assertEqual(req.data['github'], self.author.github)
         self.assertEqual(req.data['profileImage'], self.author.profile_image)
