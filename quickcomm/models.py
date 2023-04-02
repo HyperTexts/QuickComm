@@ -417,7 +417,7 @@ class Post(models.Model):
     origin = models.URLField(blank=True, null=True, validators=[URLValidator])
     description = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=PostType.choices)
-    content = models.CharField(max_length=10000)
+    content = models.CharField(max_length=1000000000)
     # FIXME categories has to be a list of strings of some sort
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
@@ -469,19 +469,12 @@ class Post(models.Model):
     @property
     def content_formatted(self):
         """Returns the content of the post as either base64 or plain text."""
-        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
-            file = ImageFile.objects.get(post=self).image.read()
-            return base64.b64encode(file).decode('utf-8')
         return self.content
 
     @content_formatted.setter
     def content_formatted(self, value):
         """Sets the content of the post from either base64 or plain text."""
-        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
-            ImageFile.objects.get(post=self).delete()
-            ImageFile.objects.create(post=self, image=base64.b64decode(value)).save()
-        else:
-            self.content = value
+        self.content = value
 
     def get_image_url(self, request):
         """Returns the absolute URL of the image associated with the post."""
