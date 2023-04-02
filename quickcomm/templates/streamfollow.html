@@ -4,12 +4,17 @@
     <div class="card-header">
     <p class="card-text">
       <strong>{{ time|naturaltime }}</strong>
-      <a href={% url "view_profile" author_id=follow.follower.id %}>@{{ follow.follower.display_name }}</a> is now following you.
+      <a href={% url "view_profile" author_id=follow.from_user.id %}>@{{ follow.from_user.display_name }}</a> wants to follow you.
     </p>
     </div>
     <div class="card-body">
-        <h5 class="card-title">{{ follow.follower.display_name }} </h5>
-        {% comment %} <a href="#" class="btn btn-primary">Approve</a>
-        <a href="#" class="btn btn-danger">Deny</a> {% endcomment %}
+        <h5 class="card-title">{{ follow.from_user.display_name }} </h5>
+        {% if is_following %}
+          <p>Following</p>
+        {% else %}
+          <a href="{% url "approve_follow" follow.id %}?next={{ request.path|urlencode }}" class="btn btn-primary">Approve</a>
+          <a href="{% url "deny_follow" follow.id %}?next={{ request.path|urlencode }}
+          " class="btn btn-danger">Deny</a>
+        {% endif %}
     </div>
 </div>

@@ -3,6 +3,7 @@ from datetime import datetime
 from dateutil import parser
 
 from quickcomm.external_requests import get_github_message, get_github_url
+from quickcomm.models import Follow
 
 
 register = template.Library()
@@ -35,7 +36,9 @@ def streampost(inbox_content):
 def streamfollow(inbox_content):
     follow = inbox_content.content_object
     time = inbox_content.added
-    return {'follow': follow, 'time': time}
+
+    is_following = Follow.objects.filter(following=follow.to_user, follower=follow.from_user).exists()
+    return {'follow': follow, 'time': time, 'is_following': is_following}
 
 @register.inclusion_tag('streamgh.html')
 def streamgh(stream):
