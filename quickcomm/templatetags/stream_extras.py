@@ -51,3 +51,15 @@ def streamgh(stream):
 @register.inclusion_tag('minipost.html')
 def minipost(post):
     return {'post': post}
+
+@register.inclusion_tag('miniauthor.html')
+def miniauthor(author):
+    return {'author': author}
+
+@register.inclusion_tag('tinyauthor.html')
+def tinyauthor(author):
+    return {'author': author}
+
+@register.inclusion_tag('minicomment.html')
+def minicomment(author, comment):
+    return {'comment': comment, 'current_author': author}
