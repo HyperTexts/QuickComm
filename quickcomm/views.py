@@ -572,12 +572,3 @@ def view_author_posts(request, author_id):
 
     return render(request, 'quickcomm/posts.html', context)
 
-# def share_post(request,author_id):
-#     author=get_object_or_404(Author,pk=author_id)
-#     current_author=get_current_author(request)
-
-#     posts = Post.objects.filter(author=author)
-    
-#     size=request.GET.get('size','10')
-#     pass
-
