@@ -13,8 +13,6 @@ class CreatePlainTextForm(forms.Form):
     """A form for creating a plain text post."""
 
     title = forms.CharField(max_length=100)
-    # source = forms.URLField(validators=[URLValidator])
-    # origin = forms.URLField(validators=[URLValidator])
     description = forms.CharField(max_length=1000)
     content = forms.CharField(widget=forms.Textarea())
     categories = forms.CharField(max_length=1000)
@@ -24,8 +22,6 @@ class CreatePlainTextForm(forms.Form):
     def save(self, author, request=None):
         post = Post(
             title=self.cleaned_data['title'],
-            # source=self.cleaned_data['source'],
-            # origin=self.cleaned_data['origin'],
             description=self.cleaned_data['description'],
             content_type="text/plain",
             content=self.cleaned_data['content'],
@@ -36,9 +32,7 @@ class CreatePlainTextForm(forms.Form):
         )
         post.save()
         try:
-            print("Trying here")
             uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
-            print("Trying here")
             post.source = uri
             post.origin = uri
             post.save()
@@ -47,24 +41,35 @@ class CreatePlainTextForm(forms.Form):
             pass
         
         return post
+    
+    def update_info(self,author,post_id):
+        post = Post(
+        title=self.cleaned_data['title'],
+        source=self.cleaned_data['source'],
+        origin=self.cleaned_data['origin'],
+        description=self.cleaned_data['description'],
+        content_type="text/plain",
+        content=self.cleaned_data['content'],
+        categories=self.cleaned_data['categories'],
+        author=author,
+        visibility=self.cleaned_data['visibility'],
+        unlisted=self.cleaned_data['unlisted'])
+        post.update_info(post,post_id)
+        return post
 
 class CreateMarkdownForm(forms.Form):
     """A form for creating a markdown post."""
 
     title = forms.CharField(max_length=100)
-    # source = forms.URLField(validators=[URLValidator])
-    # origin = forms.URLField(validators=[URLValidator])
     description = forms.CharField(max_length=1000)
     content = MartorFormField()
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
 
-    def save(self, author):
+    def save(self, author, request):
         post = Post(
             title=self.cleaned_data['title'],
-            # source=self.cleaned_data['source'],
-            # origin=self.cleaned_data['origin'],
             description=self.cleaned_data['description'],
             content_type="text/markdown",
             content=self.cleaned_data['content'],
@@ -74,14 +79,22 @@ class CreateMarkdownForm(forms.Form):
             unlisted=self.cleaned_data['unlisted']
         )
         post.save()
+        try:
+            uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
+            post.source = uri
+            post.origin = uri
+            post.save()
+        except Exception as e:
+            print(e)
+            pass
+        
+        return post
         return post
 
 class CreateImageForm(forms.Form):
     """A form for creating an image post."""
 
     title = forms.CharField(max_length=100)
-    # source = forms.URLField(validators=[URLValidator])
-    # origin = forms.URLField(validators=[URLValidator])
     description = forms.CharField(max_length=1000)
     content = forms.ImageField(validators=[validate_image_upload_format])
     categories = forms.CharField(max_length=1000)
@@ -96,12 +109,10 @@ class CreateImageForm(forms.Form):
             return Post.PostType.PNG
         return None
 
-    def save(self, author):
+    def save(self, author, request):
 
         post = Post(
             title=self.cleaned_data['title'],
-            # source=self.cleaned_data['source'],
-            # origin=self.cleaned_data['origin'],
             description=self.cleaned_data['description'],
             content_type=self.get_content_type(),
             content="",
@@ -111,6 +122,14 @@ class CreateImageForm(forms.Form):
             unlisted=self.cleaned_data['unlisted']
         )
         post.save()
+        try:
+            uri = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author.id, 'pk': post.id}))
+            post.source = uri
+            post.origin = uri
+            post.save()
+        except Exception as e:
+            print(e)
+            pass
 
         # Save the image to the media folder
         image = ImageFile(
