@@ -219,6 +219,7 @@ def post_view(request, post_id, author_id):
             "author":post.author,
             "visibility":post.visibility,
             "unlisted":post.unlisted}
+    
     if current_author.user == post.author.user:
         if request.method == 'POST':
             form = CreatePlainTextForm(request.POST, initial=current_attributes)

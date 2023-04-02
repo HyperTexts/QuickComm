@@ -35,6 +35,7 @@ class CreatePlainTextForm(forms.Form):
         )
         post.save()
         return post
+    
     def update_info(self,author,post_id):
         post = Post(
         title=self.cleaned_data['title'],
