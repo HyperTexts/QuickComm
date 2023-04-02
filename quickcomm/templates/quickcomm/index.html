@@ -8,7 +8,9 @@
 
     {% for item in inbox %}
         {% if item.format == 'inbox' %}
-            {% if item.inbox_type == item.InboxType.LIKE %}
+            {% if item.content_object == None %}
+                <div></div>
+            {% elif item.inbox_type == item.InboxType.LIKE %}
                 {% streamlike item %}
             {% elif item.inbox_type == item.InboxType.COMMENTLIKE %}
                 {% streamcommentlike item %}

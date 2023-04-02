@@ -2,21 +2,45 @@
 {% load image_extras %}
 {% load external_extras %}
 {% load martortags %}
+{% load django_bootstrap5 %}
 
 {% block content %}
   <div class="card mb-3">
     <div class="card-body">
       <div style="display:flex;">
-        <img src="{{ post.author.profile_image }}" width="75" height="75" class="rounded-circle">
-        <h5 class="card-title align-self-center">{{ post.author }} </h5>
+        <div style="display:flex;">
+          <img src="{{ post.author.profile_image }}" width="75" height="75" class="rounded-circle">
+          <h5 class="card-title align-self-center">{{ post.author }} </h5>
         {% if post.author.host %}
           <div style="margin-left: 10px; margin-top: 10px;">
           {% externalbadge post.author.host %}
           </div>
         {% endif %}
-      </div>
+        </div>
       <h6 class="card-subtitle mb-2 text-muted">{{ post.title }}</h6>
       <p class="card-text"><i>{{ post.description}}</i></p>
+        {% if user.is_authenticated and user.id == post.author.user_id %}
+        <div style="margin-left: auto;">
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
+                    <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"></path>
+                </svg>
+            </button>
+        </div>
+
+        <div style="padding-left: 5px;">
+          <form method="post" action="{% url 'delete_post' author_id=post.author.id post_id=post.id %}" method="post">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
+              <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z"/>
+              <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z"/>
+            </svg>
+          </button>
+        </form>
+      </div>
+        {% endif %}
+      </div>
       <!-- <img src="image_url" class="card-img-top" alt="Image"> -->
       {% if post.content_type == post.PostType.PNG %}
         {% image post %}
@@ -83,6 +107,44 @@
       </div>
     </div>
   </div>
+
+  <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Editing Post</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="post">
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                {% bootstrap_button button_type="submit" content="Save" %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Delete Post</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <form method="post">
+                {% csrf_token %}
+                <p> Are you sure you want to delete this post?</p>
+                {% bootstrap_button button_type="submit" content="Yes, I'm sure" %}
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">No, cancel</button>
+            </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  
   <script>  
   // The following function are copying from 
   // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
@@ -158,4 +220,6 @@
     });
   }
   </script> 
+
 {% endblock %}
+
