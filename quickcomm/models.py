@@ -298,7 +298,7 @@ class Author(models.Model):
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
         given author. In other words, a true friend."""
-        return self.is_following(author) and self.is_followed_by(author)
+        return (self.is_following(author) and self.is_followed_by(author)) or self == author
 
     def follow(self, author):
         """Follows the given author."""

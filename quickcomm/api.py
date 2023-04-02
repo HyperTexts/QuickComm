@@ -184,7 +184,7 @@ class FollowerViewSet(viewsets.ModelViewSet):
             return Author.objects.none()
 
         self.paginator.upper_response_param = 'author'
-        self.paginator.upper_url = self.request.build_absolute_uri(reverse('author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
 
         try:
             return Author.objects.filter(follower__following=self.kwargs['authors_pk'])
@@ -261,7 +261,7 @@ class PostViewSet(viewsets.ModelViewSet):
             return Post.objects.none()
 
         self.paginator.upper_response_param = 'author'
-        self.paginator.upper_url = self.request.build_absolute_uri(reverse('author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
         try:
             return Post.objects.filter(author=self.kwargs['authors_pk'])
         except:
@@ -376,7 +376,7 @@ class AuthorLikedViewSet(viewsets.ModelViewSet):
             return Like.objects.none()
 
         self.paginator.upper_response_param = 'author'
-        self.paginator.upper_url = self.request.build_absolute_uri(reverse('author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
         try:
             return Like.objects.filter(author=self.kwargs['authors_pk'])
         except:
@@ -408,7 +408,7 @@ class PostLikesViewSet(viewsets.ModelViewSet):
             return Like.objects.none()
 
         self.paginator.upper_response_param = 'post'
-        self.paginator.upper_url = self.request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': self.kwargs['authors_pk'], 'pk': self.kwargs['posts_pk']}))
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': self.kwargs['authors_pk'], 'pk': self.kwargs['posts_pk']}))
         try:
             return Like.objects.filter(post=self.kwargs['posts_pk'], post__author=self.kwargs['authors_pk'])
         except:
@@ -441,7 +441,7 @@ class CommentLikesViewSet(viewsets.ModelViewSet):
             return CommentLike.objects.none()
 
         self.paginator.upper_response_param = 'comment'
-        self.paginator.upper_url = self.request.build_absolute_uri(reverse('comment-detail', kwargs={'authors_pk': self.kwargs['authors_pk'], 'posts_pk': self.kwargs['posts_pk'], 'pk': self.kwargs['comments_pk']}))
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:comment-detail', kwargs={'authors_pk': self.kwargs['authors_pk'], 'posts_pk': self.kwargs['posts_pk'], 'pk': self.kwargs['comments_pk']}))
         try:
             return CommentLike.objects.filter(comment=self.kwargs['comments_pk'], comment__post=self.kwargs['posts_pk'], comment__post__author=self.kwargs['authors_pk'])
         except:
@@ -480,7 +480,7 @@ class CommentViewSet(viewsets.ModelViewSet):
             return Comment.objects.none()
 
         self.paginator.upper_response_param = 'post'
-        self.paginator.upper_url = self.request.build_absolute_uri(reverse('post-detail', kwargs={'authors_pk': self.kwargs['authors_pk'],
+        self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': self.kwargs['authors_pk'],
         'pk': self.kwargs['posts_pk']}))
         try:
             return Comment.objects.filter(post=self.kwargs['posts_pk'], post__author=self.kwargs['authors_pk'])
