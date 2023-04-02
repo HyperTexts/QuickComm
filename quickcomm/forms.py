@@ -12,8 +12,6 @@ class CreatePlainTextForm(forms.Form):
     """A form for creating a plain text post."""
 
     title = forms.CharField(max_length=100)
-    source = forms.URLField(validators=[URLValidator])
-    origin = forms.URLField(validators=[URLValidator])
     description = forms.CharField(max_length=1000)
     content = forms.CharField(widget=forms.Textarea())
     categories = forms.CharField(max_length=1000)
@@ -23,8 +21,8 @@ class CreatePlainTextForm(forms.Form):
     def save(self, author):
         post = Post(
             title=self.cleaned_data['title'],
-            source=self.cleaned_data['source'],
-            origin=self.cleaned_data['origin'],
+            source='http://localhost:8000',
+            origin='http://localhost:8000',
             description=self.cleaned_data['description'],
             content_type="text/plain",
             content=self.cleaned_data['content'],
@@ -55,8 +53,6 @@ class CreateMarkdownForm(forms.Form):
     """A form for creating a markdown post."""
 
     title = forms.CharField(max_length=100)
-    source = forms.URLField(validators=[URLValidator])
-    origin = forms.URLField(validators=[URLValidator])
     description = forms.CharField(max_length=1000)
     content = MartorFormField()
     categories = forms.CharField(max_length=1000)
@@ -66,8 +62,8 @@ class CreateMarkdownForm(forms.Form):
     def save(self, author):
         post = Post(
             title=self.cleaned_data['title'],
-            source=self.cleaned_data['source'],
-            origin=self.cleaned_data['origin'],
+            source='http://localhost:8000',
+            origin='http://localhost:8000',
             description=self.cleaned_data['description'],
             content_type="text/markdown",
             content=self.cleaned_data['content'],
@@ -83,8 +79,6 @@ class CreateImageForm(forms.Form):
     """A form for creating an image post."""
 
     title = forms.CharField(max_length=100)
-    source = forms.URLField(validators=[URLValidator])
-    origin = forms.URLField(validators=[URLValidator])
     description = forms.CharField(max_length=1000)
     content = forms.ImageField(validators=[validate_image_upload_format])
     categories = forms.CharField(max_length=1000)
@@ -103,8 +97,8 @@ class CreateImageForm(forms.Form):
 
         post = Post(
             title=self.cleaned_data['title'],
-            source=self.cleaned_data['source'],
-            origin=self.cleaned_data['origin'],
+            source='http://localhost:8000',
+            origin='http://localhost:8000',
             description=self.cleaned_data['description'],
             content_type=self.get_content_type(),
             content="",

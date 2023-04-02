@@ -420,21 +420,23 @@ class Post(models.Model):
         if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
             if not ImageFile.objects.filter(post=self).exists():
                 return saved
+            
+        else:
+            # When we save a post, we also need to create an inbox post for each
+            # follower of the author.
 
-        # When we save a post, we also need to create an inbox post for each
-        # follower of the author.
+            followers = Follow.objects.filter(following=self.author)
 
-        followers = Follow.objects.filter(following=self.author)
-        for follower in followers:
-            print(follower.follower)
-            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
-                Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
+            for follower in followers:
+                # If this is a friend post, only create the post for true friends
+                if (self.visibility != 'PUBLIC' and follower.is_bidirectional()) or self.visibility == 'PUBLIC':
+                    if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
+                        Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
 
-
-        # We also include the author as a follower of themselves to simplify
-        # the inbox logic.
-        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
-            Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
+            # We also include the author as a follower of themselves to simplify
+            # the inbox logic.
+            if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
+                Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
 
         return saved
     
