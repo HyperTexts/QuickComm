@@ -1,6 +1,6 @@
-<div>
-    <img src="{{comment.author.profile_image}}" class="rounded-circle" width="50px" alt="user profile image">
+<div id="comments">
+    <img src="{{each_comment.author.profile_image}}" class="rounded-circle" width="50px" alt="user profile image">
     <div class="media-body">
-      <h6 class="mt-0"> {{comment.author.display_name}}</h6>
-      {{comment.comment}}
+      <h6 class="mt-0"> {{each_comment.author.display_name}}</h6>
+      {{each_comment.comment}}
 </div>
