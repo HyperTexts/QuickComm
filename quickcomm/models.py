@@ -403,12 +403,14 @@ class Post(models.Model):
     categories = models.CharField(max_length=1000)
     published = models.DateTimeField(auto_now_add=True)
     visibility = models.CharField(
-        max_length=50, choices=PostVisibility.choices)
+        max_length=50)
     unlisted = models.BooleanField(default=False)
     external_url = models.URLField(blank=True, null=True, validators=[URLValidator])
     likes = models.ManyToManyField(User, related_name='post_likes')
+    recipient = models.UUIDField(editable=False, null=True)
 
     def save(self, *args, **kwargs):
+        print('starting post save')
         saved = super(Post, self).save(*args, **kwargs)
 
         # FIXME move saving image logic here?
@@ -420,13 +422,34 @@ class Post(models.Model):
         # skip inbox if image with post is not saved yet
         if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
             if not ImageFile.objects.filter(post=self).exists():
+                print('no image saved')
                 return saved
             
         # skip inbox if post is unlisted
-        elif self.unlisted:
+        if self.unlisted:
+            print('unlisted')
+            return saved
+        
+        # if visibility is private, we only send to the inbox of the recipient and the author of the post
+        elif self.visibility == 'PRIVATE':
+            try:
+                print('private')
+                print(self.author.id, self.recipient)
+                author = Author.objects.get(id=self.recipient)
+                if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=author).exists():
+                    Inbox.objects.create(content_object=self, author=author, inbox_type=Inbox.InboxType.POST)
+
+                # We also include the author as a follower of themselves to simplify
+                # the inbox logic.
+                if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
+                    Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
+            except:
+                print(f'Failed to find author with id {self.recipient}')
+
             return saved
             
         else:
+            print('public or follower')
             # When we save a post, we also need to create an inbox post for each
             # follower of the author.
 
@@ -434,7 +457,7 @@ class Post(models.Model):
 
             for follower in followers:
                 # If this is a friend post, only create the post for true friends
-                if (self.visibility != 'PUBLIC' and follower.is_bidirectional()) or self.visibility == 'PUBLIC':
+                if (self.visibility == 'FRIENDS' and follower.is_bidirectional()) or self.visibility == 'PUBLIC':
                     if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=follower.follower).exists():
                         Inbox.objects.create(content_object=self, author=follower.follower, inbox_type=Inbox.InboxType.POST)
 
@@ -603,7 +626,9 @@ class ImageFile(models.Model):
 
     def save(self, *args, **kwargs):
         res = super(ImageFile, self).save(*args, **kwargs)
+        print('image should be saved')
         self.post.save()
+        print('second post save should have started')
         return res
 
 class Inbox(models.Model):

@@ -56,7 +56,12 @@ def friend_required(func):
             try:
                 author = Author.objects.get(user=request.user)
                 post = Post.objects.get(id=kwargs['post_id'])
-                if post.visibility != 'PUBLIC' and not author.is_bidirectional(post.author):
+                # check if this is a private or friend post
+                if post.visibility == 'PRIVATE' and not (author.id == post.recipient or author == post.author):
+                    print(author.id, post.author.id, post.recipient)
+                    print(author.id == post.recipient or author == post.author)
+                    return render(request, 'quickcomm/notallowed.html')
+                elif post.visibility == 'FRIENDS' and not author.is_bidirectional(post.author):
                     return render(request, 'quickcomm/notallowed.html')
             except Author.DoesNotExist:
                 return render(request, 'quickcomm/noauthorerror.html')
