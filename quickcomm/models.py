@@ -387,15 +387,13 @@ class FollowRequest(models.Model):
         # When we save a follow, we also need to create an inbox post for the
         # author being followed.
 
-
-        # If both the follower and following are remote, we do not need to
-        # create an inbox post.
-        # if self.follower.is_remote and self.following.is_remote:
-        #     return saved
-
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.to_user, inbox_type=Inbox.InboxType.FOLLOW)
+
         return saved
+
+    def __str__(self):
+        return f"{self.from_user.__str__()} requests to follow {self.to_user.__str__()}"
 
 class Post(models.Model):
     """A post is a post made by an author."""

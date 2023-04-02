@@ -163,6 +163,46 @@ class PostInlineForAuthor(admin.TabularInline):
     def title(self, obj: Post):
         return obj.title
 
+class FollowingInlineForAuthor(admin.TabularInline):
+    model = Follow
+    fk_name = 'follower'
+    extra = 0
+    fields = ['following']
+    show_change_link = False
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description='Author is following')
+    def following(self, obj: Follow):
+        return obj.following
+
+class FollowerInlineForAuthor(admin.TabularInline):
+    model = Follow
+    fk_name = 'following'
+    extra = 0
+    fields = ['follower']
+    show_change_link = False
+    can_delete = False
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description='Author is followed by')
+    def follower(self, obj: Follow):
+        return obj.follower
+
+
+
+
+
 
 @admin.register(Author)
 class AuthorAdmin(admin.ModelAdmin):
@@ -170,7 +210,7 @@ class AuthorAdmin(admin.ModelAdmin):
     readonly_fields = ('host', 'external_url', 'location', 'profile_image_html')
     actions_on_top = True
     actions = ['sync_posts', 'clear_posts', 'sync_followers', 'clear_followers']
-    inlines = [PostInlineForAuthor]
+    inlines = [PostInlineForAuthor, FollowingInlineForAuthor, FollowerInlineForAuthor]
 
     change_form_template = 'admin/edit_author.html'
 
@@ -190,7 +230,7 @@ class AuthorAdmin(admin.ModelAdmin):
     @admin.display(description="Profile Image")
     def profile_image_html(self, obj: Author):
         if obj is None or obj.profile_image is None:
-            return format(f"<p>No image found</p>")
+            return format(f"No image found")
 
         return format_html(f"<img src={obj.profile_image} width=100pt height=100pt />")
 
