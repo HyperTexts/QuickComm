@@ -776,6 +776,7 @@ class RegistrationSettings(models.Model):
     """A flag for admin users to determine if new users are active or not by default.
     Should only have 1 value in database"""
     are_new_users_active = models.BooleanField(default=True)
+    allow_api_access_without_login = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.are_new_users_active.__str__()}"
