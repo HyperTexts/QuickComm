@@ -30,7 +30,7 @@
                 <div class="col-md-2 align-self-center">
                     <a href="{% url 'send_follow_request' author.id %}" class="btn btn-outline-primary me-2">Follow</a>
                 </div>
-            {% elif user.is_authenticated and user.id != author.user_id and not is_requested%}
+            {% elif user.is_authenticated and user.id != author.user_id and is_following %}
                 <div class="col-md-2 align-self-center">
                     <a href="{% url 'unfriend' author.id %}" class="btn btn-outline-primary me-2">Unfollow</a>
                 </div>
@@ -54,6 +54,13 @@
             </div>
         </div>
     </div>
+
+    {% if following_me %}
+        <div>
+            {{ author.display_name }} is following you!
+            <a href="{% url 'remove_follower' author.id %}?next={{ request.path }}" class="btn btn-outline-primary me-2">Remove Follower</a>
+        </div>
+    {% endif %}
 
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">

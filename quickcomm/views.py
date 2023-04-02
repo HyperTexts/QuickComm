@@ -320,12 +320,6 @@ def view_profile(request, author_id):
     current_author = request.author
     form = EditProfileForm()
 
-    if not current_author:
-        return render(request, 'quickcomm/profile.html', {
-                    'author': author,
-                    'form': form
-                    })
-
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
     if current_author.user == author.user:
         if request.method == 'POST':
@@ -337,15 +331,21 @@ def view_profile(request, author_id):
                 form = EditProfileForm(initial=current_attributes)
         else:
             form = EditProfileForm(initial=current_attributes)
+
     current_author = request.author
     author = get_object_or_404(Author, pk=author_id)
-    
+
+    # determine if the remote author is following the current author
+    following_me = Follow.objects.filter(following=current_author, follower=author).exists()
+
+
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
                     'current_author': current_author,
                     'form': form,
                     'is_following': current_author.is_following(author),
                     'is_requested': FollowRequest.objects.filter(from_user=current_author, to_user=author).exists(),
+                    'following_me': following_me,
                     })
 
 @author_required
@@ -359,6 +359,27 @@ def follow(request, author_id):
 
 
     return redirect('view_profile', author_id=author_id)
+
+@author_required
+def remove_follower(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = request.author
+
+    if author != current_author:
+        # delete the follow
+        follow_obj = Follow.objects.filter(follower=author, following=current_author)
+        follow_obj.delete()
+
+        # delete the follow request
+        follow_request = FollowRequest.objects.filter(from_user=author, to_user=current_author)
+        follow_request.delete()
+
+    # redirect to next param
+    next = request.GET.get('next', None)
+    if next:
+        return redirect(next)
+    else:
+        return redirect('view_profile', author_id=author_id)
 
 @author_required
 def view_followers(request, author_id):
@@ -404,8 +425,39 @@ def send_follow_request(request,author_id):
     else:
         messages.error(request, "Could not process request.")
         return redirect("view_profile", author_id=author_id)
-    
-@login_required    
+
+@author_required
+def approve_follow(request, follow_id):
+    followreq = get_object_or_404(FollowRequest, pk=follow_id)
+    follow = Follow.objects.create(follower=followreq.from_user, following=followreq.to_user)
+    follow.save()
+
+    messages.success(request, "Follow request approved.")
+
+    # get next parameter
+    next = request.GET.get('next', None)
+    if next:
+        return redirect(next)
+    else:
+        return redirect('index')
+
+@author_required
+def deny_follow(request, follow_id):
+    followreq = get_object_or_404(FollowRequest, pk=follow_id)
+    followreq.delete()
+
+    messages.success(request, "Follow request denied.")
+
+    # get next parameter
+    next = request.GET.get('next', None)
+    if next:
+        return redirect(next)
+    else:
+        return redirect('index')
+
+# TODO add messages everywhere
+
+@login_required
 def accept_request(request,author_id):
     target=get_current_author(request)
     follower=get_object_or_404(Author,pk=author_id)
@@ -419,10 +471,15 @@ def accept_request(request,author_id):
 
 @login_required
 def unfriend(request,author_id):
+
     current_author=get_current_author(request)
     following=get_object_or_404(Author,pk=author_id)
     unfriended_person=Follow.objects.get(follower=current_author,following=following)
     unfriended_person.delete()
+
+    # remove friend request
+    friend_request = FollowRequest.objects.filter(from_user=current_author, to_user=following)
+    friend_request.delete()
 
     messages.success(request, "Unfollowed "+following.display_name)
     return redirect("view_profile", author_id=author_id)
