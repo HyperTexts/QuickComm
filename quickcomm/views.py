@@ -339,8 +339,12 @@ def view_profile(request, author_id):
     following_me = Follow.objects.filter(following=current_author, follower=author).exists()
 
 
+    posts = Post.objects.filter(author=author)
+
+
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
+                    'page_obj': posts,
                     'current_author': current_author,
                     'form': form,
                     'is_following': current_author.is_following(author),

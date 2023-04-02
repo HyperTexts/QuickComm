@@ -2,13 +2,14 @@
 {% load humanize %}
 
 {% if like.author.user.username %}
-<div class="card mb-3">
-    <div class="card-header">
-    <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a href={% url "view_profile" author_id=like.author.id %}>@{{ like.author.user.username }}</a> liked your comment.</p>
+<hr>
+<div class="mb-3">
+    <div class="card-header qc-stream-header">
+    <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a class="qc-hover-link" href={% url "view_profile" author_id=like.author.id %}>{{ like.author.display_name }}</a> liked your comment on post
+        <a class="qc-hover-link" href={% url "post_view" author_id=like.comment.post.author.id post_id=like.comment.post.id %}>{{ like.comment.post.title }}</a>.</p>
     </div>
     <div class="card-body">
-        <p>@{{ like.author.user.username }}: {{ like.comment.comment }}</p>
-        {% minipost like.comment.post %}
+        {% minicomment None like.comment %}
     </div>
 </div>
 {% endif %}

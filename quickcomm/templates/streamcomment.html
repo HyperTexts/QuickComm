@@ -1,17 +1,15 @@
 {% load stream_extras %}
 {% load humanize %}
 
-<div class="card mb-3">
-  <div class="card-header">
+<hr>
+<div class="mb-3">
+    <div class="card-header qc-stream-header">
     <p class="card-text">
       <strong>{{ time|naturaltime }}</strong>
-      <a href={% url "view_profile" author_id=comment.author.id %}>@{{ comment.author.display_name }}</a> commented on your
-      post.
-    </p>
+      <a class="qc-hover-link"href={% url "view_profile" author_id=comment.author.id %}>{{ comment.author.display_name }}</a> commented on your post
+        <a class="qc-hover-link" href={% url "post_view" author_id=comment.post.author.id post_id=comment.post.id %}>{{ comment.post.title }}</a>.</p>
   </div>
   <div class="card-body">
-
-    <p>@{{ comment.author.user.username }}: {{ comment.comment }}</p>
-    {% minipost comment.post %}
+        {% minicomment None comment %}
   </div>
 </div>
