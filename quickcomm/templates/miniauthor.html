@@ -1,0 +1,34 @@
+
+    <div>
+        <div style="display: flex; flex-direction: row; align-items: center; justify-content: start;">
+        {% if not author.profile_image %}
+            <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="75" height="75" class="rounded-circle" style="margin-right: 10pt;">
+        {% else %}
+            <img src="{{ author.profile_image }}" width="75" height="75" class="rounded-circle" style="margin-right: 10pt;">
+        {% endif %}
+            <div style="display: inline;">
+                <h4><a href={% url 'view_profile' author.id %} class="qc-hover-link">
+            {{ author.display_name }}</a></h4>
+                <p class="card-text qc-host-tag">{{ author.host.url }}</p>
+            </div>
+            <div style="margin-left: auto; width: 6em; align-self: flex-end; text-align: center; border-left: 1px solid #e9ecef;
+            ">
+                <h2>{{author.follower_count}}</h2>
+<a class="qc-hover-link" href = "{% url 'view_followers' author.id %}">
+                <i>followers</i></a>
+            </div>
+            <div style="align-self: flex-end; width: 6em; text-align: center; border-left: 1px solid #e9ecef;">
+                <h2>
+                    {{author.following_count}}</h2>
+                    <a class="qc-hover-link" href="{%  url 'view_following' author.id %}">
+                <i>following</i></a>
+            </div>
+            <div style="align-self: flex-end; width: 6em; text-align: center; border-left: 1px solid #e9ecef; border-right: 1px solid #e9ecef;">
+                <h2>{{author.posts_count}}</h2>
+                <a class="qc-hover-link" href="{% url 'view_profile' author.id %}
+">
+                <i>posts</i>
+                </a>
+            </div>
+        </div>
+    </div>
