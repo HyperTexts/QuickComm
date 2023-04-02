@@ -884,6 +884,7 @@ class Group1QCRequest(BaseQCRequest):
             # can't have null values in the json post
             self.set_null_to_empty_string(activity_data)
 
+            activity_data['comment']['object'] = activity_data['object']
             return activity_data['comment']
 
     def map_outbound_like(self, activity_data):
