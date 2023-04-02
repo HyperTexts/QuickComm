@@ -3,7 +3,7 @@ from rest_framework import serializers
 from rest_framework_nested.relations import NestedHyperlinkedRelatedField
 from rest_framework.reverse import reverse
 from django.urls import reverse as django_reverse
-from .models import Author, ImageFile, Post, Comment, Follow, Like
+from .models import Author, FollowRequest, ImageFile, Post, Comment, Follow, Like
 from .pagination import CommentsPagination
 from django.core.paginator import Paginator
 
@@ -333,14 +333,14 @@ class FollowActivitySerializer(serializers.ModelSerializer):
 
     type = serializers.CharField(default='Follow', read_only=True)
     summary = serializers.SerializerMethodField()
-    actor = AuthorSerializer(read_only=True, source='follower')
-    object = AuthorSerializer(read_only=True, source='following')
+    actor = AuthorSerializer(read_only=True, source='from_user') # FROM
+    object = AuthorSerializer(read_only=True, source='to_user') # TO
 
     def get_summary(self, obj):
-        return obj.follower.display_name.__str__() + " wants to follow " + obj.following.display_name.__str__()
+        return obj.from_user.display_name.__str__() + " wants to follow " + obj.to_user.display_name.__str__()
 
     class Meta:
-        model = Follow
+        model = FollowRequest
         fields = ('@context', 'summary', 'type', 'actor', 'object')
         extra_kwargs = {
             '@context': {'read_only': True, 'source': 'context'},

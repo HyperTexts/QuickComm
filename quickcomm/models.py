@@ -336,16 +336,16 @@ class Follow(models.Model):
         # When we save a follow, we also need to create an inbox post for the
         # author being followed.
 
-        # TODO follow is still having some issues on when to run
 
         # If both the follower and following are remote, we do not need to
         # create an inbox post.
         # if self.follower.is_remote and self.following.is_remote:
         #     return saved
 
-        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
-            Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
+        # if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
+        #     Inbox.objects.create(content_object=self, author=self.following, inbox_type=Inbox.InboxType.FOLLOW)
         return saved
+
     def delete(self, *args, **kwargs):
         if Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
@@ -375,6 +375,25 @@ class FollowRequest(models.Model):
     """A request is a prompt for a user to accept a follower"""
     from_user=models.ForeignKey(Author, on_delete=models.CASCADE,related_name='from_user')
     to_user=models.ForeignKey(Author,on_delete=models.CASCADE,related_name='to_user')
+
+    @property
+    def context(self):
+        return 'https://www.w3.org/ns/activitystreams'
+
+    def save(self, *args, **kwargs):
+        saved = super(FollowRequest, self).save(*args, **kwargs)
+        # When we save a follow, we also need to create an inbox post for the
+        # author being followed.
+
+
+        # If both the follower and following are remote, we do not need to
+        # create an inbox post.
+        # if self.follower.is_remote and self.following.is_remote:
+        #     return saved
+
+        if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
+            Inbox.objects.create(content_object=self, author=self.to_user, inbox_type=Inbox.InboxType.FOLLOW)
+        return saved
 
 class Post(models.Model):
     """A post is a post made by an author."""
