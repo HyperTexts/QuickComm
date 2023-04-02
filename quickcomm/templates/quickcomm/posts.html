@@ -3,11 +3,19 @@
 {% load stream_extras %}
 
 {% block content %}
-    <h1>{{author.display_name}}'s Posts</h1>
+    <h6>{{author.display_name}}'s Posts</h6>
+    <div style="flex-flow: row wrap; max-width: 768px; margin: auto;">
         {% for post in page_obj %}
+        <div style="break-inside: avoid; padding: 10px;">
+            <hr>
             {% minipost post %}
+        </div>
 
         {% endfor %}
+        <hr>
+    </div>
+    <hr>
+
 
     <nav aria-label="post list pages">
         <ul class="pagination">
