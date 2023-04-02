@@ -9,6 +9,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
+from django.urls import reverse
 from quickcomm.external_host_deserializers import sync_comments, sync_post_likes, sync_posts, sync_authors
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
@@ -126,6 +127,32 @@ def create_post(request):
     else:
         form = CreatePlainTextForm()
     return render(request, 'quickcomm/create.html', {'form': form, 'post_type': 'plain text', 'current_author': current_author,})
+
+
+@author_required
+def share_post(request, post_id, author_id):
+    current_author = request.author
+    post = Post.objects.filter(id=post_id).get()
+    
+    current_attributes = {
+        "title": post.title,
+        "description": post.description,
+        "content": post.content,
+        "visibility": post.visibility,
+        "unlisted": post.unlisted,
+        "origin": post.origin,
+        "content_type": post.content_type,
+        "author": current_author,
+        "categories": post.categories
+    }
+    if request.method == 'POST':
+        new_post = Post.objects.create(**current_attributes)
+        new_post.save()
+        source = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': current_author.id, 'pk': new_post.id}))
+        new_post.source = source
+        new_post.save()
+        messages.success(request, "Post shared successfully!")
+    return redirect("post_view", post_id=new_post.id, author_id=current_author.id)
 
 r = template.Library()
 @r.filter(name='get_image')
@@ -465,7 +492,7 @@ def view_following(request, author_id):
                     'author': author,
                     'current_author': current_author,
                     })
-
+@author_required
 def view_requests(request,author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = get_current_author(request)
@@ -544,13 +571,4 @@ def view_author_posts(request, author_id):
     }
 
     return render(request, 'quickcomm/posts.html', context)
-
-def share_post(request,author_id):
-    author=get_object_or_404(Author,pk=author_id)
-    current_author=get_current_author(request)
-
-    posts = Post.objects.filter(author=author)
-    
-    size=request.GET.get('size','10')
-    pass
 

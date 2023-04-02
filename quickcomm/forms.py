@@ -39,7 +39,6 @@ class CreatePlainTextForm(forms.Form):
             post.origin = uri
             post.save()
         except Exception as e:
-            print(e)
             pass
         
         return post
@@ -71,7 +70,8 @@ class CreateMarkdownForm(forms.Form):
     source = forms.URLField(widget=forms.HiddenInput, required=False)
     origin = forms.URLField(widget=forms.HiddenInput, required=False)
 
-    def save(self, author, request):
+
+    def save(self, author, request=None):
         post = Post(
             title=self.cleaned_data['title'],
             description=self.cleaned_data['description'],
@@ -89,7 +89,6 @@ class CreateMarkdownForm(forms.Form):
             post.origin = uri
             post.save()
         except Exception as e:
-            print(e)
             pass
         
         return post
