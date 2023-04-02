@@ -21,7 +21,18 @@ class CreatePlainTextForm(forms.Form):
     source = forms.URLField(widget=forms.HiddenInput, required=False)
     origin = forms.URLField(widget=forms.HiddenInput, required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(CreatePlainTextForm, self).__init__(*args, **kwargs)
+        choices = list(Author.objects.values_list('id', 'display_name'))
+        self.fields['visibility'].choices = list(self.fields['visibility'].choices) + choices
+
     def save(self, author, request=None):
+        recipient = None
+        visibility = self.cleaned_data['visibility']
+        if visibility != 'PUBLIC' and visibility != 'FRIENDS':
+            visibility = 'PRIVATE'
+            recipient = self.cleaned_data['visibility']
+
         post = Post(
             title=self.cleaned_data['title'],
             description=self.cleaned_data['description'],
@@ -29,8 +40,9 @@ class CreatePlainTextForm(forms.Form):
             content=self.cleaned_data['content'],
             categories=self.cleaned_data['categories'],
             author=author,
-            visibility=self.cleaned_data['visibility'],
-            unlisted=self.cleaned_data['unlisted']
+            visibility=visibility,
+            unlisted=self.cleaned_data['unlisted'],
+            recipient=recipient
         )
         post.save()
         try:
@@ -67,11 +79,24 @@ class CreateMarkdownForm(forms.Form):
     categories = forms.CharField(max_length=1000)
     visibility = forms.ChoiceField(choices=Post.PostVisibility.choices)
     unlisted = forms.BooleanField(required=False)
+
+
     source = forms.URLField(widget=forms.HiddenInput, required=False)
     origin = forms.URLField(widget=forms.HiddenInput, required=False)
 
+    def __init__(self, *args, **kwargs):
+        super(CreateMarkdownForm, self).__init__(*args, **kwargs)
+        choices = list(Author.objects.values_list('id', 'display_name'))
+        self.fields['visibility'].choices = list(self.fields['visibility'].choices) + choices
+
 
     def save(self, author, request=None):
+        recipient = None
+        visibility = self.cleaned_data['visibility']
+        if visibility != 'PUBLIC' and visibility != 'FRIENDS':
+            visibility = 'PRIVATE'
+            recipient = self.cleaned_data['visibility']
+
         post = Post(
             title=self.cleaned_data['title'],
             description=self.cleaned_data['description'],
@@ -79,8 +104,9 @@ class CreateMarkdownForm(forms.Form):
             content=self.cleaned_data['content'],
             categories=self.cleaned_data['categories'],
             author=author,
-            visibility=self.cleaned_data['visibility'],
-            unlisted=self.cleaned_data['unlisted']
+            visibility=visibility,
+            unlisted=self.cleaned_data['unlisted'],
+            recipient=recipient
         )
         post.save()
         try:
@@ -120,6 +146,11 @@ class CreateImageForm(forms.Form):
     source = forms.URLField(widget=forms.HiddenInput, required=False)
     origin = forms.URLField(widget=forms.HiddenInput, required=False)    
 
+    def __init__(self, *args, **kwargs):
+        super(CreateImageForm, self).__init__(*args, **kwargs)
+        choices = list(Author.objects.values_list('id', 'display_name'))
+        self.fields['visibility'].choices = list(self.fields['visibility'].choices) + choices
+
     def get_content_type(self):
         ct_raw = self.cleaned_data['content'].content_type
         if ct_raw == "image/jpeg" or ct_raw == "image/jpg":
@@ -128,7 +159,12 @@ class CreateImageForm(forms.Form):
             return Post.PostType.PNG
         return None
 
-    def save(self, author, request):
+    def save(self, author, request=None):
+        recipient = None
+        visibility = self.cleaned_data['visibility']
+        if visibility != 'PUBLIC' and visibility != 'FRIENDS':
+            visibility = 'PRIVATE'
+            recipient = self.cleaned_data['visibility']
 
         post = Post(
             title=self.cleaned_data['title'],
@@ -137,8 +173,9 @@ class CreateImageForm(forms.Form):
             content="",
             categories=self.cleaned_data['categories'],
             author=author,
-            visibility=self.cleaned_data['visibility'],
-            unlisted=self.cleaned_data['unlisted']
+            visibility=visibility,
+            unlisted=self.cleaned_data['unlisted'],
+            recipient=recipient
         )
         post.save()
         try:
