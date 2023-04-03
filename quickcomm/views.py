@@ -6,19 +6,18 @@ from django.template.defaulttags import register
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
 from django.urls import reverse
-from quickcomm.external_host_deserializers import sync_comments, sync_followers, sync_post_likes, sync_posts, sync_authors
-from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
+from quickcomm.external_host_deserializers import sync_comment_likes, sync_comments, sync_followers, sync_post_likes, sync_posts, sync_authors
+from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.forms import Form
-import asyncio
 
 from quickcomm.models import Author, Follow, Inbox
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
@@ -225,8 +224,10 @@ def post_view(request, post_id, author_id):
     post = get_object_or_404(Post, pk=post_id)
 
     if post.author.is_remote and not post.author.is_temporary:
-        Thread(target=asyncio.run, args=(sync_comments(post),), daemon=True).start()
-        Thread(target=asyncio.run, args=(sync_post_likes(post),), daemon=True).start()
+        sync_comments(post)
+        sync_post_likes(post)
+        for comment in post.comments.all():
+            sync_comment_likes(comment)
 
     post_type = post.visibility
     form = Form()
