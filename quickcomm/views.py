@@ -369,7 +369,7 @@ def post_comment(request, post_id, author_id):
     current_author = request.author
     post = Post.objects.get(pk=post_id)
     if request.method == 'POST':
-        
+
         text = json.loads(request.body)["comment"]
         if text:
             author = request.author
@@ -379,7 +379,8 @@ def post_comment(request, post_id, author_id):
             comment.comment = text
             comment.save()
             # update comments from the server
-            sync_comments(post)
+            if post.author.is_remote and not post.author.is_temporary:
+                sync_comments(post)
 
             # get new comment
             rem_comment = Comment.objects.get(id=comment.id)
