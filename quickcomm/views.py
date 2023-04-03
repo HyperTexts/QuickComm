@@ -90,7 +90,7 @@ def index(request):
                     continue
             github = [dict(item, **{
                 'format': 'github',
-                'localAuthor': Author.objects.all()[0],
+                'localAuthor': follow,
                 'added': parser.parse(item["created_at"])
                                     }) for item in github]
             inbox.extend(github)
