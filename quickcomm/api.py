@@ -273,7 +273,7 @@ class PostViewSet(viewsets.ModelViewSet):
         self.paginator.upper_response_param = 'author'
         self.paginator.upper_url = self.request.build_absolute_uri(reverse('api:author-detail', kwargs={'pk': self.kwargs['authors_pk']}))
         try:
-            return Post.objects.filter(author=self.kwargs['authors_pk'])
+            return Post.objects.filter(author=self.kwargs['authors_pk'], visibility='PUBLIC', unlisted=False)
         except:
             raise exceptions.NotFound('Author not found')
 
