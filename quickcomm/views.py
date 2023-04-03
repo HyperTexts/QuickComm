@@ -151,7 +151,10 @@ def share_post(request, post_id, author_id):
     if request.method == 'POST':
         new_post = Post.objects.create(**current_attributes)
         new_post.save()
-        source = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': current_author.id, 'pk': new_post.id}))
+        if not post.external_url:
+            source = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author_id, 'pk': post_id}))
+        else:
+            source = post.external_url
         new_post.source = source
         new_post.save()
         messages.success(request, "Post shared successfully!")
