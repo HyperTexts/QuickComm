@@ -62,16 +62,12 @@ def friend_required(func):
                 post = Post.objects.get(id=kwargs['post_id'])
                 # check if this is a private or friend post
                 if post.visibility == 'PRIVATE' and not (author.id == post.recipient or author == post.author):
-                    print(author.id, post.author.id, post.recipient)
-                    print(author.id == post.recipient or author == post.author)
                     return render(request, 'quickcomm/notallowed.html')
                 elif post.visibility == 'FRIENDS' and not author.is_bidirectional(post.author):
                     return render(request, 'quickcomm/notallowed.html')
             except Author.DoesNotExist:
                 return render(request, 'quickcomm/noauthorerror.html')
             request.author = author
-
-            print(kwargs)
             return func(request, *args, **kwargs)
         else:
             return redirect('login')
@@ -293,7 +289,6 @@ def post_view(request, post_id, author_id):
                 messages.success(request, "Post successfully changed!")
 
             else:
-                print(form.errors)
                 if post.content_type == Post.PostType.TEXT:
                     form = CreatePlainTextForm(request.POST, initial=current_attributes)
                 elif post.content_type == Post.PostType.MD:
@@ -346,7 +341,6 @@ def like_comment(request, post_id, author_id, comment_id):
         if request.user.is_authenticated:
             author = Author.objects.all().get(user=request.user)
             main_comment = get_object_or_404(Comment, id=comment_id)
-            print("\n\n\n\n"+main_comment.comment)
             if CommentLike.objects.filter(comment__id=comment_id, author=author).exists():
                 comment = CommentLike.objects.filter(comment__id=comment_id, author=author)
                 comment.delete()

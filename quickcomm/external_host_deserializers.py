@@ -92,7 +92,6 @@ class AuthorDeserializer(serializers.ModelSerializer):
     # TODO move all of this to use get_from_url and discern between types of authors
     def save(self, host=None):
         author = Author.get_from_url(self.validated_data['external_url'])
-        print("author", author)
         if author is None:
             author = Author.objects.create(**self.validated_data, host=host)
         else:
@@ -172,10 +171,8 @@ class CommentDeserializer(serializers.ModelSerializer):
 
         # if we have a comment that already exists, but without an external url, then we will update it
         # otherwise we will create a new comment
-        print("TRYING TO SAVE COMMENT WITH EXTERNAL URL", self.validated_data.get('external_url', None))
         comment = Comment.objects.filter(post=post, author=author, external_url=None, comment=self.validated_data['comment'],  content_type=self.validated_data['content_type']).first()
         if comment is not None:
-            print("WE ARE HERE")
             comment.external_url = self.validated_data['external_url']
             comment.save()
             return comment

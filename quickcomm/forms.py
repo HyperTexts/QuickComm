@@ -190,7 +190,6 @@ class CreateImageForm(forms.Form):
             post.origin = uri
             post.save()
         except Exception as e:
-            print(e)
             pass
 
         return post

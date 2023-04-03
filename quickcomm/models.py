@@ -361,7 +361,6 @@ class Follow(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        print("deleting follow")
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
         super(Follow, self).delete(*args, **kwargs)
 
@@ -433,7 +432,6 @@ class Post(models.Model):
     recipient = models.UUIDField(editable=False, null=True)
 
     def save(self, *args, **kwargs):
-        print('starting post save')
         saved = super(Post, self).save(*args, **kwargs)
 
         # FIXME move saving image logic here?
@@ -444,14 +442,11 @@ class Post(models.Model):
 
         # skip inbox if post is unlisted
         if self.unlisted:
-            print('unlisted')
             return saved
         
         # if visibility is private, we only send to the inbox of the recipient and the author of the post
         elif self.visibility == 'PRIVATE':
             try:
-                print('private')
-                print(self.author.id, self.recipient)
                 author = Author.objects.get(id=self.recipient)
                 if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=author).exists():
                     Inbox.objects.create(content_object=self, author=author, inbox_type=Inbox.InboxType.POST)
@@ -461,12 +456,11 @@ class Post(models.Model):
                 if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
                     Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
             except:
-                print(f'Failed to find author with id {self.recipient}')
+                pass
 
             return saved
             
         else:
-            print('public or follower')
             # When we save a post, we also need to create an inbox post for each
             # follower of the author.
 
@@ -663,9 +657,7 @@ class ImageFile(models.Model):
 
     def save(self, *args, **kwargs):
         res = super(ImageFile, self).save(*args, **kwargs)
-        print('image should be saved')
         self.post.save()
-        print('second post save should have started')
         return res
 
 class Inbox(models.Model):

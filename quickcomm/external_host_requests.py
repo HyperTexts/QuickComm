@@ -346,7 +346,6 @@ class BaseQCRequest:
                             continue
                     extra_kwargs[author_item] = author
 
-                print(extra_kwargs)
                 self._return_single_item(item, map_func, deserializer, **extra_kwargs, **kwargs)
 
                 logging.info('Saved item from page ' + str(page) + '.')
@@ -361,7 +360,6 @@ class BaseQCRequest:
         endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}{trail}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
-        print(json.dumps(data))
         res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
             )
         try:
@@ -389,7 +387,6 @@ class BaseQCRequest:
             return None
         try:
             logging.info('Saving item.')
-            print(serialized_item.data)
             return serialized_item.save(**kwargs)
         except Exception as e:
             logging.error('Could not save author.', exc_info=True)
