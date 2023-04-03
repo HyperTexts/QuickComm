@@ -484,10 +484,11 @@ class BaseQCRequest:
     def import_base(self, data, map_author, map_inbound_object, map_object, deserializer, **kwargs):
         """Import an item from a remote server to our database."""
         raw_author = map_author(data)
+        host_url = self._clean_url(raw_author['host'])
 
         # author = Author.get_from_url(raw_author['external_url'])
         # if author is None:
-        author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author)
+        author = self._return_single_item(raw_author, self.map_raw_author, self.deserializers.author, host_url=host_url)
         if author is None:
             logging.info('Author was not valid')
             raise exceptions.ValidationError('Author was not valid')
@@ -505,13 +506,15 @@ class BaseQCRequest:
         """Import a follow from a remote server to our database. This is a special case because it is a two-way relationship."""
 
         raw_follower = self.map_inbound_follow_author(data)
-        follower = self._return_single_item(raw_follower, self.map_raw_author, self.deserializers.author)
+        raw_follower_host = self._clean_url(raw_follower['host'])
+        follower = self._return_single_item(raw_follower, self.map_raw_author, self.deserializers.author, host_url=raw_follower_host)
         if follower is None:
             logging.info('Follower was not valid')
             raise exceptions.ValidationError('Follower was not valid')
 
         raw_following = self.map_inbound_follow_object(data)
-        following = self._return_single_item(raw_following, self.map_raw_author, self.deserializers.author)
+        raw_following_host = self._clean_url(raw_following['host'])
+        following = self._return_single_item(raw_following, self.map_raw_author, self.deserializers.author, host_url=raw_following_host)
         if following is None:
             logging.info('Following was not valid')
             raise exceptions.ValidationError('Following was not valid')

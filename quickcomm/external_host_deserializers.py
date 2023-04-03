@@ -92,13 +92,21 @@ class AuthorDeserializer(serializers.ModelSerializer):
     # TODO error catching the save when type does not match
     # TODO don't overwrite the author if it is a local author, someone could try to attach it!
     # TODO move all of this to use get_from_url and discern between types of authors
-    def save(self, host=None):
+    def save(self, host=None, host_url=None):
         author = Author.get_from_url(self.validated_data['external_url'])
         if author is None:
             author = Author.objects.create(**self.validated_data, host=host)
         else:
             # we can have an author without a host, but if we do have a host, it must match
             assert(author.host is None or host is None or author.host == host)
+            if author.host is None and host_url is not None:
+                # find Host object from host_url
+                try:
+                    if host_url[-1] == '/':
+                        host_url = host_url[:-1]
+                    author.host = Host.objects.get(url=host_url)
+                except Exception as e:
+                    pass
             author.display_name = self.validated_data['display_name']
             author.profile_image = self.validated_data['profile_image']
             author.github = self.validated_data['github']
