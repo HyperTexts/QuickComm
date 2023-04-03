@@ -16,12 +16,7 @@
       <h1 class="mb-2" style="margin-top: 2em;"><i>{{ post.title }}</i></h1>
       <p class="card-text"><i>{{ post.description}}</i></p>
       <p class="card-text">Published on {{ post.published }}</p>
-      <div style="display: block; margin-bottom: 0; gap: 0.3em;">
-        <p display="display: inlineblock;" class="qc-host-tag">Source: {{ post.source }}</p>
-        <p display="display: inlineblock; margin-bottom: 0;" class="qc-host-tag">Origin: {{ post.origin }}</p>
-        <p display="display: inlineblock; margin-bottom: 0;" class="qc-host-tag">Visibility: {{ post.visibility }}</p>
-        <p display="display: inlineblock; margin-bottom: 0;" class="qc-host-tag">Unlisted: {{ post.unlisted }}</p>
-      </div>
+
         {% if user.is_authenticated and user.id == post.author.user_id %}
         <div style="margin-left: auto; display: flex;">
             <button type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#editModal" style="margin-right: 0.6em;">
@@ -53,8 +48,14 @@
       {% else %}
         <p class="card-text">{{ post.content }}</p>
       {% endif %}
-
+      <hr>
       <div style="margin-top: 4em;"></div>
+      <div style="display: block; margin-bottom: 1em; gap: 0.3em;">
+        <p display="display: inlineblock;" class="qc-host-tag">Source: {{ post.source }}</p>
+        <p display="display: inlineblock; margin-bottom: 0;" class="qc-host-tag">Origin: {{ post.origin }}</p>
+        <p display="display: inlineblock; margin-bottom: 0;" class="qc-host-tag">Visibility: {{ post.visibility }}</p>
+        <p display="display: inlineblock; margin-bottom: 0;" class="qc-host-tag">Unlisted: {{ post.unlisted }}</p>
+      </div>
       <div class="d-flex justify-content-between align-items-center">
         <div class="btn-group">
           {% with like_count=post_dict|get_item:post.id %}
