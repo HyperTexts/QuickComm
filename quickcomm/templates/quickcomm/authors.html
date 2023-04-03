@@ -1,27 +1,19 @@
 {% extends 'base.html' %}
+{% load stream_extras %}
 
 {% block content %}
-    <h1>All Authors</h1>
-    
+    <div style="margin: 7em"></div>
+    <h1><i>Profiles</i></h1>
+    <div style="margin: 3em"></div>
+
+    <div style="columns: 2;">
         {% for author in page_obj %}
-            <div class ="row">
-                {% if not author.profile_image %}
-                    <div class="col-1">
-
-                        <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% else %}
-                    <div class="col-1">
-
-                        <img src="{{ author.profile_image }}" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% endif %}
-                <div class="col">
-                    <a href="{% url 'view_profile' author.id %}">{{ author.display_name }}</a>
-                </div>
-
+            <div class="pb-4">
+                {% tinyauthor author %}
             </div>
         {% endfor %}
+    </div>
+
     <nav aria-label="author list pages">
         <ul class="pagination">
             {% if page_obj.has_previous %}

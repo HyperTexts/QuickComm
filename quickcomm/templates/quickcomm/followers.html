@@ -1,30 +1,18 @@
 {% extends 'base.html' %}
+{% load stream_extras %}
 
 {% block content %}
-    <h1>{{ author.display_name }}'s Followers</h1>
+    <div style="margin: 7em"></div>
 
+    <div style="max-width: 768px; margin: auto;">
+    {% miniauthor author %}
+    <div style="margin: 4em"></div>
+    <h1><i>Followers</i></h1>
+
+    <div style="margin: 2em"></div>
         {% for follower in author.get_followers %}
-            <div class ="row">
-                {% if not follower.follower.profile_image %}
+         {% tinyauthor follower.follower %}
 
-                    <div class="col">
-                        <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% else %}
-                    <div class="col-1">
-
-                        <img src={{ follower.follower.profile_image }} width="32" height="32" class="rounded-circle">
-                    </div>
-                {% endif %}
-                <div class="col-1">
-                    <h3 class=""> {{ follower.follower.display_name }} </h3>
-                </div>
-                {% if follower.is_bidirectional %}
-
-                    <div class="col">
-                        <h3 class=""> ⭐ </h3>
-                    </div>
-                {% endif %}
-            </div>
         {% endfor %}
+    </div>
 {% endblock %}

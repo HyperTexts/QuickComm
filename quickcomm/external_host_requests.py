@@ -5,6 +5,7 @@
 # a dictionary format. This file also deals with the weirdness of pagination
 # and caching external requests.
 
+import datetime
 import json
 from rest_framework import exceptions
 import requests_cache
@@ -359,7 +360,6 @@ class BaseQCRequest:
         endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}{trail}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
-        print(json.dumps(data))
         res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
             )
         try:
@@ -387,7 +387,6 @@ class BaseQCRequest:
             return None
         try:
             logging.info('Saving item.')
-            print(serialized_item.data)
             return serialized_item.save(**kwargs)
         except Exception as e:
             logging.error('Could not save author.', exc_info=True)
@@ -457,7 +456,7 @@ class BaseQCRequest:
             self.map_raw_follower, self.map_list_followers,
             check_author=[''],
             following=author,
-            paginated=True
+            paginated=self.paginate_followers
             )
 
     def send_post(self, post, author):
@@ -515,7 +514,7 @@ class BaseQCRequest:
             logging.info('Following was not valid')
             raise exceptions.ValidationError('Following was not valid')
 
-        follower = self._return_single_item({}, self.map_raw_follower, self.deserializers.follower, author=follower, following=following, request=True)
+        follower = self._return_single_item({}, self.map_raw_follower, self.deserializers.follow_request, author=follower, following=following, request=True)
         if follower is None:
             logging.info('Follower was not valid')
             raise exceptions.ValidationError('Follower was not valid')
@@ -731,6 +730,177 @@ class THTHQCRequest(BaseQCRequest):
 
             return activity_data
 
+def get_attr(data, attr, default=None):
+    item = data.get(attr, default)
+    if item == '':
+        return default
+    return item
+
+class Group1QCRequest(BaseQCRequest):
+
+    paginate_posts = True
+    paginate_followers = False
+    paginate_post_likes = False
+    paginate_comment_likes = False
+    inbox_trailing_slash = True
+
+    def set_null_to_empty_string(self, data):
+        for key, value in data.items():
+
+            # nest the loop
+            if isinstance(value, dict):
+                self.set_null_to_empty_string(value)
+                continue
+
+            if value is None:
+                data[key] = ''
+
+    def map_raw_author(self, external_data):
+        # TODO CHECK FOR ALL CASES
+        return {
+            'type': external_data['type'],
+            'external_url': external_data['url'],
+            'display_name': get_attr(external_data, 'displayName', "Undefined display name"),
+            'profile_image': get_attr(external_data, 'profileImage'),
+            'github': get_attr(external_data, 'github'),
+                }
+
+
+    def map_raw_post(self, raw_post):
+
+        # split hex data based on type
+        if raw_post['contentType'] == 'image/png;base64' or raw_post['contentType'] == 'image/jpeg;base64':
+            raw_post['content'] = raw_post['content'].split(',')[1]
+
+
+        return {
+            'type': raw_post['type'],
+            'title': get_attr(raw_post, 'title', "Undefined title"),
+            'external_url': raw_post['id'],
+            'source': get_attr(raw_post, 'source', raw_post['id']),
+            'origin': get_attr(raw_post, 'origin', raw_post['id']),
+            'description': get_attr(raw_post, 'description', "Undefined description"),
+            'content': get_attr(raw_post, 'content', "Undefined content"),
+            'content_type': get_attr(raw_post, 'contentType', 'text/plain'),
+            'published': get_attr(raw_post, 'published', datetime.datetime.now().isoformat()),
+            'visibility': get_attr(raw_post, 'visibility', 'PUBLIC'),
+            'unlisted': get_attr(raw_post, 'unlisted', False),
+        }
+
+    def map_raw_comment(self, raw_comment):
+        return {
+            'type': raw_comment['type'],
+            'external_url': get_attr(raw_comment, 'id'),
+            'comment': get_attr(raw_comment, 'comment', "Undefined comment"),
+            'content_type': get_attr(raw_comment, 'contentType', 'text/plain'),
+            'published': get_attr(raw_comment, 'published', datetime.datetime.now().isoformat()),
+        }
+
+    def map_raw_post_like(self, raw_post_like):
+        return {
+            'type': raw_post_like['type'],
+            'summary': raw_post_like['summary'],
+        }
+
+    def map_raw_comment_like(self, raw_comment_like):
+        return {
+            'type': raw_comment_like['type'],
+            'summary': raw_comment_like['summary'],
+        }
+
+    def map_raw_follower(self, raw_follower):
+        return {}
+
+    def map_list_authors(self, data):
+        return data['items']
+
+    def map_list_posts(self, data):
+        return data['items']
+
+    def map_list_comments(self, data):
+        return data['items']
+
+    def map_list_post_likes(self, data):
+        return data['items']
+
+    def map_list_comment_likes(self, data):
+        return data['items']
+
+    def map_list_followers(self, data):
+        return data['items']
+
+    def map_inbound_post_object(self, raw_post):
+        return raw_post['object']
+
+    def map_inbound_post_author(self, raw_post):
+        return raw_post['author']
+
+    def map_inbound_comment_object(self, raw_comment):
+        if raw_comment['comment'].get('id', False):
+            # remove this property, we will be making a new comment
+            del raw_comment['comment']['id']
+
+        return raw_comment['comment']
+
+    def map_inbound_comment_object_url(self, raw_comment):
+        return raw_comment['object']
+
+    def map_inbound_comment_author(self, raw_comment):
+        return raw_comment['actor']
+
+    def map_inbound_like_object_url(self, raw_like):
+        return raw_like['object']
+
+    def map_inbound_like_author(self, raw_like):
+        return raw_like['actor']
+
+    def map_inbound_like_object(self, raw_like):
+        return raw_like
+
+    def map_inbound_follow_object(self, raw_follow):
+        return raw_follow['object']
+
+    def map_inbound_follow_author(self, raw_follow):
+        return raw_follow['actor']
+
+    def map_outbound_post(self, activity_data):
+
+        # lowercase the type
+        activity_data['type'] = activity_data['type'].lower()
+
+        # # can't have null values in the json post
+        self.set_null_to_empty_string(activity_data)
+
+        return activity_data['object']
+
+    def map_outbound_comment(self, activity_data):
+
+            # lowercase the type
+            activity_data['type'] = activity_data['type'].lower()
+
+            # can't have null values in the json post
+            self.set_null_to_empty_string(activity_data)
+            del activity_data['comment']['id']
+            del activity_data['comment']['published']
+            activity_data['comment']['object'] = activity_data['object']
+            return activity_data['comment']
+
+    def map_outbound_like(self, activity_data):
+            activity_data['type'] = activity_data['type'].lower()
+
+            # can't have null values in the json post
+            self.set_null_to_empty_string(activity_data)
+
+            return activity_data
+
+    def map_outbound_follow(self, activity_data):
+            activity_data['type'] = activity_data['type'].lower()
+
+            # can't have null values in the json post
+            self.set_null_to_empty_string(activity_data)
+
+            return activity_data
+
 class InternalQCRequest(BaseQCRequest):
 
     def map_raw_author(self, external_data):
@@ -763,7 +933,7 @@ class InternalQCRequest(BaseQCRequest):
             'external_url': raw_comment.get('id', None),
             'comment': raw_comment.get('comment', "<Empty comment>"),
             'content_type': raw_comment['contentType'],
-            'published': raw_comment['published'],
+            'published': get_attr(raw_comment, 'published', datetime.datetime.now()),
         }
 
     def map_raw_post_like(self, raw_post_like):

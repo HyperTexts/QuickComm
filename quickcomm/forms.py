@@ -1,7 +1,7 @@
 import base64
 from django import forms
 from quickcomm.validators import validate_image_upload_format
-from .models import ImageFile, Post, Author, Comment
+from .models import Post, Author, Comment
 from django.core.validators import URLValidator
 from martor.fields import MartorFormField
 from django.urls import reverse
@@ -166,11 +166,17 @@ class CreateImageForm(forms.Form):
             visibility = 'PRIVATE'
             recipient = self.cleaned_data['visibility']
 
+        encoded_string = ""
+        # get base64 encoded image
+        with self.cleaned_data['content'].open('rb') as f:
+            encoded_string = base64.b64encode(f.read())
+            encoded_string = encoded_string.decode('utf-8')
+
         post = Post(
             title=self.cleaned_data['title'],
             description=self.cleaned_data['description'],
             content_type=self.get_content_type(),
-            content="",
+            content=encoded_string,
             categories=self.cleaned_data['categories'],
             author=author,
             visibility=visibility,
@@ -184,15 +190,7 @@ class CreateImageForm(forms.Form):
             post.origin = uri
             post.save()
         except Exception as e:
-            print(e)
             pass
-
-        # Save the image to the media folder
-        image = ImageFile(
-            post=post,
-            image=self.cleaned_data['content']
-        )
-        image.save()
 
         return post
 

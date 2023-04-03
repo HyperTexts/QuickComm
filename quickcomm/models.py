@@ -102,6 +102,7 @@ class Host(models.Model):
 
         THTH = "THTH", "Too Hot To Hindle (Group 2)"
         INTERNAL = "INTERNAL", "Internal Default"
+        GROUP1 = "GROUP1", "Group 1"
 
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -288,12 +289,18 @@ class Author(models.Model):
     
     def following_count(self):
         return Follow.objects.filter(follower=self).count()
-    
+
+    def posts_count(self):
+        return Post.objects.filter(author=self).count()
+
     def get_requests(self):
-        return FollowRequest.objects.filter(to_user=self)
+        requests =  FollowRequest.objects.filter(to_user=self)
+        followers = self.get_followers().values('follower')
+        return requests.exclude(from_user__in=followers)
     def requests_count(self):
-        return FollowRequest.objects.filter(to_user=self).count()
-    
+        """return number of follow requests for author (self) that do not exist in the follow table"""
+        return self.get_requests().count()
+
 
     def is_bidirectional(self, author):
         """Returns true if this author (self) follows and is followed by the
@@ -354,7 +361,6 @@ class Follow(models.Model):
 
     def delete(self, *args, **kwargs):
         # cascade delete inbox items
-        print("deleting follow")
         Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).delete()
         super(Follow, self).delete(*args, **kwargs)
 
@@ -385,15 +391,13 @@ class FollowRequest(models.Model):
         # When we save a follow, we also need to create an inbox post for the
         # author being followed.
 
-
-        # If both the follower and following are remote, we do not need to
-        # create an inbox post.
-        # if self.follower.is_remote and self.following.is_remote:
-        #     return saved
-
         if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id).exists():
             Inbox.objects.create(content_object=self, author=self.to_user, inbox_type=Inbox.InboxType.FOLLOW)
+
         return saved
+
+    def __str__(self):
+        return f"{self.from_user.__str__()} requests to follow {self.to_user.__str__()}"
 
 class Post(models.Model):
     """A post is a post made by an author."""
@@ -415,7 +419,7 @@ class Post(models.Model):
     origin = models.URLField(blank=True, null=True, validators=[URLValidator])
     description = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=PostType.choices)
-    content = models.CharField(max_length=10000)
+    content = models.CharField(max_length=1000000000)
     # FIXME categories has to be a list of strings of some sort
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
@@ -428,7 +432,6 @@ class Post(models.Model):
     recipient = models.UUIDField(editable=False, null=True)
 
     def save(self, *args, **kwargs):
-        print('starting post save')
         saved = super(Post, self).save(*args, **kwargs)
 
         # FIXME move saving image logic here?
@@ -437,22 +440,13 @@ class Post(models.Model):
         if self.author.is_remote:
             return saved
 
-        # skip inbox if image with post is not saved yet
-        if self.content_type == Post.PostType.PNG or self.content_type == Post.PostType.JPG:
-            if not ImageFile.objects.filter(post=self).exists():
-                print('no image saved')
-                return saved
-            
         # skip inbox if post is unlisted
         if self.unlisted:
-            print('unlisted')
             return saved
         
         # if visibility is private, we only send to the inbox of the recipient and the author of the post
         elif self.visibility == 'PRIVATE':
             try:
-                print('private')
-                print(self.author.id, self.recipient)
                 author = Author.objects.get(id=self.recipient)
                 if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=author).exists():
                     Inbox.objects.create(content_object=self, author=author, inbox_type=Inbox.InboxType.POST)
@@ -462,12 +456,11 @@ class Post(models.Model):
                 if not Inbox.objects.filter(content_type=ContentType.objects.get_for_model(self), object_id=self.id, author=self.author).exists():
                     Inbox.objects.create(content_object=self, author=self.author, inbox_type=Inbox.InboxType.POST)
             except:
-                print(f'Failed to find author with id {self.recipient}')
+                pass
 
             return saved
             
         else:
-            print('public or follower')
             # When we save a post, we also need to create an inbox post for each
             # follower of the author.
 
@@ -515,19 +508,12 @@ class Post(models.Model):
     @property
     def content_formatted(self):
         """Returns the content of the post as either base64 or plain text."""
-        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
-            file = ImageFile.objects.get(post=self).image.read()
-            return base64.b64encode(file).decode('utf-8')
         return self.content
 
     @content_formatted.setter
     def content_formatted(self, value):
         """Sets the content of the post from either base64 or plain text."""
-        if self.content_type == self.PostType.PNG or self.content_type == self.PostType.JPG:
-            ImageFile.objects.get(post=self).delete()
-            ImageFile.objects.create(post=self, image=base64.b64decode(value)).save()
-        else:
-            self.content = value
+        self.content = value
 
     def get_image_url(self, request):
         """Returns the absolute URL of the image associated with the post."""
@@ -651,6 +637,14 @@ class Comment(models.Model):
         """Returns the context for this post."""
         return 'https://www.w3.org/ns/activitystreams'
 
+    def like_count(self):
+        """Returns the number of likes for this comment."""
+        return CommentLike.objects.filter(comment=self).count()
+
+    def like_ids(self):
+        """Returns the ids of authors who have liked this comment."""
+        return [like.author.id for like in CommentLike.objects.filter(comment=self)]
+
     def __str__(self):
         return f"{self.author.__str__()} commented on {self.post.__str__()}"
     
@@ -663,9 +657,7 @@ class ImageFile(models.Model):
 
     def save(self, *args, **kwargs):
         res = super(ImageFile, self).save(*args, **kwargs)
-        print('image should be saved')
         self.post.save()
-        print('second post save should have started')
         return res
 
 class Inbox(models.Model):
@@ -831,6 +823,7 @@ class RegistrationSettings(models.Model):
     """A flag for admin users to determine if new users are active or not by default.
     Should only have 1 value in database"""
     are_new_users_active = models.BooleanField(default=True)
+    allow_api_access_without_login = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.are_new_users_active.__str__()}"

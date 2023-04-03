@@ -1,33 +1,18 @@
 {% extends 'base.html' %}
+{% load stream_extras %}
 
 {% block content %}
-    <h1>{{ author.display_name }} is following</h1>
+    <div style="margin: 7em"></div>
 
+    <div style="max-width: 768px; margin: auto;">
+    {% miniauthor author %}
+    <div style="margin: 4em"></div>
+    <h1><i>Following</i></h1>
+
+    <div style="margin: 2em"></div>
         {% for following in author.get_following %}
-            <div class ="row">
-                {% if not following.following.profile_image %}
+         {% tinyauthor following.following %}
 
-                    <div class="col">
-                        <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% else %}
-                    <div class="col-1">
-
-                        <img src={{ following.following.profile_image }} width="32" height="32" class="rounded-circle">
-                    </div>
-                {% endif %}
-                <div class="col-1">
-                    <h3 class=""> {{ following.following.display_name }} </h3>
-                </div>
-                <div class="col-md-2 align-self-center">
-                    <a href="{% url 'unfriend' following.following.id %}" class="btn btn-outline-primary me-2">Unfollow</a>
-                </div>
-                {% if following.is_bidirectional %}
-
-                    <div class="col">
-                        <h3 class=""> ⭐ </h3>
-                    </div>
-                {% endif %}
-            </div>
         {% endfor %}
+    </div>
 {% endblock %}

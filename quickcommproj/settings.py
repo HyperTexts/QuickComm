@@ -42,8 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.humanize',
     'quickcomm',
     'django_bootstrap5',
+    'corsheaders',
     'martor',
-
     'rest_framework',
     'drf_yasg',
 
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -62,6 +63,8 @@ MIDDLEWARE = [
     'quickcomm.middleware.no_csfr',
     'quickcomm.request_exposer.RequestExposerMiddleware',
 ]
+
+CORS_ORIGIN_ALLOW_ALL = True
 
 ROOT_URLCONF = 'quickcommproj.urls'
 

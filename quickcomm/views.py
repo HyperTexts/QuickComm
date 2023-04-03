@@ -10,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
 from django.urls import reverse
-from quickcomm.external_host_deserializers import sync_comments, sync_post_likes, sync_posts, sync_authors
+from quickcomm.external_host_deserializers import sync_comments, sync_followers, sync_post_likes, sync_posts, sync_authors
 from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
@@ -62,16 +62,12 @@ def friend_required(func):
                 post = Post.objects.get(id=kwargs['post_id'])
                 # check if this is a private or friend post
                 if post.visibility == 'PRIVATE' and not (author.id == post.recipient or author == post.author):
-                    print(author.id, post.author.id, post.recipient)
-                    print(author.id == post.recipient or author == post.author)
                     return render(request, 'quickcomm/notallowed.html')
                 elif post.visibility == 'FRIENDS' and not author.is_bidirectional(post.author):
                     return render(request, 'quickcomm/notallowed.html')
             except Author.DoesNotExist:
                 return render(request, 'quickcomm/noauthorerror.html')
             request.author = author
-
-            print(kwargs)
             return func(request, *args, **kwargs)
         else:
             return redirect('login')
@@ -243,10 +239,10 @@ def post_view(request, post_id, author_id):
     comment_author_dict = {}
     for item in comment_like_list:
         comment_id = item['comment_id']
-        author_id = item['author__id']
+        author_id_t = item['author__id']
         if comment_id not in comment_author_dict:
             comment_author_dict[comment_id] = []
-        comment_author_dict[comment_id].append(author_id)
+        comment_author_dict[comment_id].append(author_id_t)
 
     #dictionary with likes for each post
     result = Like.objects.values('post_id').annotate(num_authors=Count('author', distinct=True))
@@ -258,11 +254,11 @@ def post_view(request, post_id, author_id):
     post_like_list = Like.objects.select_related('author').values('post_id', 'author__id').annotate(count=Count('author'))
     post_author_dict = {}
     for item in post_like_list:
-        post_id = item['post_id']
-        author_id = item['author__id']
-        if post_id not in post_author_dict:
-            post_author_dict[post_id] = []
-        post_author_dict[post_id].append(author_id)
+        post_id_t = item['post_id']
+        author_id_t = item['author__id']
+        if post_id_t not in post_author_dict:
+            post_author_dict[post_id_t] = []
+        post_author_dict[post_id_t].append(author_id_t)
 
     if post.content_type == Post.PostType.TEXT:
         form = CreatePlainTextForm()
@@ -293,7 +289,6 @@ def post_view(request, post_id, author_id):
                 messages.success(request, "Post successfully changed!")
 
             else:
-                print(form.errors)
                 if post.content_type == Post.PostType.TEXT:
                     form = CreatePlainTextForm(request.POST, initial=current_attributes)
                 elif post.content_type == Post.PostType.MD:
@@ -303,7 +298,7 @@ def post_view(request, post_id, author_id):
                 form = CreatePlainTextForm(initial=current_attributes)
             elif post.content_type == Post.PostType.MD:
                 form = CreateMarkdownForm(initial=current_attributes)
-                
+
     #getting updated post
     post = get_object_or_404(Post, pk=post_id)
     context = {"form":form, "post": post, "post_comments":post_comments, "current_author": current_author,"comment_dict":comment_dict, "comment_author_dict":comment_author_dict,"post_dict":post_dict, "post_author_dict":post_author_dict}
@@ -346,7 +341,6 @@ def like_comment(request, post_id, author_id, comment_id):
         if request.user.is_authenticated:
             author = Author.objects.all().get(user=request.user)
             main_comment = get_object_or_404(Comment, id=comment_id)
-            print("\n\n\n\n"+main_comment.comment)
             if CommentLike.objects.filter(comment__id=comment_id, author=author).exists():
                 comment = CommentLike.objects.filter(comment__id=comment_id, author=author)
                 comment.delete()
@@ -364,6 +358,7 @@ def like_comment(request, post_id, author_id, comment_id):
 
 @author_required
 def post_comment(request, post_id, author_id):
+    current_author = request.author
     post = Post.objects.get(pk=post_id)
     if request.method == 'POST':
         
@@ -375,9 +370,9 @@ def post_comment(request, post_id, author_id):
             comment.author = author
             comment.comment = text
             comment.save()
-            
-            new_comment = render_to_string("quickcomm/comments.html", { "comment": comment }, request=request)
-            return JsonResponse({"comments": new_comment}) 
+
+            new_comment = render_to_string("minicomment.html", { "comment": comment, "current_author": current_author }, request=request)
+            return JsonResponse({"comments": new_comment + "<hr>"})
         # return redirect('post_comment', post_id=post_id, author_id=author_id)
 
     return redirect("post_view", post_id=post_id, author_id=author_id)
@@ -441,11 +436,9 @@ def view_profile(request, author_id):
     current_author = request.author
     form = EditProfileForm()
 
-    if not current_author:
-        return render(request, 'quickcomm/profile.html', {
-                    'author': author,
-                    'form': form
-                    })
+    if author.is_remote and not author.is_temporary:
+        sync_posts(author)
+        sync_followers(author)
 
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
     if current_author.user == author.user:
@@ -458,15 +451,25 @@ def view_profile(request, author_id):
                 form = EditProfileForm(initial=current_attributes)
         else:
             form = EditProfileForm(initial=current_attributes)
+
     current_author = request.author
     author = get_object_or_404(Author, pk=author_id)
-    
+
+    # determine if the remote author is following the current author
+    following_me = Follow.objects.filter(following=current_author, follower=author).exists()
+
+
+    posts = Post.objects.filter(author=author)
+
+
     return render(request, 'quickcomm/profile.html', {
                     'author': author,
+                    'page_obj': posts,
                     'current_author': current_author,
                     'form': form,
                     'is_following': current_author.is_following(author),
                     'is_requested': FollowRequest.objects.filter(from_user=current_author, to_user=author).exists(),
+                    'following_me': following_me,
                     })
 
 @author_required
@@ -480,6 +483,26 @@ def follow(request, author_id):
 
 
     return redirect('view_profile', author_id=author_id)
+
+@author_required
+def remove_follower(request, author_id):
+    author = get_object_or_404(Author, pk=author_id)
+    current_author = request.author
+
+    # delete the follow
+    follow_obj = Follow.objects.filter(follower=author, following=current_author)
+    follow_obj.delete()
+
+    # delete the follow request
+    follow_request = FollowRequest.objects.filter(from_user=author, to_user=current_author)
+    follow_request.delete()
+
+    # redirect to next param
+    next = request.GET.get('next', None)
+    if next:
+        return redirect(next)
+    else:
+        return redirect('view_profile', author_id=author_id)
 
 @author_required
 def view_followers(request, author_id):
@@ -525,8 +548,39 @@ def send_follow_request(request,author_id):
     else:
         messages.error(request, "Could not process request.")
         return redirect("view_profile", author_id=author_id)
-    
-@author_required    
+
+@author_required
+def approve_follow(request, follow_id):
+    followreq = get_object_or_404(FollowRequest, pk=follow_id)
+    follow = Follow.objects.create(follower=followreq.from_user, following=followreq.to_user)
+    follow.save()
+
+    messages.success(request, "Follow request approved.")
+
+    # get next parameter
+    next = request.GET.get('next', None)
+    if next:
+        return redirect(next)
+    else:
+        return redirect('index')
+
+@author_required
+def deny_follow(request, follow_id):
+    followreq = get_object_or_404(FollowRequest, pk=follow_id)
+    followreq.delete()
+
+    messages.success(request, "Follow request denied.")
+
+    # get next parameter
+    next = request.GET.get('next', None)
+    if next:
+        return redirect(next)
+    else:
+        return redirect('index')
+
+# TODO add messages everywhere
+
+@author_required
 def accept_request(request,author_id):
     target=get_current_author(request)
     follower=get_object_or_404(Author,pk=author_id)
@@ -540,10 +594,15 @@ def accept_request(request,author_id):
 
 @author_required
 def unfriend(request,author_id):
+
     current_author=get_current_author(request)
     following=get_object_or_404(Author,pk=author_id)
     unfriended_person=Follow.objects.get(follower=current_author,following=following)
     unfriended_person.delete()
+
+    # remove friend request
+    friend_request = FollowRequest.objects.filter(from_user=current_author, to_user=following)
+    friend_request.delete()
 
     messages.success(request, "Unfollowed "+following.display_name)
     return redirect("view_profile", author_id=author_id)
@@ -554,7 +613,7 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
-@author_required        
+@author_required
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = request.author

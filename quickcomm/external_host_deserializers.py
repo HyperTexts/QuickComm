@@ -13,8 +13,8 @@
 import uuid
 from rest_framework import serializers
 from django.core.files.base import ContentFile
-from quickcomm.external_host_requests import InternalQCRequest, THTHQCRequest
-from quickcomm.models import Author, Comment, CommentLike, Follow, Host, ImageFile, Like, Post
+from quickcomm.external_host_requests import Group1QCRequest, InternalQCRequest, THTHQCRequest
+from quickcomm.models import Author, Comment, CommentLike, Follow, FollowRequest, Host, Like, Post
 import base64
 
 from quickcomm.serializers import CommentActivitySerializer, CommentLikeActivitySerializer, FollowActivitySerializer, LikeActivitySerializer, PostActivitySerializer
@@ -28,6 +28,8 @@ def get_request_class_from_host(host: Host):
     serializer_type = host.serializer_class
     if serializer_type == Host.SerializerClass.THTH:
         return THTHQCRequest(host, Deserializers, InboxSerializers)
+    elif serializer_type == Host.SerializerClass.GROUP1:
+        return Group1QCRequest(host, Deserializers, InboxSerializers)
     elif serializer_type == Host.SerializerClass.INTERNAL:
         return InternalQCRequest(host, Deserializers, InboxSerializers)
     else:
@@ -128,28 +130,7 @@ class PostDeserializer(serializers.ModelSerializer):
         if post is None:
 
             # TODO support application mimetype
-            data = None
-            # if content type is image, then we need to turn content base64 into an image
-            if self.validated_data['content_type'] == Post.PostType.PNG or self.validated_data['content_type'] == Post.PostType.JPG:
-                data = base64.b64decode(self.validated_data['content'])
-                self.validated_data['content'] = "Image post"
-
-
             post = Post.objects.create(**self.validated_data, author=author)
-
-            if data is not None:
-
-                if post.content_type == Post.PostType.PNG:
-                    ext = 'png'
-                # elif post.content_type == Post.PostType.JPG:
-                else:
-                    ext = '.jpg'
-                # use random uuid as filename
-                filename = uuid.uuid4().__str__() + '.' + ext
-                data = ContentFile(data, name=filename)
-
-                image = ImageFile.objects.create(post=post, image=data)
-                image.save()
 
         else:
             assert(post.author == author)
@@ -162,31 +143,7 @@ class PostDeserializer(serializers.ModelSerializer):
             post.visibility = self.validated_data['visibility']
             post.unlisted = self.validated_data['unlisted']
             post.external_url = self.validated_data['external_url']
-
-            if post.content_type == Post.PostType.PNG or post.content_type == Post.PostType.JPG:
-
-                if post.content_type == Post.PostType.PNG:
-                    ext = 'png'
-                # elif post.content_type == Post.PostType.JPG:
-                else:
-                    ext = '.jpg'
-
-                data = base64.b64decode(self.validated_data['content'])
-                filename = uuid.uuid4().__str__() + '.' + ext
-                data = ContentFile(data, name=filename)
-
-                image = ImageFile.objects.filter(post=post).first()
-                if image is None:
-                    image = ImageFile.objects.create(post=post, image=data)
-                    image.save()
-                else:
-                    image.image = data
-                    image.save()
-            else:
-                post.content = self.validated_data['content']
-                image = ImageFile.objects.filter(post=post).first()
-                if image is not None:
-                    image.delete()
+            post.content = self.validated_data['content']
 
             post.save()
 
@@ -299,8 +256,24 @@ class FollowerDeserializer(serializers.ModelSerializer):
 
         return item
 
+class FollowRequestDeserializer(serializers.ModelSerializer):
+
+    def save(self, author=None, following=None, request=False):
+        assert(author is not None)
+        assert(following is not None)
+        item = FollowRequest.objects.filter(
+            from_user=author,
+            to_user=following
+        ).first()
+        if item is None:
+            item = FollowRequest.objects.create(**self.validated_data, from_user=author, to_user=following)
+        else:
+            assert(item.from_user == author)
+            assert (item.to_user == following)
+
+        return item
     class Meta:
-        model = Follow
+        model = FollowRequest
         fields = []
 
 class Deserializers:
@@ -310,6 +283,7 @@ class Deserializers:
     post_like = PostLikeDeserializer
     comment_like = CommentLikeDeserializer
     follower = FollowerDeserializer
+    follow_request = FollowRequestDeserializer
 
 
 class InboxSerializers:

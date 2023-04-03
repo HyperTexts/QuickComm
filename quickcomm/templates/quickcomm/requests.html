@@ -1,27 +1,20 @@
 {% extends 'base.html' %}
+{% load stream_extras %}
 
 {% block content %}
-    <h1>All Requests</h1>
-        {% for request in author.get_requests %}
-            <div class ="row">
-                {% if not request.from_user.profile_image %}
-                    <div class="col">
-                        <img src="https://avatars.githubusercontent.com/u/57137?v=4" width="32" height="32" class="rounded-circle">
-                    </div>
-                {% else %}
-                    <div class="col-1">
-                        <img src={{ request.from_user.profile_image}} width="32" height="32" class="rounded-circle">
-                    </div>
-                {% endif %}
-                <div class="col-1">
-                    <h3 class=""> {{ request.from_user.display_name }} </h3>
-                </div>
-                <div class="col-1">
-                    <a href="{% url 'accept_request' request.from_user.id %}" class="btn btn-outline-primary me-2">Accept</a>
-                </div>
-                <!-- <div class="col">
-                    <a href = "{% url 'view_profile' author.id %}">{{ current_user.display_name }}</a>
-                </div> -->
-            </div>
+    <div style="margin: 7em"></div>
+
+    <div style="max-width: 768px; margin: auto;">
+    {% miniauthor author %}
+    <div style="margin: 4em"></div>
+    <h1><i>Requests</i></h1>
+
+    <div style="margin: 2em"></div>
+        {% for req in author.get_requests %}
+         {% tinyauthor req.from_user %}
+          <a href="{% url "approve_follow" req.id %}?next={{ request.path|urlencode }}" class="btn btn-dark">Approve</a>
+          <a href="{% url "deny_follow" req.id %}?next={{ request.path|urlencode }}
+          " class="btn btn-outline-dark">Deny</a>
         {% endfor %}
+    </div>
 {% endblock %}

@@ -1,59 +1,55 @@
 {% extends 'base.html' %}
 {% load django_bootstrap5 %}
 {% load external_extras %}
+{% load stream_extras %}
 {% block content %}
-    <div class="container">
+    <div class="container" style="max-width: 768px; margin: auto;">
+
+        <div style="margin: 7em"></div>
         <div class="row">
-            <div class="col-md-2">
-                <img class="" src="{{ author.profile_image }}" width="128px" class="rounded-circle">
-            </div>
-            <div class="col-md-2 align-self-center">
-                <h2 class="align-middle">{{ author.display_name }}</h2>
-                {% if author.host %}
-                    {% externalbadge author %}
-                {% endif %}
-            </div>
-            <div class="col-md-2 align-self-center">
-                Followers: <a href = "{% url 'view_followers' author.id %}">{{ author.follower_count }}</a>
-            </div>
-            {% if author.user_id == user.id %}
-            <div class="col-md-2 align-self-center">
-                Following: <a href="{%  url 'view_following' author.id %}">{{author.following_count}}</a>
-            </div>
-            {% endif %}
-            {% if author.user_id == user.id %}
-            <div class="col-md-2 align-self-center">
-                Requests: <a href="{%  url 'view_requests' author.id %}">{{author.requests_count}}</a>
-            </div>
-            {% endif %}
+            {% miniauthor author %}
+        </div>
+        <div class="row" style="padding-top: 3em;">
             {% if user.is_authenticated and user.id != author.user_id and not is_following and not is_requested%}
-                <div class="col-md-2 align-self-center">
-                    <a href="{% url 'send_follow_request' author.id %}" class="btn btn-outline-primary me-2">Follow</a>
-                </div>
-            {% elif user.is_authenticated and user.id != author.user_id and not is_requested%}
-                <div class="col-md-2 align-self-center">
-                    <a href="{% url 'unfriend' author.id %}" class="btn btn-outline-primary me-2">Unfollow</a>
-                </div>
+                    <a href="{% url 'send_follow_request' author.id %}" class="btn btn-dark me-2">Follow</a>
+            {% elif user.is_authenticated and user.id != author.user_id and is_following %}
+                    <a href="{% url 'unfriend' author.id %}" class="btn btn-dark me-2">Unfollow</a>
             {% elif user.is_authenticated and user.id != author.user_id and is_requested%}
-                <div class="col-md-2 align-self-center">
-                    <a class="btn btn-outline-primary me-2 disabled" aria-disabled="true">Request Pending</a>
-                </div>
+                    <a class="btn btn-dark me-2 disabled" aria-disabled="true">Request Pending</a>
             {% endif %}
-         
-            {% if user.is_authenticated and user.id == author.user_id %}
-                <div class="col-md-2 align-self-center">
-                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editModal">
+            {% if author.user_id == user.id %}
+        <div class="row" style="margin-top: 2em; display: flex; justify-content: center; align-items: center; ">
+                <p style="display: inline; width: auto; margin-bottom: 0;"><a class="qc-hover-link" href="{%  url 'view_requests' author.id %}">View {{author.requests_count}} follow request(s).</a></p>
+                    <button style="width: auto; margin-left: auto;"type="button" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#editModal">
+                        Edit profile
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-pencil" viewBox="0 0 16 16">
                             <path d="M12.146.146a.5.5 0 0 1 .708 0l3 3a.5.5 0 0 1 0 .708l-10 10a.5.5 0 0 1-.168.11l-5 2a.5.5 0 0 1-.65-.65l2-5a.5.5 0 0 1 .11-.168l10-10zM11.207 2.5 13.5 4.793 14.793 3.5 12.5 1.207 11.207 2.5zm1.586 3L10.5 3.207 4 9.707V10h.5a.5.5 0 0 1 .5.5v.5h.5a.5.5 0 0 1 .5.5v.5h.293l6.5-6.5zm-9.761 5.175-.106.106-1.528 3.821 3.821-1.528.106-.106A.5.5 0 0 1 5 12.5V12h-.5a.5.5 0 0 1-.5-.5V11h-.5a.5.5 0 0 1-.468-.325z"></path>
                         </svg>
                     </button>
-                </div>
-            {% endif %}
-            <div class="col-md-2 align-self-center">
-                <a href = "{% url 'view_author_posts' author.id %}">Posts</a>
-            </div>
         </div>
+            {% endif %}
+
+        </div>
+
+    {% if following_me %}
+        <div display="flex" style="margin-top: 1em; display: flex; justify-content: space-around; align-items: space-around; ">
+            <p style="margin-bottom: 0;">{{ author.display_name }} is following you.</p>
+            <a style="margin-left: auto;"href="{% url 'remove_follower' author.id %}?next={{ request.path }}" class="btn btn-dark me-2">Remove Follower</a>
+        </div>
+    {% endif %}
+
+    <hr>
+
+    <div style="flex-flow: row wrap; max-width: 768px; margin: auto;">
+        {% for post in page_obj %}
+        <div style="break-inside: avoid; padding: 10px;">
+            {% minipost post %}
+            <hr>
+        </div>
+
+        {% endfor %}
     </div>
+
 
     <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -70,10 +66,6 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Close</button>
                 </form>
             </div>
-            <!-- <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-              <button type="button" class="btn btn-primary">Save changes</button>
-            </div> -->
           </div>
         </div>
       </div>
