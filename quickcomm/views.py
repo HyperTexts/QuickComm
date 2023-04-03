@@ -630,7 +630,7 @@ def all_posts(request):
         if author.is_remote and not author.is_temporary:
             sync_posts(author)
 
-    posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC)
+    posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC).order_by('-published')
 
     size = request.GET.get('size', '10')
     paginator = Paginator(posts, size)
