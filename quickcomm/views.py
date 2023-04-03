@@ -464,8 +464,8 @@ def view_profile(request, author_id):
     # determine if the remote author is following the current author
     following_me = Follow.objects.filter(following=current_author, follower=author).exists()
 
-
-    posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | (Q(visibility = 'FRIENDS'), Q(author.is_bidirectional(current_author))) | (Q(visibility = 'PRIVATE'), Q(recipient = current_author.id)))
+    is_friend = author.is_bidirectional(current_author)
+    posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | (Q(visibility = 'FRIENDS') & is_friend) | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author))
     
 
 
