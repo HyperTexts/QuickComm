@@ -13,7 +13,7 @@
 import uuid
 from rest_framework import serializers
 from django.core.files.base import ContentFile
-from quickcomm.external_host_requests import Group1QCRequest, InternalQCRequest, THTHQCRequest
+from quickcomm.external_host_requests import Group1QCRequest, InternalQCRequest, MattGroupQCRequest, THTHQCRequest
 from quickcomm.models import Author, Comment, CommentLike, Follow, FollowRequest, Host, Like, Post
 import base64
 
@@ -32,6 +32,8 @@ def get_request_class_from_host(host: Host):
         return Group1QCRequest(host, Deserializers, InboxSerializers)
     elif serializer_type == Host.SerializerClass.INTERNAL:
         return InternalQCRequest(host, Deserializers, InboxSerializers)
+    elif serializer_type == Host.SerializerClass.MATTGROUP:
+        return MattGroupQCRequest(host, Deserializers, InboxSerializers)
     else:
         raise Exception("Unknown serializer type")
 
