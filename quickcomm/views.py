@@ -622,8 +622,11 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
+@author_required
 def all_posts(request):
     """View all public posts on a server"""
+
+    current_author = request.author
 
     # sync every author's posts
     for author in Author.objects.all():
@@ -641,6 +644,7 @@ def all_posts(request):
     context = {
         'page_obj': page_obj,
         'size': size,
+        'current_author': current_author,
     }
 
     return render(request, 'quickcomm/all_posts.html', context)
