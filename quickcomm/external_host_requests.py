@@ -1078,33 +1078,39 @@ class InternalQCRequest(BaseQCRequest):
         return {
             'type': external_data['type'],
             'external_url': external_data['url'],
-            'display_name': f"Undefined display name ({external_data['url']})" if external_data['displayName'] == '' else external_data['displayName'],
-            'profile_image': None if external_data['profileImage'] == '' else external_data['profileImage'],
-            'github': None if external_data['github'] == '' else external_data['github'],
+            'display_name': get_attr(external_data, 'displayName', "Undefined display name"),
+            'profile_image': get_attr(external_data, 'profileImage'),
+            'github': get_attr(external_data, 'github'),
                 }
 
     def map_raw_post(self, raw_post):
+
+
+        # add missing base64 to content type
+        if raw_post['contentType'] == 'image/png' or raw_post['contentType'] == 'image/jpeg':
+            raw_post['contentType'] = raw_post['contentType'] + ';base64'
+
         return {
             'type': raw_post['type'],
-            'title': f"Undefined title ({raw_post['id']})" if raw_post['title'] == '' else raw_post['title'],
+            'title': get_attr(raw_post, 'title', "Undefined title"),
             'external_url': raw_post['id'],
-            'source': raw_post['id'] if raw_post['source'] == '' else raw_post['source'],
-            'origin': raw_post['id'] if raw_post['origin'] == '' else raw_post['origin'],
-            'description': f"Undefined description ({raw_post['id']})" if raw_post['description'] == '' else raw_post['description'],
-            'content': f"Undefined content ({raw_post['id']})" if raw_post['content'] == '' else raw_post['content'],
-            'content_type': raw_post['contentType'],
-            'published': raw_post['published'],
-            'visibility': raw_post['visibility'],
-            'unlisted': raw_post['unlisted'],
+            'source': get_attr(raw_post, 'source', raw_post['id']),
+            'origin': get_attr(raw_post, 'origin', raw_post['id']),
+            'description': get_attr(raw_post, 'description', "Undefined description"),
+            'content': get_attr(raw_post, 'content', "Undefined content"),
+            'content_type': get_attr(raw_post, 'contentType', 'text/plain'),
+            'published': get_attr(raw_post, 'published', datetime.datetime.now().isoformat()),
+            'visibility': get_attr(raw_post, 'visibility', 'PUBLIC'),
+            'unlisted': get_attr(raw_post, 'unlisted', False),
         }
 
     def map_raw_comment(self, raw_comment):
         return {
             'type': raw_comment['type'],
-            'external_url': raw_comment.get('id', None),
-            'comment': raw_comment.get('comment', "<Empty comment>"),
-            'content_type': raw_comment['contentType'],
-            'published': get_attr(raw_comment, 'published', datetime.datetime.now()),
+            'external_url': get_attr(raw_comment, 'id'),
+            'comment': get_attr(raw_comment, 'comment', "Undefined comment"),
+            'content_type': get_attr(raw_comment, 'contentType', 'text/plain'),
+            'published': get_attr(raw_comment, 'published', datetime.datetime.now().isoformat()),
         }
 
     def map_raw_post_like(self, raw_post_like):

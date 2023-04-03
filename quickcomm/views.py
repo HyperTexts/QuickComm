@@ -378,8 +378,12 @@ def post_comment(request, post_id, author_id):
             comment.author = author
             comment.comment = text
             comment.save()
+            # update comments from the server
+            sync_comments(post)
 
-            new_comment = render_to_string("minicomment.html", { "comment": comment, "current_author": current_author }, request=request)
+            # get new comment
+            rem_comment = Comment.objects.get(id=comment.id)
+            new_comment = render_to_string("minicomment.html", { "comment": rem_comment, "current_author": current_author }, request=request)
             return JsonResponse({"comments": new_comment + "<hr>"})
         # return redirect('post_comment', post_id=post_id, author_id=author_id)
 
