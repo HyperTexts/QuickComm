@@ -419,7 +419,7 @@ class Post(models.Model):
     origin = models.URLField(blank=True, null=True, validators=[URLValidator])
     description = models.CharField(max_length=1000)
     content_type = models.CharField(max_length=50, choices=PostType.choices)
-    content = models.CharField(max_length=1000000000)
+    content = models.CharField(max_length=10485760)
     # FIXME categories has to be a list of strings of some sort
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     categories = models.CharField(max_length=1000)
