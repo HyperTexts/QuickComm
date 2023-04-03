@@ -1,7 +1,6 @@
 {% load stream_extras %}
 {% load humanize %}
 
-{% if like.author.user.username %}
 <hr>
 <div class="mb-3">
     <div class="card-header qc-stream-header">
@@ -12,4 +11,3 @@
         {% minicomment None like.comment %}
     </div>
 </div>
-{% endif %}
