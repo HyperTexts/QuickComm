@@ -656,6 +656,8 @@ def all_posts(request):
         for author in Author.objects.all():
             if author.is_remote and not author.is_temporary:
                 sync_posts(author)
+                sync_followers(author)
+
         all_posts_thread = None
 
     global all_posts_thread

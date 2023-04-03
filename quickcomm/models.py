@@ -444,7 +444,7 @@ class Post(models.Model):
         # skip inbox if post is unlisted
         if self.unlisted:
             return saved
-        
+
         # if visibility is private, we only send to the inbox of the recipient and the author of the post
         elif self.visibility == 'PRIVATE':
             try:
