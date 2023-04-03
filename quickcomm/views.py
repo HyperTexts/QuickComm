@@ -225,12 +225,11 @@ def post_view(request, post_id, author_id):
     if post.author.is_remote and not post.author.is_temporary:
         sync_comments(post)
         sync_post_likes(post)
-    
 
     post_type = post.visibility
     form = Form()
     if (post_type == 'FRIENDS'):
-        post_comments = Comment.objects.filter(Q(author = current_author) | Q(author = post.author),post=post).order_by("-published")
+        post_comments = Comment.objects.filter(Q(author = current_author) | Q(author = post.author) | Q(post__author=current_author),post=post).order_by("-published")
     else:
         post_comments = Comment.objects.filter(post=post).order_by("-published")
     
