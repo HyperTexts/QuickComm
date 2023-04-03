@@ -221,6 +221,12 @@ def delete_post(request, author_id, post_id):
 def post_view(request, post_id, author_id):
     current_author = request.author
     post = get_object_or_404(Post, pk=post_id)
+
+    if post.author.is_remote and not post.author.is_temporary:
+        sync_comments(post)
+        sync_post_likes(post)
+    
+
     post_type = post.visibility
     form = Form()
     if (post_type == 'FRIENDS'):
