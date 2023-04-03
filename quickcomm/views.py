@@ -1,4 +1,5 @@
 import json
+from threading import Thread
 from dateutil import parser
 from django.db.models import Q, Count
 from django.template.defaulttags import register
@@ -17,6 +18,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
 from django.template.loader import render_to_string
 from django.forms import Form
+import asyncio
 
 from quickcomm.models import Author, Follow, Inbox
 from quickcomm.models import Author, Post, Like, Comment, RegistrationSettings, Inbox, CommentLike, Follow, FollowRequest
@@ -223,8 +225,8 @@ def post_view(request, post_id, author_id):
     post = get_object_or_404(Post, pk=post_id)
 
     if post.author.is_remote and not post.author.is_temporary:
-        sync_comments(post)
-        sync_post_likes(post)
+        Thread(target=asyncio.run, args=(sync_comments(post),), daemon=True).start()
+        Thread(target=asyncio.run, args=(sync_post_likes(post),), daemon=True).start()
 
     post_type = post.visibility
     form = Form()
@@ -417,7 +419,7 @@ def view_authors(request):
     all_hosts = Host.objects.all()
     for host in all_hosts:
         # update the author list
-        sync_authors(host)
+        Thread(target=sync_authors, args=(host,), daemon=True).start()
 
     authors = Author.frontend_queryset().order_by('display_name')
 
@@ -442,8 +444,8 @@ def view_profile(request, author_id):
     form = EditProfileForm()
 
     if author.is_remote and not author.is_temporary:
-        sync_posts(author)
-        sync_followers(author)
+        Thread(target=sync_posts, args=(author,), daemon=True).start()
+        Thread(target=sync_followers, args=(author,), daemon=True).start()
 
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
     if current_author.user == author.user:
@@ -628,10 +630,13 @@ def all_posts(request):
 
     current_author = request.author
 
+    def sync_all_authors():
+        for author in Author.objects.all():
+            if author.is_remote and not author.is_temporary:
+                sync_posts(author)
+
     # sync every author's posts
-    for author in Author.objects.all():
-        if author.is_remote and not author.is_temporary:
-            sync_posts(author)
+    Thread(target=sync_all_authors, daemon=True).start()
 
     posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC, unlisted=False).order_by('-published')
 
@@ -655,7 +660,7 @@ def view_author_posts(request, author_id):
     current_author = request.author
 
     if author.is_remote and not author.is_temporary:
-        sync_posts(author)
+        Thread(target=sync_posts, args=(author,), daemon=True).start()
 
     posts = Post.objects.filter(author=author, visibility=Post.PostVisibility.PUBLIC)
 
