@@ -412,14 +412,27 @@ def register(request):
         }
     return render(request, 'quickcomm/register.html', context)
 
+author_update_thread = None
+
 @author_required
 def view_authors(request):
+    global author_update_thread
     current_author = request.author
 
     all_hosts = Host.objects.all()
-    for host in all_hosts:
-        # update the author list
-        Thread(target=sync_authors, args=(host,), daemon=True).start()
+
+    def sync_all_authors():
+        for host in all_hosts:
+            sync_authors(host)
+        # when we're done, set the thread to None so we can start it again
+        global author_update_thread
+        author_update_thread = None
+
+    if author_update_thread is None or not author_update_thread.is_alive():
+        # start the thread to update the author list
+        author_update_thread = Thread(target=sync_all_authors, daemon=True)
+        author_update_thread.start()
+
 
     authors = Author.frontend_queryset().order_by('display_name')
 
@@ -624,6 +637,8 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
+all_posts_thread = None
+
 @author_required
 def all_posts(request):
     """View all public posts on a server"""
@@ -631,12 +646,16 @@ def all_posts(request):
     current_author = request.author
 
     def sync_all_authors():
+        global all_posts_thread
         for author in Author.objects.all():
             if author.is_remote and not author.is_temporary:
                 sync_posts(author)
+        all_posts_thread = None
 
-    # sync every author's posts
-    Thread(target=sync_all_authors, daemon=True).start()
+    global all_posts_thread
+    if all_posts_thread is None or not all_posts_thread.is_alive():
+        all_posts_thread = Thread(target=sync_all_authors, daemon=True)
+        all_posts_thread.start()
 
     posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC, unlisted=False).order_by('-published')
 
