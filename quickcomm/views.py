@@ -430,6 +430,13 @@ def view_authors(request):
     def sync_all_authors():
         for host in all_hosts:
             sync_authors(host)
+
+        # get all authors from the database
+        authors = Author.objects.all()
+        for author in authors:
+            # if the author is remote, sync their posts
+            if author.is_remote and not author.is_temporary:
+                sync_followers(author)
         # when we're done, set the thread to None so we can start it again
         global author_update_thread
         author_update_thread = None
@@ -651,7 +658,7 @@ def all_posts(request):
 
     current_author = request.author
 
-    def sync_all_authors():
+    def sync_all_authors2():
         global all_posts_thread
         for author in Author.objects.all():
             if author.is_remote and not author.is_temporary:
@@ -662,7 +669,7 @@ def all_posts(request):
 
     global all_posts_thread
     if all_posts_thread is None or not all_posts_thread.is_alive():
-        all_posts_thread = Thread(target=sync_all_authors, daemon=True)
+        all_posts_thread = Thread(target=sync_all_authors2, daemon=True)
         all_posts_thread.start()
 
     posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC, unlisted=False).order_by('-published')
