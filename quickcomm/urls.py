@@ -115,4 +115,5 @@ urlpatterns = [
     path('approve_follow/<follow_id>/',views.approve_follow,name='approve_follow'),
     path('deny_follow/<follow_id>/',views.deny_follow,name='deny_follow'),
     path('authors/<uuid:author_id>/posts/<uuid:post_id>/delete/', views.delete_post, name='delete_post'),
+    path('all_posts/', views.all_posts, name='all_posts'),
 ]

@@ -622,6 +622,29 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
+def all_posts(request):
+    """View all public posts on a server"""
+
+    # sync every author's posts
+    for author in Author.objects.all():
+        if author.is_remote and not author.is_temporary:
+            sync_posts(author)
+
+    posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC)
+
+    size = request.GET.get('size', '10')
+    paginator = Paginator(posts, size)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'size': size,
+    }
+
+    return render(request, 'quickcomm/all_posts.html', context)
+
 @author_required
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
