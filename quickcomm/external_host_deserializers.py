@@ -256,6 +256,10 @@ class FollowerDeserializer(serializers.ModelSerializer):
 
         return item
 
+    class Meta:
+        model = Follow
+        fields = []
+
 class FollowRequestDeserializer(serializers.ModelSerializer):
 
     def save(self, author=None, following=None, request=False):
