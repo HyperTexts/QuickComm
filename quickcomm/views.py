@@ -465,7 +465,10 @@ def view_profile(request, author_id):
     following_me = Follow.objects.filter(following=current_author, follower=author).exists()
 
     is_friend = author.is_bidirectional(current_author)
-    posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC'))
+    if is_friend:
+        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'FRIENDS') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author))
+    else:
+        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author))
     
 
 
