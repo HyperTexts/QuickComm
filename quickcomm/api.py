@@ -153,6 +153,7 @@ class AuthorViewSet(viewsets.ModelViewSet):
             raise exceptions.NotFound('Author not found')
 
         try:
+            logging.info(f'Attempting to parse inbox item {str(request.data)}')
             item, inbox_type = import_http_inbox_item(author, request.data, host)
         except exceptions.APIException as e:
             raise e

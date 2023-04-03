@@ -12,7 +12,7 @@
                 {%if current_author is not None %}
               {% if current_author.id in comment.like_ids %}
                 {% csrf_token %}
-                <button onclick="likeComment(this.id, '{% url 'like_comment' author_id=comment.post.author.id post_id=comment.post.id comment_id=comment.id %}')" id="cl_{{forloop.counter}}" class="btn btn-sm btn-dark">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
+                <button onclick="likeComment(this.id, '{% url 'like_comment' author_id=comment.post.author.id post_id=comment.post.id comment_id=comment.id %}')" id="cl_{{comment.id}}" class="btn btn-sm btn-dark">Liked <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="red" class="bi bi-heart-fill" viewBox="0 0 16 16">
                   <path fill-rule="evenodd" d="M8 1.314C12.438-3.248 23.534 4.735 8 15-7.534 4.736 3.562-3.248 8 1.314z"/></svg>
 {{ comment.like_count }}
                 </button>
