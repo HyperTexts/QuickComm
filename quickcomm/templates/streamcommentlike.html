@@ -4,7 +4,7 @@
 <hr>
 <div class="mb-3">
     <div class="card-header qc-stream-header">
-    <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a class="qc-hover-link" href={% url "view_profile" author_id=like.author.id %}>{{ like.author.display_name }}</a> liked your comment on post
+    <p class="card-text"><strong>{{ time|naturaltime }}</strong> <a class="qc-hover-link" href={% url "view_profile" author_id=like.author.id %}>{{ like.author.display_name }}</a> liked a comment on your post
         <a class="qc-hover-link" href={% url "post_view" author_id=like.comment.post.author.id post_id=like.comment.post.id %}>{{ like.comment.post.title }}</a>.</p>
     </div>
     <div class="card-body">

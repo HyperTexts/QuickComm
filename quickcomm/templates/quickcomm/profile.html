@@ -6,9 +6,19 @@
     <div class="container" style="max-width: 768px; margin: auto;">
 
         <div style="margin: 7em"></div>
+
+        {% if author.is_temporary %}
+        <div class="row">
+            {% tinyauthor author %}
+        </div>
+        <div class="row">
+            <p style="margin-bottom: 0;">This author is not connected to this server. They likely live on another server. You are unable to view the details of authors whose hosts are not connected this host.</p>
+        </div>
+        {% else %}
         <div class="row">
             {% miniauthor author %}
         </div>
+
         <div class="row" style="padding-top: 3em;">
             {% if user.is_authenticated and user.id != author.user_id and not is_following and not is_requested%}
                     <a href="{% url 'send_follow_request' author.id %}" class="btn btn-dark me-2">Follow</a>
@@ -67,6 +77,7 @@
                 </form>
             </div>
           </div>
+      {% endif %}
         </div>
       </div>
 {% endblock %}

@@ -258,7 +258,7 @@ class Author(models.Model):
     @property
     def is_temporary(self):
         """Returns true if the author is temporary."""
-        return self.host is None
+        return self.host is None and self.external_url is not None
 
     @property
     def location(self):
@@ -284,7 +284,7 @@ class Author(models.Model):
     
     def get_followers(self):
         return Follow.objects.filter(following=self)
-    
+
     def get_following(self):
         return Follow.objects.filter(follower=self)
     

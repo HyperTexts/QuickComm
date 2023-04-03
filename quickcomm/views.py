@@ -481,9 +481,9 @@ def view_profile(request, author_id):
 
     is_friend = author.is_bidirectional(current_author)
     if is_friend:
-        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'FRIENDS') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author))
+        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'FRIENDS') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author)).order_by('-published')
     else:
-        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author))
+        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author)).order_by('-published')
     
 
 
