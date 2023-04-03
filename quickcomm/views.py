@@ -465,7 +465,8 @@ def view_profile(request, author_id):
     following_me = Follow.objects.filter(following=current_author, follower=author).exists()
 
 
-    posts = Post.objects.filter(author=author)
+    posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | (Q(visibility = 'FRIENDS'), Q(author.is_bidirectional(current_author))) | (Q(visibility = 'PRIVATE'), Q(recipient = current_author.id)))
+    
 
 
     return render(request, 'quickcomm/profile.html', {
