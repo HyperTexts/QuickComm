@@ -360,12 +360,14 @@ class BaseQCRequest:
         endpoint = f'{self._clean_url(author.external_url)}{self.INBOX_ENDPOINT}{trail}'
         serialized_item = serializer(item, context={'request': get_request()})
         data = map_func(serialized_item.data)
+        json_str = json.dumps(data)
+        logging.info(f'Sending {json_str} to {endpoint}.')
         res = session.post(endpoint, json=data, headers={'Authorization':f'Basic {self.auth}'},
             )
         try:
             res.raise_for_status()
         except Exception as e:
-            logging.error(f'Could not send {item} to inbox of {author}.', exc_info=True)
+            logging.error(f'Could not send to inbox of {author}.', exc_info=True)
             return False
         return True
 
