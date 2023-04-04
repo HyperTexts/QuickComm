@@ -443,6 +443,12 @@ class BaseQCRequest:
 
     def update_comment_likes(self, comment):
         """Update the likes from the remote server for a given comment."""
+        
+        # if we just made the comment and it has no external url,
+        # don't try to get its likes
+        if comment.external_url is None:
+            return
+        
         return self._get_list_response(self.deserializers.comment_like,
             self._clean_url(comment.external_url) + self.COMMENT_LIKES_ENDPOINT,
             self.map_raw_comment_like, self.map_list_comment_likes,
