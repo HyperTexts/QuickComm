@@ -327,7 +327,7 @@ def get_item(dictionary, key):
 def post_like(request, post_id, author_id):
     objects = Post.objects.all()
     post = objects.get(pk=post_id)
-
+    is_liked = None
     if request.user.is_authenticated:
         if request.method == 'POST':
             author = Author.objects.all().get(user=request.user)
@@ -348,6 +348,7 @@ def post_like(request, post_id, author_id):
    
 @login_required
 def like_comment(request, post_id, author_id, comment_id):
+    is_liked = None
     if request.method == 'POST':
         if request.user.is_authenticated:
             author = Author.objects.all().get(user=request.user)
