@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from quickcomm.models import Author, Comment, Inbox, Post
+from quickcomm.models import Author, Comment, Inbox, Post, FollowRequest, Follow
 
 
 class InternalInboxTests(TestCase):
@@ -20,11 +20,24 @@ class InternalInboxTests(TestCase):
         self.user3 = User.objects.create_user(username='user3', password='badpassword')
 
         # create sample authors
-        self.author1 = Author.objects.create(user=self.user1, display_name='My Real Cool Name', github='abramhindle', profile_image='https://url.com')
+        self.author1 = Author.objects.create(user=self.user1,
+                                             display_name='My Real Cool Name',
+                                             github='abramhindle',
+                                             profile_image='https://url.com',
+                                             external_url=None)
         self.author1.save()
-        self.author2 = Author.objects.create(user=self.user2, display_name='My Real Cool Name 2', github='abramhindle', profile_image='https://url.com')
+
+        self.author2 = Author.objects.create(user=self.user2,
+                                             display_name='My Real Cool Name 2',
+                                             github='abramhindle',
+                                             profile_image='https://url.com',
+                                             external_url=None)
         self.author2.save()
-        self.author3 = Author.objects.create(user=self.user3, display_name='My Real Cool Name 3', github='abramhindle', profile_image='https://url.com')
+
+        self.author3 = Author.objects.create(user=self.user3,
+                                             display_name='My Real Cool Name 3',
+                                             github='abramhindle',
+                                             profile_image='https://url.com')
         self.author3.save()
 
     def test_get_inbox(self):
@@ -34,25 +47,45 @@ class InternalInboxTests(TestCase):
 
     def test_follow(self):
         """Test that following a user adds an item to the inbox of the followed user."""
-        self.author1.follow(self.author2)
+        follow_req = FollowRequest.objects.create(from_user=self.author1, to_user=self.author2)
+        follow_req.save()
+
+        follow = Follow.objects.create(follower=follow_req.from_user, following=follow_req.to_user)
+        follow.save()
+
         items = Inbox.objects.all()
         self.assertEqual(len(items), 1)
         self.assertEqual(items[0].inbox_type, items[0].InboxType.FOLLOW)
-        self.assertEqual(items[0].content_object.following, self.author2)
-        self.assertEqual(items[0].content_object.follower, self.author1)
+        self.assertEqual(items[0].content_object.to_user, self.author2)
+        self.assertEqual(items[0].content_object.from_user, self.author1)
         self.assertEqual(items[0].author, self.author2)
 
     def test_creating_new_post(self):
         """Test that a new post adds an item to the inboxes of all followers, including itself."""
 
-        self.author1.follow(self.author2).full_clean()
-        items = Inbox.objects.all()
+        follow_req = FollowRequest.objects.create(from_user=self.author1,
+                                                  to_user=self.author2)
+        follow_req.save()
 
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
         self.assertEqual(len(items), 1)
 
-        post = Post.objects.create(author=self.author2, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
+        post = Post.objects.create(author=self.author2,
+                                   title='My Post',
+                                   source='http://someurl.ca',
+                                   origin='http://someotherurl.ca',
+                                   description='My Post Description',
+                                   content_type='text/plain',
+                                   content='My Post Content',
+                                   visibility='PUBLIC',
+                                   unlisted=False,
+                                   categories='["test"]')
         post.full_clean()
-
+        
         items = Inbox.objects.all()
         self.assertEqual(len(items), 3)
         self.assertEqual(items[0].inbox_type, items[0].InboxType.FOLLOW)
@@ -68,9 +101,15 @@ class InternalInboxTests(TestCase):
     def test_commenting_on_post(self):
         """Test that commenting on a post adds an item to the inbox of the author of the post."""
 
-        self.author1.follow(self.author2).full_clean()
-        items = Inbox.objects.all()
+        follow_req = FollowRequest.objects.create(from_user=self.author1,
+                                                  to_user=self.author2)
+        follow_req.save()
 
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
         self.assertEqual(len(items), 1)
 
         post = Post.objects.create(author=self.author2, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
