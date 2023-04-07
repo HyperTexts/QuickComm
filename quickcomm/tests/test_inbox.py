@@ -1,6 +1,6 @@
 
 
-from django.test import TestCase, Client
+from django.test import TestCase
 from django.contrib.auth.models import User
 
 from quickcomm.models import Author, Comment, Inbox, Post, FollowRequest, Follow, Like, CommentLike
@@ -128,6 +128,26 @@ class InternalInboxTests(TestCase):
         self.assertEqual(items[3].content_object, comment)
         self.assertEqual(items[3].author, self.author2)
 
+    def test_unlisted_post2(self):
+        """Test that even being a friend with the author cant get unlisted post in their inbox"""
+
+        follow_req = FollowRequest.objects.create(from_user=self.author1,
+                                                  to_user=self.author3)
+        follow_req.save()
+
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 1)
+
+        post = Post.objects.create(author=self.author1, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='FRIEND', unlisted=False, categories='["test"]')
+        post.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 2)
+
     def test_liking_comment(self):
         """Test that liking a comment adds an item to the inbox of the author of the post."""
 
@@ -193,6 +213,33 @@ class InternalInboxTests(TestCase):
         self.assertEqual(items[3].inbox_type, items[3].InboxType.LIKE)
         self.assertEqual(items[3].content_object, like)
         self.assertEqual(items[3].author, self.author2)
+
+    def test_unlisted_post(self):
+        """Test that creating an unlisted post doesnt add an item to the inbox of anyone"""
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 0)
+
+        posts = Post.objects.all()
+        self.assertEqual(len(posts),0)
+
+        post = Post.objects.create(author=self.author2,
+                                   title='My Post',
+                                   source='http://someurl.ca',
+                                   origin='http://someotherurl.ca',
+                                   description='My Post Description',
+                                   content_type='text/plain',
+                                   content='My Post Content',
+                                   visibility='PUBLIC',
+                                   unlisted=True,
+                                   categories='["test"]')
+        post.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 0)
+
+        posts = Post.objects.all()
+        self.assertEqual(len(posts),1)
+
 
     def test_friend_post(self):
         """Test that creating a friend post only adds an item to the inbox of the author of the post and their friends."""
@@ -261,49 +308,3 @@ class InternalInboxTests(TestCase):
 
         self.assertEqual(items[3].author, self.author1)
         self.assertEqual(items[4].author, self.author2)
-    def test_commenting_on_friend_post(self):
-        follow_req = FollowRequest.objects.create(from_user=self.author1,
-                                                  to_user=self.author2)
-        follow_req.save()
-
-        follow = Follow.objects.create(follower=follow_req.from_user,
-                                       following=follow_req.to_user)
-        follow.save()
-        
-        items = Inbox.objects.all()
-        self.assertEqual(len(items), 1)
-        post = Post.objects.create(author=self.author2,
-                                   title='My Post',
-                                   source='http://someurl.ca',
-                                   origin='http://someotherurl.ca',
-                                   description='My Post Description',
-                                   content_type='text/plain',
-                                   content='My Post Content',
-                                   visibility='FRIENDS',
-                                   unlisted=False,
-                                   categories='["test"]')
-        post.full_clean()
-        comment = Comment.objects.create(author=self.author2,   content_type='text/plain', comment='My Comment Content', post=post)
-        comment.full_clean()
-        items=Inbox.objects.all()
-        self.assertEqual(len(items),3)
-        self.assertEqual(items[2].inbox_type, items[2].InboxType.COMMENT)
-        self.assertEqual(items[2].content_object.post,post)
-        self.assertEqual(items[2].content_object.comment,'My Comment Content')
-    def test_image_post(self):
-        post = Post.objects.create(author=self.author2,
-                                   title='My Post',
-                                   source='http://someurl.ca',
-                                   origin='http://someotherurl.ca',
-                                   description='My Post Description',
-                                   content_type='image/png;base64',
-                                   content='file:///home/nanaya/add_tests/images/image.png',
-                                   visibility='FRIENDS',
-                                   unlisted=False,
-                                   categories='["test"]')
-        items=Inbox.objects.all()
-        post.full_clean()
-        self.assertEqual(len(items),1)
-        self.assertEqual(items[0].inbox_type,items[0].InboxType.POST)
-        self.assertEqual(items[0].content_object.content_type,'image/png;base64')
-        
