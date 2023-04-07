@@ -3,7 +3,7 @@
 from django.test import TestCase
 from django.contrib.auth.models import User
 
-from quickcomm.models import Author, Comment, Inbox, Post, FollowRequest, Follow
+from quickcomm.models import Author, Comment, Inbox, Post, FollowRequest, Follow, Like, CommentLike
 
 
 class InternalInboxTests(TestCase):
@@ -127,4 +127,138 @@ class InternalInboxTests(TestCase):
         self.assertEqual(items[3].inbox_type, items[3].InboxType.COMMENT)
         self.assertEqual(items[3].content_object, comment)
         self.assertEqual(items[3].author, self.author2)
+
+    def test_liking_comment(self):
+        """Test that liking a comment adds an item to the inbox of the author of the post."""
+
+        follow_req = FollowRequest.objects.create(from_user=self.author1,
+                                                  to_user=self.author2)
+        follow_req.save()
+
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 1)
+
+        post = Post.objects.create(author=self.author2, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
+        post.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 3)
+
+        comment = Comment.objects.create(author=self.author1,   content_type='text/plain', comment='My Comment Content', post=post)
+        comment.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 4)
+
+        comment_like = CommentLike.objects.create(comment=comment, author=self.author2)
+        comment_like.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 5)
+
+        self.assertEqual(items[4].inbox_type, items[4].InboxType.COMMENTLIKE)
+        self.assertEqual(items[4].content_object, comment_like)
+        self.assertEqual(items[4].author, self.author2)
+
+    def test_liking_post(self):
+        """Test that liking a post adds an item to the inbox of the author of the post."""
+
+        follow_req = FollowRequest.objects.create(from_user=self.author1,
+                                                  to_user=self.author2)
+        follow_req.save()
+
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 1)
+
+        post = Post.objects.create(author=self.author2, title='My Post', source='http://someurl.ca', origin='http://someotherurl.ca', description='My Post Description', content_type='text/plain', content='My Post Content', visibility='PUBLIC', unlisted=False, categories='["test"]')
+        post.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 3)
+
+        like = Like.objects.create(author=self.author1, post=post)
+        like.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 4)
+
+        self.assertEqual(items[3].inbox_type, items[3].InboxType.LIKE)
+        self.assertEqual(items[3].content_object, like)
+        self.assertEqual(items[3].author, self.author2)
+
+    def test_friend_post(self):
+        """Test that creating a friend post only adds an item to the inbox of the author of the post and their friends."""
+
+        follow_req = FollowRequest.objects.create(from_user=self.author1,
+                                                  to_user=self.author2)
+        follow_req.save()
+
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 1)
+
+        post = Post.objects.create(author=self.author2,
+                                   title='My Post',
+                                   source='http://someurl.ca',
+                                   origin='http://someotherurl.ca',
+                                   description='My Post Description',
+                                   content_type='text/plain',
+                                   content='My Post Content',
+                                   visibility='FRIENDS',
+                                   unlisted=False,
+                                   categories='["test"]')
+        post.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 2)
+        self.assertEqual(items[1].inbox_type, items[1].InboxType.POST)
+        self.assertEqual(items[1].content_object, post)
+        self.assertEqual(items[1].author, self.author2)
+
+        # now make the two authors true friends
+        follow_req = FollowRequest.objects.create(from_user=self.author2,
+                                                  to_user=self.author1)
+        follow_req.save()
+
+        follow = Follow.objects.create(follower=follow_req.from_user,
+                                       following=follow_req.to_user)
+        follow.save()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 3)
+
+        # make a new friends post
+        post2 = Post.objects.create(author=self.author2,
+                                   title='My Second Post',
+                                   source='http://someurl.ca',
+                                   origin='http://someotherurl.ca',
+                                   description='My Post Description',
+                                   content_type='text/plain',
+                                   content='My Second Post Content',
+                                   visibility='FRIENDS',
+                                   unlisted=False,
+                                   categories='["test"]')
+        post2.full_clean()
+
+        items = Inbox.objects.all()
+        self.assertEqual(len(items), 5)
+        self.assertEqual(items[3].inbox_type, items[3].InboxType.POST)
+        self.assertEqual(items[4].inbox_type, items[4].InboxType.POST)
+
+        self.assertEqual(items[3].content_object, post2)
+        self.assertEqual(items[4].content_object, post2)
+
+        self.assertEqual(items[3].author, self.author1)
+        self.assertEqual(items[4].author, self.author2)
 
