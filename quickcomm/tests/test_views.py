@@ -289,3 +289,48 @@ class EditProfileViewTest(TestCase):
 
                 self.assertEqual(response.status_code, 200)
                 self.assertNotEqual(author.profile_image, Author.objects.all()[0].profile_image)
+
+class ViewPostTest(TestCase):
+    def setUp(self):
+        self.user1 = User.objects.create_user(
+            username='user1',
+            password='pass1'
+        )
+
+        self.user2 = User.objects.create_user(
+            username='user2',
+            password='pass2'
+        )
+
+        self.author1 = Author.objects.create(user=self.user1,
+                                             display_name='user1',
+                                             github='https://github.com/test',
+                                             profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author1.save()
+
+        self.author2 = Author.objects.create(user=self.user2,
+                                             display_name='user2',
+                                             github='https://github.com/test',
+                                             profile_image='https://www.history.com/.image/c_fit%2Ccs_srgb%2Cfl_progressive%2Cq_auto:good%2Cw_620/MTU3ODc5MDg2NDM2NjU2NDU3/reagan_flags.jpg')
+        self.author2.save()
+
+        self.post = Post.objects.create(author=self.author1,
+                                        title='My Post',
+                                        source='http://someurl.ca',
+                                        origin='http://someotherurl.ca',
+                                        description='My Post Description',
+                                        content_type='text/plain',
+                                        content='My Post Content',
+                                        visibility='PUBLIC',
+                                        unlisted=True,
+                                        categories='["test"]')
+        self.post.full_clean()
+        self.post.save()
+
+    def viewing_unavailable_post(self):
+        with self.settings(SECURE_SSL_REDIRECT = False):
+            c = Client()
+            c.login(username='user2', password='pass2')
+
+            response = c.get('http://testserver/authors/'+str(self.author1.id)+'/posts/'+str(self.post.id)+"/")
+            self.assertEqual(response.status_code, 403)
