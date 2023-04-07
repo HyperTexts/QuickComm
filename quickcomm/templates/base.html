@@ -67,12 +67,13 @@
             <ul class="nav col-12 col-lg-auto me-lg-auto mb-2 justify-content-center mb-md-0">
               <li><a href="#" class="nav-link px-2 link-secondary">Overview</a></li>
               <li><a href="{% url 'view_authors' %}" class="nav-link px-2 link-dark">Profiles</a></li>
+              <li><a href="{% url 'all_posts' %}" class="nav-link px-2 link-dark">All Public Posts</a></li>
             </ul>
 
             {% if user.is_authenticated %}
         <div class="dropdown text-end">
           <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-            <img src={{current_author.profile_image}} alt="hindle" width="32" height="32" class="rounded-circle">
+            <img src={{current_author.profile_image}} alt="profile image" width="32" height="32" class="rounded-circle">
           </a>
           <ul class="dropdown-menu text-small">
             <li><a class="dropdown-item" href="{% url 'create_plain' %}">New plain text post</a></li>

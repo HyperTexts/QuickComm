@@ -42,6 +42,16 @@ class AuthorRouter(routers.SimpleRouter):
             detail=False,
             initkwargs={'suffix': 'Inbox'}
         ),
+        # Inbox without trailing slash
+        Route(
+            url=r'^{prefix}/{lookup}/inbox$',
+            mapping={
+                'post': 'inbox',
+            },
+            name='{basename}-inbox-slash',
+            detail=False,
+            initkwargs={'suffix': 'Inbox Slash'}
+        ),
     ]
 
 class FollowersRouter(nested_routers.NestedSimpleRouter):

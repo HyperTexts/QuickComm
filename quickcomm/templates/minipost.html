@@ -8,7 +8,7 @@
       <h2 class="card-title">
         <i>{{ post.title }}</i>
       </h2>
-      <p>{{post.published|date:"F j, Y"}}</p>
+      <p>{{post.published|date:"F j, Y"}} (published {{post.published|naturaltime}})</p>
       </div>
         {% if post.content_type == post.PostType.TEXT %}
             <p >{{ post.content|truncatechars:80}}</p>

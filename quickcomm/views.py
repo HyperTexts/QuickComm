@@ -1,17 +1,18 @@
 import json
+from threading import Thread
 from dateutil import parser
 from django.db.models import Q, Count
 from django.template.defaulttags import register
 from django.shortcuts import render, redirect
 from django import template
 from django.shortcuts import render, redirect, get_object_or_404
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 from django.core.paginator import Paginator
 from django.urls import reverse
-from quickcomm.external_host_deserializers import sync_comments, sync_followers, sync_post_likes, sync_posts, sync_authors
-from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, CreateCommentForm, EditProfileForm
+from quickcomm.external_host_deserializers import sync_comment_likes, sync_comments, sync_followers, sync_post_likes, sync_posts, sync_authors
+from quickcomm.forms import CreateImageForm, CreateMarkdownForm, CreatePlainTextForm, CreateLoginForm, EditProfileForm
 from quickcomm.models import Author, Host, Post, Like, Comment, RegistrationSettings, Inbox
 from django.contrib.auth.forms import UserCreationForm
 from django.db.models import Q
@@ -150,7 +151,10 @@ def share_post(request, post_id, author_id):
     if request.method == 'POST':
         new_post = Post.objects.create(**current_attributes)
         new_post.save()
-        source = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': current_author.id, 'pk': new_post.id}))
+        if not post.external_url:
+            source = request.build_absolute_uri(reverse('api:post-detail', kwargs={'authors_pk': author_id, 'pk': post_id}))
+        else:
+            source = post.external_url
         new_post.source = source
         new_post.save()
         messages.success(request, "Post shared successfully!")
@@ -225,6 +229,8 @@ def post_view(request, post_id, author_id):
     if post.author.is_remote and not post.author.is_temporary:
         sync_comments(post)
         sync_post_likes(post)
+        for comment in post.comments.all():
+            sync_comment_likes(comment)
 
     post_type = post.visibility
     form = Form()
@@ -366,7 +372,7 @@ def post_comment(request, post_id, author_id):
     current_author = request.author
     post = Post.objects.get(pk=post_id)
     if request.method == 'POST':
-        
+
         text = json.loads(request.body)["comment"]
         if text:
             author = request.author
@@ -375,8 +381,13 @@ def post_comment(request, post_id, author_id):
             comment.author = author
             comment.comment = text
             comment.save()
+            # update comments from the server
+            if post.author.is_remote and not post.author.is_temporary:
+                sync_comments(post)
 
-            new_comment = render_to_string("minicomment.html", { "comment": comment, "current_author": current_author }, request=request)
+            # get new comment
+            rem_comment = Comment.objects.get(id=comment.id)
+            new_comment = render_to_string("minicomment.html", { "comment": rem_comment, "current_author": current_author }, request=request)
             return JsonResponse({"comments": new_comment + "<hr>"})
         # return redirect('post_comment', post_id=post_id, author_id=author_id)
 
@@ -410,14 +421,34 @@ def register(request):
         }
     return render(request, 'quickcomm/register.html', context)
 
+author_update_thread = None
+
 @author_required
 def view_authors(request):
+    global author_update_thread
     current_author = request.author
 
     all_hosts = Host.objects.all()
-    for host in all_hosts:
-        # update the author list
-        sync_authors(host)
+
+    def sync_all_authors():
+        for host in all_hosts:
+            sync_authors(host)
+
+        # get all authors from the database
+        authors = Author.objects.all()
+        for author in authors:
+            # if the author is remote, sync their posts
+            if author.is_remote and not author.is_temporary:
+                sync_followers(author)
+        # when we're done, set the thread to None so we can start it again
+        global author_update_thread
+        author_update_thread = None
+
+    if author_update_thread is None or not author_update_thread.is_alive():
+        # start the thread to update the author list
+        author_update_thread = Thread(target=sync_all_authors, daemon=True)
+        author_update_thread.start()
+
 
     authors = Author.frontend_queryset().order_by('display_name')
 
@@ -442,8 +473,8 @@ def view_profile(request, author_id):
     form = EditProfileForm()
 
     if author.is_remote and not author.is_temporary:
-        sync_posts(author)
-        sync_followers(author)
+        Thread(target=sync_posts, args=(author,), daemon=True).start()
+        Thread(target=sync_followers, args=(author,), daemon=True).start()
 
     current_attributes = {"display_name": current_author.display_name, "github": current_author.github, "profile_image": current_author.profile_image}
     if current_author.user == author.user:
@@ -465,9 +496,9 @@ def view_profile(request, author_id):
 
     is_friend = author.is_bidirectional(current_author)
     if is_friend:
-        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'FRIENDS') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author))
+        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'FRIENDS') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author)).order_by('-published')
     else:
-        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author))
+        posts = Post.objects.filter(Q(author=author) , Q(visibility = 'PUBLIC') | Q(visibility = 'PRIVATE', recipient = current_author.id) | Q(visibility = 'PRIVATE', author=author), Q(unlisted = False) | Q(unlisted = True, author=current_author)).order_by('-published')
     
 
 
@@ -622,13 +653,51 @@ def decline_request(request,author_id):
     to_user=get_object_or_404(Author,pk=author_id)
     pass
 
+all_posts_thread = None
+
+@author_required
+def all_posts(request):
+    """View all public posts on a server"""
+
+    current_author = request.author
+
+    def sync_all_authors2():
+        global all_posts_thread
+        for author in Author.objects.all():
+            if author.is_remote and not author.is_temporary:
+                sync_posts(author)
+                sync_followers(author)
+
+        all_posts_thread = None
+
+    global all_posts_thread
+    if all_posts_thread is None or not all_posts_thread.is_alive():
+        all_posts_thread = Thread(target=sync_all_authors2, daemon=True)
+        all_posts_thread.start()
+
+    posts = Post.objects.filter(visibility=Post.PostVisibility.PUBLIC, unlisted=False).order_by('-published')
+
+    size = request.GET.get('size', '10')
+    paginator = Paginator(posts, size)
+
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'page_obj': page_obj,
+        'size': size,
+        'current_author': current_author,
+    }
+
+    return render(request, 'quickcomm/all_posts.html', context)
+
 @author_required
 def view_author_posts(request, author_id):
     author = get_object_or_404(Author, pk=author_id)
     current_author = request.author
 
     if author.is_remote and not author.is_temporary:
-        sync_posts(author)
+        Thread(target=sync_posts, args=(author,), daemon=True).start()
 
     posts = Post.objects.filter(author=author, visibility=Post.PostVisibility.PUBLIC)
 

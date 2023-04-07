@@ -103,6 +103,7 @@ class Host(models.Model):
         THTH = "THTH", "Too Hot To Hindle (Group 2)"
         INTERNAL = "INTERNAL", "Internal Default"
         GROUP1 = "GROUP1", "Group 1"
+        MATTGROUP = "MATTGROUP", "Matt's Group"
 
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -257,7 +258,7 @@ class Author(models.Model):
     @property
     def is_temporary(self):
         """Returns true if the author is temporary."""
-        return self.host is None
+        return self.host is None and self.external_url is not None
 
     @property
     def location(self):
@@ -283,7 +284,7 @@ class Author(models.Model):
     
     def get_followers(self):
         return Follow.objects.filter(following=self)
-    
+
     def get_following(self):
         return Follow.objects.filter(follower=self)
     
@@ -443,7 +444,7 @@ class Post(models.Model):
         # skip inbox if post is unlisted
         if self.unlisted:
             return saved
-        
+
         # if visibility is private, we only send to the inbox of the recipient and the author of the post
         elif self.visibility == 'PRIVATE':
             try:
