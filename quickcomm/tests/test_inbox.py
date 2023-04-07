@@ -308,3 +308,19 @@ class InternalInboxTests(TestCase):
 
         self.assertEqual(items[3].author, self.author1)
         self.assertEqual(items[4].author, self.author2)
+    def test_image_post(self):
+        post = Post.objects.create(author=self.author2,
+                                   title='My Post',
+                                   source='http://someurl.ca',
+                                   origin='http://someotherurl.ca',
+                                   description='My Post Description',
+                                   content_type='image/png;base64',
+                                   content='file:///home/nanaya/add_tests/images/image.png',
+                                   visibility='FRIENDS',
+                                   unlisted=False,
+                                   categories='["test"]')
+        items=Inbox.objects.all()
+        post.full_clean()
+        self.assertEqual(len(items),1)
+        self.assertEqual(items[0].inbox_type,items[0].InboxType.POST)
+        self.assertEqual(items[0].content_object.content_type,'image/png;base64')
